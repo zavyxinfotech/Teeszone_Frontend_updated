@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-ink: #222222; /* charcoal black */
+  --color-body: #4a4a4a;
+  --color-surface: #f5f5f5; /* light grey */
+  --color-ivory: #f2f0e3; /* ivory white */
+  --color-line: #e2e2e2;
+  --color-accent: #970024; /* TeesZone burgundy */
+  --color-accent-dark: #6e0019; /* dark burgundy */
+  --color-accent-soft: #f7e9ec; /* burgundy tint for chips/cards */
+  --color-gold: #c9a227; /* metallic gold */
+  --color-gold-soft: #f5eedb;
+  --color-whatsapp: #25d366;
+  --color-whatsapp-dark: #1eb356;
+
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  @apply bg-white text-body font-sans antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  @apply font-heading text-ink;
+}
+
+/* section headings */
+.section-title {
+  @apply text-center text-2xl font-bold uppercase tracking-[0.08em] sm:text-3xl;
+}
+
+/* scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.55s ease,
+    transform 0.55s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* crossfade for tab/panel swaps */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-swap {
+  animation: fade-in-up 0.35s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-swap {
+    animation: none;
+  }
+}
+
+/* hide scrollbars on horizontal rails */
+.rail {
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
