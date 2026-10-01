@@ -49,10 +49,6 @@ export const products: Product[] = [
     price: 289,
     colors: [
       { ...c.black, image: "/products/crew-black.svg" },
-      { ...c.white, image: "/products/crew-white.svg" },
-      { ...c.maroon, image: "/products/crew-maroon.svg" },
-      { ...c.royal, image: "/products/crew-royal.svg" },
-      { ...c.grey, image: "/products/tee-grey.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -77,7 +73,6 @@ export const products: Product[] = [
     price: 405,
     colors: [
       { ...c.black, image: "/products/crew-black.svg" },
-      { ...c.white, image: "/products/crew-white.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -102,8 +97,6 @@ export const products: Product[] = [
     price: 463,
     colors: [
       { ...c.navy, image: "/products/polo-navy.svg" },
-      { ...c.white, image: "/products/polo-white.svg" },
-      { ...c.black, image: "/products/polo-black.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -128,7 +121,6 @@ export const products: Product[] = [
     price: 579,
     colors: [
       { ...c.black, image: "/products/polo-black.svg" },
-      { ...c.navy, image: "/products/polo-navy.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -154,8 +146,6 @@ export const products: Product[] = [
     price: 231,
     colors: [
       { ...c.royal, image: "/products/crew-royal.svg" },
-      { ...c.red, image: "/products/jersey-red.svg" },
-      { ...c.black, image: "/products/crew-black.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -180,7 +170,6 @@ export const products: Product[] = [
     price: 405,
     colors: [
       { ...c.navy, image: "/products/polo-navy.svg" },
-      { ...c.white, image: "/products/polo-white.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -206,8 +195,6 @@ export const products: Product[] = [
     price: 753,
     colors: [
       { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
-      { ...c.navy, image: "/products/hoodie-navy.svg" },
-      { ...c.pink, image: "/products/hoodie-pink.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -232,8 +219,6 @@ export const products: Product[] = [
     price: 637,
     colors: [
       { ...c.grey, image: "/products/sweatshirt-grey.svg" },
-      { ...c.maroon, image: "/products/sweatshirt-maroon.svg" },
-      { ...c.green, image: "/products/sweatshirt-green.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -258,7 +243,6 @@ export const products: Product[] = [
     price: 811,
     colors: [
       { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
-      { ...c.navy, image: "/products/hoodie-navy.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -284,7 +268,6 @@ export const products: Product[] = [
     price: 463,
     colors: [
       { ...c.black, image: "/products/crew-black.svg" },
-      { ...c.grey, image: "/products/tee-grey.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -309,7 +292,6 @@ export const products: Product[] = [
     price: 231,
     colors: [
       { ...c.black, image: "/products/vneck-black.svg" },
-      { ...c.white, image: "/products/vneck-white.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -334,7 +316,6 @@ export const products: Product[] = [
     price: 347,
     colors: [
       { ...c.maroon, image: "/products/crew-maroon.svg" },
-      { ...c.navy, image: "/products/longsleeve-navy.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -342,31 +323,6 @@ export const products: Product[] = [
       "Contrast raglan sleeves",
       "Flexible blend with gentle stretch",
       "Great for sports and college fests",
-    ],
-  },
-  {
-    id: "p-mens-tank",
-    name: "Men's Training Tank Top",
-    slug: "mens-training-tank-top",
-    collections: ["mens-tank-top"],
-    description:
-      "A breathable gym tank in soft combed cotton with a deep armhole cut for full range of motion.",
-    fit: "Athletic fit with deep armholes.",
-    fabric: "Combed Cotton",
-    gsm: 160,
-    mrp: 399,
-    price: 231,
-    colors: [
-      { ...c.black, image: "/products/tank-black.svg" },
-      { ...c.grey, image: "/products/tank-grey.svg" },
-      { ...c.white, image: "/products/tank-white.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "Bound neckline that won't stretch out",
-      "Sweat-friendly breathable knit",
-      "Gym and academy branding available",
     ],
   },
   {
@@ -383,8 +339,6 @@ export const products: Product[] = [
     price: 405,
     colors: [
       { ...c.white, image: "/products/longsleeve-white.svg" },
-      { ...c.navy, image: "/products/longsleeve-navy.svg" },
-      { ...c.maroon, image: "/products/longsleeve-maroon.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -409,8 +363,6 @@ export const products: Product[] = [
     price: 579,
     colors: [
       { ...c.black, image: "/products/joggers-black.svg" },
-      { ...c.grey, image: "/products/joggers-grey.svg" },
-      { ...c.navy, image: "/products/joggers-navy.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -434,8 +386,6 @@ export const products: Product[] = [
     price: 347,
     colors: [
       { ...c.black, image: "/products/shorts-black.svg" },
-      { ...c.grey, image: "/products/shorts-grey.svg" },
-      { ...c.navy, image: "/products/shorts-navy.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -458,7 +408,9 @@ export const products: Product[] = [
     gsm: 150,
     mrp: 249,
     price: 144,
-    colors: [{ ...c.white, image: "/products/tank-white.svg" }],
+    colors: [
+      { ...c.white, image: "/products/tank-white.svg" },
+    ],
     sizes: ADULT,
     qtyDiscounts: QTY,
     features: [
@@ -483,9 +435,6 @@ export const products: Product[] = [
     price: 289,
     colors: [
       { ...c.softPink, image: "/products/crop-pink.svg" },
-      { ...c.white, image: "/products/crew-white.svg" },
-      { ...c.black, image: "/products/crew-black.svg" },
-      { ...c.lilac, image: "/products/crop-lilac.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
@@ -495,56 +444,6 @@ export const products: Product[] = [
       "Pastel palette available in bulk",
     ],
     bestSeller: true,
-  },
-  {
-    id: "p-womens-crop",
-    name: "Women's Boxy Crop Top",
-    slug: "womens-boxy-crop-top",
-    collections: ["womens-crop-top", "new-arrival"],
-    description:
-      "A boxy cropped tee with a raw-look hem — the modern merch silhouette for events, brands and college fests.",
-    fit: "Boxy cropped fit, hits at the waist.",
-    fabric: "100% Cotton",
-    gsm: 180,
-    mrp: 549,
-    price: 318,
-    colors: [
-      { ...c.softPink, image: "/products/crop-pink.svg" },
-      { ...c.black, image: "/products/crop-black.svg" },
-      { ...c.lilac, image: "/products/crop-lilac.svg" },
-    ],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    qtyDiscounts: QTY,
-    features: [
-      "Clean boxy silhouette",
-      "Pre-shrunk so the crop stays where it should",
-      "Prints and embroidery both work beautifully",
-    ],
-    isNew: true,
-  },
-  {
-    id: "p-womens-crop-hoodie",
-    name: "Women's Crop Hoodie",
-    slug: "womens-crop-hoodie",
-    collections: ["womens-crop-hoodie"],
-    description:
-      "A cropped fleece hoodie that pairs warmth with a contemporary cut — campus and athleisure merch favourite.",
-    fit: "Cropped relaxed fit with full-length sleeves.",
-    fabric: "Cotton-Poly Brushed Fleece",
-    gsm: 300,
-    mrp: 1199,
-    price: 695,
-    colors: [
-      { ...c.pink, image: "/products/hoodie-pink.svg" },
-      { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
-    ],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    qtyDiscounts: QTY,
-    features: [
-      "Brushed fleece warmth in a cropped cut",
-      "Ribbed hem sits neatly at the waist",
-      "Matching joggers available for sets",
-    ],
   },
 
   // ---------- KIDS ----------
@@ -562,8 +461,6 @@ export const products: Product[] = [
     price: 202,
     colors: [
       { ...c.mint, image: "/products/romper-mint.svg" },
-      { ...c.mustard, image: "/products/romper-yellow.svg" },
-      { ...c.sky, image: "/products/romper-skyblue.svg" },
     ],
     sizes: INFANT,
     qtyDiscounts: QTY,
@@ -587,9 +484,6 @@ export const products: Product[] = [
     price: 173,
     colors: [
       { ...c.mustard, image: "/products/tee-yellow.svg" },
-      { ...c.royal, image: "/products/crew-royal.svg" },
-      { ...c.red, image: "/products/jersey-red.svg" },
-      { ...c.mint, image: "/products/romper-mint.svg" },
     ],
     sizes: KIDS,
     qtyDiscounts: QTY,
@@ -614,7 +508,6 @@ export const products: Product[] = [
     price: 260,
     colors: [
       { ...c.white, image: "/products/polo-white.svg" },
-      { ...c.navy, image: "/products/polo-navy.svg" },
     ],
     sizes: KIDS,
     qtyDiscounts: QTY,
@@ -623,32 +516,6 @@ export const products: Product[] = [
       "No button issues — QC on every piece",
       "Custom colors matched to your institution",
     ],
-  },
-  {
-    id: "p-kids-cordset",
-    name: "Kids Cotton Cord Set",
-    slug: "kids-cotton-cord-set",
-    collections: ["kids-cordset", "new-arrival"],
-    description:
-      "A matching tee-and-jogger set in soft combed cotton — the gift-ready combo parents and schools love.",
-    fit: "Comfy coordinated set with elastic-waist joggers.",
-    fabric: "Combed Cotton",
-    gsm: 180,
-    mrp: 799,
-    price: 463,
-    colors: [
-      { ...c.red, image: "/products/cordset-red.svg" },
-      { ...c.green, image: "/products/cordset-green.svg" },
-      { ...c.tangerine, image: "/products/cordset-tangerine.svg" },
-    ],
-    sizes: KIDS,
-    qtyDiscounts: QTY,
-    features: [
-      "Matching top and bottom in one SKU",
-      "Soft elastic waistband",
-      "Gift packaging available for bulk",
-    ],
-    isNew: true,
   },
   {
     id: "p-kids-joggers",
@@ -664,7 +531,6 @@ export const products: Product[] = [
     price: 347,
     colors: [
       { ...c.grey, image: "/products/joggers-grey.svg" },
-      { ...c.navy, image: "/products/joggers-navy.svg" },
     ],
     sizes: KIDS,
     qtyDiscounts: QTY,
@@ -688,8 +554,6 @@ export const products: Product[] = [
     price: 521,
     colors: [
       { ...c.grey, image: "/products/hoodie-charcoal.svg" },
-      { ...c.navy, image: "/products/hoodie-navy.svg" },
-      { ...c.red, image: "/products/jersey-red.svg" },
     ],
     sizes: KIDS,
     qtyDiscounts: QTY,
@@ -714,7 +578,6 @@ export const products: Product[] = [
     price: 231,
     colors: [
       { ...c.white, image: "/products/longsleeve-white.svg" },
-      { ...c.navy, image: "/products/longsleeve-navy.svg" },
     ],
     sizes: KIDS,
     qtyDiscounts: QTY,

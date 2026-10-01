@@ -4,11 +4,16 @@ import { ArrowRight, MessageCircle } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
 
+import heroImg1 from "@/assets/T-shirt_hero_img1.png";
+import heroImg2 from "@/assets/Hoodie_hero_img2.png";
+import heroImg3 from "@/assets/T-shirt_hero_img3.png";
+import heroImg4 from "@/assets/T-shirt_hero_img4.png";
+
 const collage = [
-  { src: "/products/polo-navy.svg", alt: "Custom navy polo", offset: "translate-y-6" },
-  { src: "/products/hoodie-charcoal.svg", alt: "Custom charcoal hoodie", offset: "" },
-  { src: "/products/jersey-red.svg", alt: "Custom red sports jersey", offset: "translate-y-6" },
-  { src: "/products/crew-maroon.svg", alt: "Custom maroon crew tee", offset: "" },
+  { src: heroImg1, alt: "Custom T-shirt", offset: "translate-y-6" },
+  { src: heroImg2, alt: "Custom Hoodie", offset: "" },
+  { src: heroImg3, alt: "Custom T-shirt", offset: "translate-y-6" },
+  { src: heroImg4, alt: "Custom T-shirt", offset: "" },
 ];
 
 const stats = [
@@ -78,7 +83,7 @@ export function HeroSplit() {
 
         <div className="mx-auto grid w-full max-w-md grid-cols-2 gap-4">
           {collage.map((c, i) => (
-            <Reveal key={c.src} delay={i * 90} className={c.offset}>
+            <Reveal key={c.src.src} delay={i * 90} className={c.offset}>
               <div className="overflow-hidden bg-white shadow-sm transition-transform duration-300 hover:scale-[1.03]">
                 <Image
                   src={c.src}

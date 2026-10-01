@@ -12,8 +12,8 @@ const feature = {
 
 const tiles = [
   { title: "Men", href: "/collections/mens-oversized-tee", image: "/products/crew-black.svg" },
-  { title: "Women", href: "/collections/womens-round-neck", image: "/products/crop-pink.svg" },
-  { title: "Kids", href: "/collections/kids-round-neck", image: "/products/cordset-red.svg" },
+  { title: "Women", href: "/collections/womens-round-neck", image: "/products/crew-white.svg" },
+  { title: "Kids", href: "/collections/kids-round-neck", image: "/products/jersey-red.svg" },
   { title: "Mega Sale", href: "/collections/mega-sale", image: "/products/tee-yellow.svg", sale: true },
 ];
 

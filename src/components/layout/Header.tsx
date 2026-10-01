@@ -24,8 +24,8 @@ const useCaseLinks = [
 const featuredBySegment: Record<string, string> = {
   unisex: "/products/crew-white.svg",
   men: "/products/crew-black.svg",
-  women: "/products/crop-pink.svg",
-  kids: "/products/cordset-red.svg",
+  women: "/products/crew-white.svg",
+  kids: "/products/jersey-red.svg",
 };
 
 export function Header({
