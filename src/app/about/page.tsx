@@ -41,7 +41,7 @@ export default function AboutPage() {
       <section className="bg-surface">
         <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 md:py-20">
           <Badge>About {site.name}</Badge>
-          <h1 className="mt-5 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+          <h1 className="mt-5 max-w-2xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
             A uniform is your brand, worn every day.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed">
@@ -62,7 +62,7 @@ export default function AboutPage() {
                   <Icon size={24} />
                 </span>
                 <div>
-                  <h2 className="text-lg font-bold">{title}</h2>
+                  <h2 className="text-lg ">{title}</h2>
                   <p className="mt-2 text-sm leading-relaxed">{text}</p>
                 </div>
               </div>

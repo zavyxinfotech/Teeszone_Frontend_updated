@@ -28,7 +28,7 @@ export function FabricLibrary({ fabrics }: { fabrics: Fabric[] }) {
             <button
               key={f.key}
               onClick={() => setActive(i)}
-              className={`border px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`border px-4 py-2 text-xs  uppercase tracking-wider transition-all ${
                 i === active
                   ? "border-accent bg-accent text-white shadow-sm"
                   : "border-line bg-white text-ink hover:border-accent hover:text-accent"
@@ -55,7 +55,7 @@ export function FabricLibrary({ fabrics }: { fabrics: Fabric[] }) {
           />
         </div>
         <div>
-          <h3 className="text-lg font-black uppercase tracking-wide text-ink">
+          <h3 className="text-lg font-bold uppercase tracking-wide text-ink">
             {fabric.name}
           </h3>
           <p className="mt-2 text-sm leading-relaxed">{fabric.description}</p>

@@ -96,7 +96,7 @@ export function CartView({ products }: { products: Product[] }) {
   return (
     <div className="mx-auto max-w-[1320px] px-4 py-10 sm:px-6 md:py-14">
       <div className="flex items-end justify-between gap-4">
-        <h1 className="text-3xl font-black uppercase tracking-tight sm:text-4xl">
+        <h1 className="text-3xl font-bold uppercase tracking-tight sm:text-4xl">
           Your Cart
         </h1>
         <button
@@ -129,7 +129,7 @@ export function CartView({ products }: { products: Product[] }) {
                 <div className="min-w-0">
                   <Link
                     href={`/products/${l.slug}`}
-                    className="line-clamp-2 text-sm font-semibold text-ink hover:text-accent"
+                    className="line-clamp-2 text-sm font-bold text-ink hover:text-accent"
                   >
                     {l.name}
                   </Link>
@@ -144,7 +144,7 @@ export function CartView({ products }: { products: Product[] }) {
                     ₹ {l.unitPrice}
                     <span className="font-normal text-body">/pc</span>
                     {l.offPct > 0 && (
-                      <span className="ml-2 text-xs font-semibold text-accent">
+                      <span className="ml-2 text-xs font-bold text-accent">
                         bulk tier −{l.offPct}%
                       </span>
                     )}
@@ -160,7 +160,7 @@ export function CartView({ products }: { products: Product[] }) {
                     >
                       <Minus size={14} />
                     </button>
-                    <span className="w-8 text-center text-sm font-semibold text-ink">
+                    <span className="w-8 text-center text-sm font-bold text-ink">
                       {l.qty}
                     </span>
                     <button
@@ -213,7 +213,7 @@ export function CartView({ products }: { products: Product[] }) {
           <dl className="mt-4 space-y-2.5 text-sm">
             <div className="flex justify-between">
               <dt className="text-body">Items</dt>
-              <dd className="font-semibold text-ink">{totalItems} pcs</dd>
+              <dd className=" text-ink">{totalItems} pcs</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-body">MRP value</dt>
@@ -223,13 +223,13 @@ export function CartView({ products }: { products: Product[] }) {
             </div>
             <div className="flex justify-between">
               <dt className="text-body">You save</dt>
-              <dd className="font-semibold text-accent">
+              <dd className=" text-accent">
                 − ₹ {savings.toLocaleString("en-IN")}
               </dd>
             </div>
             <div className="flex justify-between border-t border-line pt-3 text-base">
-              <dt className="font-bold text-ink">Estimated total</dt>
-              <dd className="font-black text-ink">
+              <dt className=" text-ink">Estimated total</dt>
+              <dd className=" text-ink">
                 ₹ {subtotal.toLocaleString("en-IN")}
               </dd>
             </div>

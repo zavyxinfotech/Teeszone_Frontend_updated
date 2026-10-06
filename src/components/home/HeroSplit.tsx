@@ -33,7 +33,7 @@ export function HeroSplit() {
             </p>
           </Reveal>
           <Reveal delay={80}>
-            <h1 className="mt-4 text-4xl font-black uppercase leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl">
+            <h1 className="mt-4 text-4xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl">
               Factory-Direct
               <br />
               Custom Apparel
@@ -69,7 +69,7 @@ export function HeroSplit() {
               {stats.map((s) => (
                 <div key={s.label}>
                   <dt className="sr-only">{s.label}</dt>
-                  <dd className="font-heading text-3xl font-black text-accent">
+                  <dd className="font-heading text-3xl font-bold text-accent">
                     <CountUp end={s.end} suffix={s.suffix} />
                   </dd>
                   <dd className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-body">

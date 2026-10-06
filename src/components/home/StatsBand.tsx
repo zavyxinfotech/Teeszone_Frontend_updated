@@ -15,7 +15,7 @@ export function StatsBand() {
         {stats.map((s, i) => (
           <Reveal key={s.label} delay={i * 70}>
             <div className="text-center">
-              <p className="font-heading text-4xl font-black text-gold sm:text-5xl">
+              <p className="font-heading text-4xl font-bold text-gold sm:text-5xl">
                 <CountUp end={s.end} suffix={s.suffix} />
               </p>
               <p className="mt-2 text-xs font-bold uppercase tracking-wider text-white">

@@ -37,7 +37,7 @@ export function ForgotPasswordView() {
         <div className="space-y-5 text-center">
           <MailCheck size={36} className="mx-auto text-accent" />
           <p className="text-sm text-body">
-            If an account exists for <span className="font-semibold text-ink">{email}</span>,
+            If an account exists for <span className=" text-ink">{email}</span>,
             a reset link is on its way. It stays valid for 30 minutes — check spam too.
           </p>
           <Button href="/login" variant="secondary" className="w-full">
@@ -67,7 +67,7 @@ export function ForgotPasswordView() {
 
           <p className="text-center text-sm text-body">
             Remembered it?{" "}
-            <Link href="/login" className="font-semibold text-accent hover:underline">
+            <Link href="/login" className=" text-accent hover:underline">
               Sign in
             </Link>
           </p>

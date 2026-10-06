@@ -85,7 +85,7 @@ export function LoginView() {
             action={
               <Link
                 href="/forgot-password"
-                className="text-xs font-semibold text-accent hover:underline"
+                className="text-xs font-bold text-accent hover:underline"
               >
                 Forgot password?
               </Link>

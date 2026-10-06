@@ -59,7 +59,7 @@ export function QuoteForm({
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor="name" className="mb-1.5 block text-sm font-semibold text-ink">
+          <label htmlFor="name" className="mb-1.5 block text-sm font-bold text-ink">
             Your name *
           </label>
           <input
@@ -72,7 +72,7 @@ export function QuoteForm({
           />
         </div>
         <div>
-          <label htmlFor="company" className="mb-1.5 block text-sm font-semibold text-ink">
+          <label htmlFor="company" className="mb-1.5 block text-sm font-bold text-ink">
             Company / institution
           </label>
           <input
@@ -87,7 +87,7 @@ export function QuoteForm({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor="phone" className="mb-1.5 block text-sm font-semibold text-ink">
+          <label htmlFor="phone" className="mb-1.5 block text-sm font-bold text-ink">
             Phone / WhatsApp *
           </label>
           <input
@@ -101,7 +101,7 @@ export function QuoteForm({
           />
         </div>
         <div>
-          <label htmlFor="quantity" className="mb-1.5 block text-sm font-semibold text-ink">
+          <label htmlFor="quantity" className="mb-1.5 block text-sm font-bold text-ink">
             Approx. quantity
           </label>
           <input
@@ -115,7 +115,7 @@ export function QuoteForm({
       </div>
 
       <div>
-        <label htmlFor="product" className="mb-1.5 block text-sm font-semibold text-ink">
+        <label htmlFor="product" className="mb-1.5 block text-sm font-bold text-ink">
           Product
         </label>
         <select
@@ -134,7 +134,7 @@ export function QuoteForm({
       </div>
 
       <div>
-        <label htmlFor="message" className="mb-1.5 block text-sm font-semibold text-ink">
+        <label htmlFor="message" className="mb-1.5 block text-sm font-bold text-ink">
           Tell us about your requirement
         </label>
         <textarea
@@ -158,7 +158,7 @@ export function QuoteForm({
         {status === "sending" ? "Sending…" : "Send Enquiry"}
       </Button>
       {status === "sent" ? (
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-accent">
+        <p className="flex items-center gap-1.5 text-xs font-bold text-accent">
           <CheckCircle2 size={14} />
           Enquiry received! We also opened WhatsApp so you can chat with us directly.
         </p>

@@ -36,7 +36,7 @@ function Row({
         {onToggle && (
           <button
             onClick={onToggle}
-            className="shrink-0 text-sm font-semibold text-accent hover:underline"
+            className="shrink-0 text-sm font-bold text-accent hover:underline"
           >
             {editing ? "Cancel" : editLabel}
           </button>
@@ -185,7 +185,7 @@ export function SecurityView() {
       {({ user, token }) => (
         <div className="max-w-2xl border border-line bg-white px-6">
           {saved && (
-            <p className="flex items-center gap-1.5 pt-4 text-xs font-semibold text-accent">
+            <p className="flex items-center gap-1.5 pt-4 text-xs font-bold text-accent">
               <CheckCircle2 size={14} />
               {saved}
             </p>

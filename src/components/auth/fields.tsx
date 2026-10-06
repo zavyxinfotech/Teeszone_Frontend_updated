@@ -21,7 +21,7 @@ export function Field({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between">
-        <label htmlFor={id} className="block text-sm font-semibold text-ink">
+        <label htmlFor={id} className="block text-sm font-bold text-ink">
           {label}
         </label>
         {action}
@@ -79,7 +79,7 @@ export function ErrorBox({ error }: { error: ApiError | Error | null }) {
     <div className="flex gap-2.5 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm">
       <TriangleAlert size={17} className="mt-0.5 shrink-0 text-accent" />
       <div>
-        <p className="font-semibold text-ink">{error.message}</p>
+        <p className=" text-ink">{error.message}</p>
         {description && <p className="mt-0.5 text-xs text-body">{description}</p>}
       </div>
     </div>
@@ -90,7 +90,7 @@ export function Divider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-4">
       <span className="h-px flex-1 bg-line" />
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-body">{label}</span>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-body">{label}</span>
       <span className="h-px flex-1 bg-line" />
     </div>
   );

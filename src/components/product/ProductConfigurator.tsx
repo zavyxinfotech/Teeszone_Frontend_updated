@@ -226,10 +226,10 @@ export function ProductConfigurator({ product }: { product: Product }) {
           <span className="text-sm text-body line-through">
             ₹ {product.mrp.toFixed(2)}
           </span>
-          <span className="text-sm font-semibold text-accent">
+          <span className="text-sm font-bold text-accent">
             ({offPct(product)}% OFF)
           </span>
-          <span className="text-2xl font-black text-ink">₹ {product.price}</span>
+          <span className="text-2xl font-bold text-ink">₹ {product.price}</span>
           <span className="text-xs text-body">per piece</span>
         </div>
 
@@ -252,12 +252,12 @@ export function ProductConfigurator({ product }: { product: Product }) {
                   }`}
                 >
                   <p
-                    className={`text-sm font-bold ${active ? "text-white" : "text-ink"}`}
+                    className={`text-sm  ${active ? "text-white" : "text-ink"}`}
                   >
                     {t.minQty > 1 ? `${t.minQty}+ Pcs` : "Sample / Few Pcs"}
                   </p>
                   <p
-                    className={`mt-0.5 text-xs font-medium ${
+                    className={`mt-0.5 text-xs  ${
                       active ? "text-white/70" : "text-body"
                     }`}
                   >
@@ -295,10 +295,10 @@ export function ProductConfigurator({ product }: { product: Product }) {
         {/* Step 1: Colors */}
         <div className="mt-6">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-            <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-black text-white">
+            <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
               1
             </span>
-            Color: <span className="font-medium normal-case text-body">{color.name}</span>
+            Color: <span className=" normal-case text-body">{color.name}</span>
           </p>
           <div className="mt-2.5 flex flex-wrap gap-2.5">
             {product.colors.map((c, i) => {
@@ -336,14 +336,14 @@ export function ProductConfigurator({ product }: { product: Product }) {
         <div className="mt-6">
           <div className="flex items-baseline justify-between">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-              <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-black text-white">
+              <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
                 2
               </span>
               Sizes & Quantities
             </p>
             {showSizeGuide && (
               <details className="relative">
-                <summary className="cursor-pointer list-none text-xs font-semibold text-accent underline underline-offset-4 [&::-webkit-details-marker]:hidden">
+                <summary className="cursor-pointer list-none text-xs font-bold text-accent underline underline-offset-4 [&::-webkit-details-marker]:hidden">
                   Size Guide
                 </summary>
                 <div className="absolute right-0 z-20 mt-2 w-56 border border-line bg-white p-4 shadow-xl">
@@ -356,7 +356,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
                         .filter((s) => SIZE_GUIDE[s])
                         .map((s) => (
                           <tr key={s}>
-                            <td className="py-1.5 font-semibold text-ink">{s}</td>
+                            <td className="py-1.5 font-bold text-ink">{s}</td>
                             <td className="py-1.5 text-right">{SIZE_GUIDE[s]}</td>
                           </tr>
                         ))}
@@ -368,7 +368,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
           </div>
           <p className="mt-1 text-xs text-body">
             Entering sizes for{" "}
-            <span className="inline-flex items-center gap-1.5 font-semibold text-ink">
+            <span className="inline-flex items-center gap-1.5 font-bold text-ink">
               <span
                 className="inline-block h-3 w-3 rounded-full border border-ink/20"
                 style={{ backgroundColor: color.hex }}
@@ -384,7 +384,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
               return (
                 <div key={s} className="flex items-center justify-between">
                   <span
-                    className={`min-w-24 rounded-lg border px-4 py-2.5 text-center text-sm font-semibold transition-all ${
+                    className={`min-w-24 rounded-lg border px-4 py-2.5 text-center text-sm  transition-all ${
                       value > 0
                         ? "border-ink bg-ink text-white"
                         : "border-line bg-white text-ink"
@@ -410,7 +410,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
                       placeholder="0"
                       onChange={(e) => setSizeQty(s, Number(e.target.value) || 0)}
                       aria-label={`${s} quantity`}
-                      className="w-10 border-0 text-center text-base font-semibold text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="w-10 border-0 text-center text-base font-bold text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                     <button
                       aria-label={`Increase ${s} quantity`}
@@ -448,7 +448,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
           <div className="mt-4 overflow-hidden rounded-xl bg-ink text-white">
             <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4">
               <div className="min-w-0">
-                <p className="text-sm font-bold">{totalQty} pcs total</p>
+                <p className="text-sm ">{totalQty} pcs total</p>
                 {/* per-color breakdown */}
                 <ul className="mt-2 space-y-1.5">
                   {colorsWithQty.map((cn) => {
@@ -459,7 +459,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
                           className="h-3 w-3 shrink-0 rounded-full border border-white/30"
                           style={{ backgroundColor: swatch?.hex }}
                         />
-                        <span className="font-semibold">{cn}</span>
+                        <span className="">{cn}</span>
                         <span className="text-white/60">
                           {splitFor(cn)} · {colorTotals[cn]} pcs
                         </span>
@@ -487,7 +487,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xl font-black">
+                <p className="text-xl ">
                   ₹ {(unitPrice * totalQty).toLocaleString("en-IN")}
                 </p>
                 <p className="text-xs text-white/60">est. @ ₹{unitPrice}/pc</p>
@@ -503,7 +503,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
                     </strong>{" "}
                     for extra {nextTier.offPct}% off
                   </span>
-                  <span className="font-semibold text-gold">
+                  <span className=" text-gold">
                     {totalQty}/{nextTier.minQty}
                   </span>
                 </div>
@@ -523,7 +523,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
         {/* Logo / branding */}
         <div className="mt-6">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-            <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-black text-white">
+            <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
               3
             </span>
             Your Logo or Design
@@ -539,7 +539,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
                   className="h-14 w-14 rounded-lg border border-line bg-white object-contain p-1"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-ink">
+                  <p className="truncate text-sm font-bold text-ink">
                     {logoName}
                   </p>
                   <p className="mt-0.5 flex items-center gap-1 text-xs text-body">
@@ -568,7 +568,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-accent shadow-sm transition-transform group-hover:-translate-y-0.5">
                   <CloudUpload size={20} />
                 </span>
-                <span className="text-sm font-semibold text-ink">
+                <span className="text-sm font-bold text-ink">
                   Drop your logo here or{" "}
                   <span className="text-accent underline underline-offset-2">
                     browse files
@@ -605,7 +605,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
         {/* Step 4: CTAs */}
         <div className="mt-7 flex flex-col gap-3">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-            <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-black text-white">
+            <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
               4
             </span>
             Review & Add

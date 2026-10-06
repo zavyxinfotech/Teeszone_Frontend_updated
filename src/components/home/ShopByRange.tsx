@@ -40,7 +40,7 @@ export function ShopByRange() {
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="relative z-10 w-full bg-gradient-to-t from-ink/80 via-ink/30 to-transparent p-7 pt-20">
-                <h3 className="text-2xl font-black uppercase tracking-wide text-white">
+                <h3 className="text-2xl font-bold uppercase tracking-wide text-white">
                   {feature.title}
                 </h3>
                 <p className="mt-1.5 max-w-sm text-sm text-white/80">{feature.text}</p>
@@ -69,7 +69,7 @@ export function ShopByRange() {
                   />
                   <div className="relative z-10 w-full bg-gradient-to-t from-ink/75 to-transparent p-4 pt-12">
                     <h3
-                      className={`text-sm font-black uppercase tracking-wide ${
+                      className={`text-sm  uppercase tracking-wide ${
                         t.sale ? "text-gold" : "text-white"
                       }`}
                     >

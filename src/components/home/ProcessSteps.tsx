@@ -33,7 +33,7 @@ export function ProcessSteps() {
           {steps.map((step, i) => (
             <Reveal key={step.title} delay={i * 90}>
               <div className="relative">
-                <span className="flex h-12 w-12 items-center justify-center bg-accent font-heading text-lg font-black text-white">
+                <span className="flex h-12 w-12 items-center justify-center bg-accent font-heading text-lg font-bold text-white">
                   {i + 1}
                 </span>
                 {i < steps.length - 1 && (

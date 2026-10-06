@@ -43,7 +43,7 @@ export function WishlistView({ products }: { products: Product[] }) {
 
   return (
     <div className="mx-auto max-w-[1320px] px-4 py-10 sm:px-6 md:py-14">
-      <h1 className="text-3xl font-black uppercase tracking-tight sm:text-4xl">
+      <h1 className="text-3xl font-bold uppercase tracking-tight sm:text-4xl">
         Your Wishlist
       </h1>
       <p className="mt-2 text-sm">

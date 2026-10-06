@@ -22,7 +22,7 @@ export default async function ProductsPage() {
         </Link>{" "}
         / All Products
       </p>
-      <h1 className="mt-3 text-3xl font-black uppercase tracking-tight sm:text-4xl">
+      <h1 className="mt-3 text-3xl font-bold uppercase tracking-tight sm:text-4xl">
         All Products
       </h1>
       <p className="mt-2 max-w-xl text-sm">

@@ -61,7 +61,7 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="py-4">
         <div className="flex items-start justify-between gap-3">
           <Link href={`/products/${product.slug}`} className="min-w-0">
-            <h3 className="line-clamp-2 text-sm font-semibold text-ink transition-colors hover:text-accent">
+            <h3 className="line-clamp-2 text-sm font-bold text-ink transition-colors hover:text-accent">
               {product.name}
             </h3>
           </Link>
@@ -75,7 +75,7 @@ export function ProductCard({ product }: { product: Product }) {
               />
             ))}
             {product.colors.length > 4 && (
-              <span className="text-[10px] font-semibold text-body">
+              <span className="text-[10px] font-bold text-body">
                 +{product.colors.length - 4}
               </span>
             )}
@@ -87,11 +87,11 @@ export function ProductCard({ product }: { product: Product }) {
         </span>
 
         <p className="mt-2.5 text-sm">
-          <span className="font-heading text-base font-black text-ink">
+          <span className="font-heading text-base font-bold text-ink">
             ₹ {bulkPrice}
           </span>
           <span className="text-body">/pc</span>
-          <span className="ml-1.5 text-xs font-semibold text-accent">
+          <span className="ml-1.5 text-xs font-bold text-accent">
             at {bulkQty.minQty}+ pcs
           </span>
         </p>

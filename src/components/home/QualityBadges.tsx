@@ -15,7 +15,7 @@ export function QualityBadges() {
     <section className="bg-ink">
       <div className="mx-auto max-w-[1200px] px-4 py-14 sm:px-6">
         <Reveal>
-          <h2 className="text-center text-2xl font-extrabold tracking-tight text-white">
+          <h2 className="text-center text-2xl font-bold tracking-tight text-white">
             Our Quality Guarantee
           </h2>
           <p className="mx-auto mt-2 max-w-md text-center text-sm text-white/60">
@@ -27,7 +27,7 @@ export function QualityBadges() {
             <Reveal key={g} delay={i * 50}>
               <div className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-4">
                 <ShieldCheck size={17} className="shrink-0 text-gold" />
-                <span className="font-heading text-xs font-semibold text-white">
+                <span className="font-heading text-xs font-bold text-white">
                   {g}
                 </span>
               </div>

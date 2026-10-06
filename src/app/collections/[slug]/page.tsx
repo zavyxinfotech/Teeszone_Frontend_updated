@@ -53,7 +53,7 @@ export default async function CollectionPage({
         / {segment ? `${segment.name} / ` : ""}
         {col.name}
       </p>
-      <h1 className="mt-3 text-3xl font-black uppercase tracking-tight sm:text-4xl">
+      <h1 className="mt-3 text-3xl font-bold uppercase tracking-tight sm:text-4xl">
         {col.name}
       </h1>
       <p className="mt-2 max-w-xl text-sm">{col.description}</p>
@@ -67,7 +67,7 @@ export default async function CollectionPage({
               <Link
                 key={s}
                 href={`/collections/${s}`}
-                className={`border px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                className={`border px-4 py-2 text-xs  uppercase tracking-wider transition-colors ${
                   s === slug
                     ? "border-ink bg-ink text-white"
                     : "border-line text-ink hover:border-ink"

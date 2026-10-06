@@ -64,7 +64,7 @@ export function AccountDashboard() {
       {({ user }) => (
         <>
           <p className="-mt-4 mb-8 text-sm text-body">
-            Hi <span className="font-semibold text-ink">{user.name || user.email}</span> — manage
+            Hi <span className=" text-ink">{user.name || user.email}</span> — manage
             your details, addresses and saved products here.
           </p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -108,7 +108,7 @@ export function AccountDashboard() {
               logout();
               router.push("/");
             }}
-            className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-body transition-colors hover:text-accent"
+            className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-body transition-colors hover:text-accent"
           >
             <LogOut size={16} />
             Sign out

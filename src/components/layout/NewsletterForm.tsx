@@ -40,7 +40,7 @@ export function NewsletterForm() {
         </button>
       </div>
       {status === "done" && (
-        <p className="mt-2 text-xs font-semibold text-accent">
+        <p className="mt-2 text-xs font-bold text-accent">
           You&apos;re in — welcome to the loop!
         </p>
       )}

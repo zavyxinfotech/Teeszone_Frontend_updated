@@ -165,7 +165,7 @@ function AddressForm({
               role="radio"
               aria-checked={form.type === opt.value}
               onClick={() => set("type")(opt.value)}
-              className={`border px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors ${
+              className={`border px-4 py-1.5 text-xs  uppercase tracking-wide transition-colors ${
                 form.type === opt.value
                   ? "border-accent bg-accent text-white"
                   : "border-line bg-white text-body hover:border-ink/40"
@@ -297,7 +297,7 @@ function AddressBook({ token }: { token: string }) {
                   </span>
                 )}
               </div>
-              <p className="mt-3 text-sm font-semibold text-ink">{address.fullName}</p>
+              <p className="mt-3 text-sm font-bold text-ink">{address.fullName}</p>
               <p className="mt-1 text-sm leading-relaxed text-body">
                 {address.line1}
                 {address.line2 ? `, ${address.line2}` : ""}
@@ -305,7 +305,7 @@ function AddressBook({ token }: { token: string }) {
                 {address.city}, {address.state} — {address.pincode}
               </p>
               <p className="mt-1 text-sm text-body">Phone: {address.phone}</p>
-              <div className="mt-auto flex gap-4 pt-4 text-sm font-semibold text-accent">
+              <div className="mt-auto flex gap-4 pt-4 text-sm font-bold text-accent">
                 <button
                   className="hover:underline"
                   onClick={() =>

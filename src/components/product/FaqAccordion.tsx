@@ -36,7 +36,7 @@ const faqs = [
 export function FaqAccordion() {
   return (
     <section className="mt-16">
-      <h2 className="text-2xl font-extrabold tracking-tight">
+      <h2 className="text-2xl font-bold tracking-tight">
         Frequently Asked Questions
       </h2>
       <div className="mt-6">

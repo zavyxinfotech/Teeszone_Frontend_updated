@@ -12,7 +12,7 @@ import { useWishlist } from "@/lib/wishlist";
 
 // nav underline
 const topLink =
-  "relative flex items-center gap-1 px-4 py-5 text-sm font-medium uppercase tracking-wide transition-colors hover:text-accent after:absolute after:bottom-3.5 after:left-4 after:right-4 after:h-0.5 after:origin-left after:scale-x-0 after:bg-accent after:transition-transform after:duration-200 hover:after:scale-x-100 motion-reduce:after:transition-none";
+  "relative flex items-center gap-1 px-4 py-5 text-sm  uppercase tracking-wide transition-colors hover:text-accent after:absolute after:bottom-3.5 after:left-4 after:right-4 after:h-0.5 after:origin-left after:scale-x-0 after:bg-accent after:transition-transform after:duration-200 hover:after:scale-x-100 motion-reduce:after:transition-none";
 
 const useCaseLinks = [
   { label: "Corporate", href: "/collections/unisex-polo" },
@@ -203,7 +203,7 @@ export function Header({
               <div className="w-60 border border-line bg-white px-5 py-4 shadow-xl">
                 {user ? (
                   <>
-                    <p className="border-b border-line pb-3 text-sm font-semibold text-ink">
+                    <p className="border-b border-line pb-3 text-sm font-bold text-ink">
                       Hi, {user.name || user.email}
                     </p>
                     <ul className="space-y-2 py-3">
@@ -220,7 +220,7 @@ export function Header({
                     </ul>
                     <button
                       onClick={handleSignOut}
-                      className="flex w-full items-center gap-2 border-t border-line pt-3 text-sm font-semibold text-body transition-colors hover:text-accent"
+                      className="flex w-full items-center gap-2 border-t border-line pt-3 text-sm font-bold text-body transition-colors hover:text-accent"
                     >
                       <LogOut size={15} />
                       Sign Out
@@ -236,7 +236,7 @@ export function Header({
                     </Link>
                     <p className="pt-3 text-center text-xs text-body">
                       New customer?{" "}
-                      <Link href="/register" className="font-semibold text-accent hover:underline">
+                      <Link href="/register" className=" text-accent hover:underline">
                         Start here
                       </Link>
                     </p>

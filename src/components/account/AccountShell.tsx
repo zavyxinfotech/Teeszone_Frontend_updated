@@ -32,7 +32,7 @@ export function AccountShell({
         {title && (
           <>
             <ChevronRight size={13} />
-            <span className="font-semibold text-ink">{title}</span>
+            <span className=" text-ink">{title}</span>
           </>
         )}
       </nav>

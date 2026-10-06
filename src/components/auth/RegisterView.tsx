@@ -125,7 +125,7 @@ export function RegisterView() {
 
         <p className="text-center text-sm text-body">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-accent hover:underline">
+          <Link href="/login" className=" text-accent hover:underline">
             Sign in
           </Link>
         </p>

@@ -13,7 +13,7 @@ export function Accordion({ items }: { items: AccordionItem[] }) {
     <div className="divide-y divide-ink/10 rounded-xl border border-ink/10 bg-white">
       {items.map((item) => (
         <details key={item.title} className="group px-5">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-heading text-sm font-semibold text-ink [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-heading text-sm font-bold text-ink [&::-webkit-details-marker]:hidden">
             {item.title}
             <ChevronDown
               size={18}
