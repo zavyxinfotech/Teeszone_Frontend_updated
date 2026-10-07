@@ -26,34 +26,145 @@ export interface Navigation {
 }
 
 export async function getNavigation(): Promise<Navigation> {
-  return { segments, collections };
+  const liveCollections = await getCollections();
+  return { segments, collections: liveCollections };
+}
+
+function fixImageUrl(url: string | undefined): string {
+  if (!url) return "";
+  if (url.includes("teeszone-catalogue-images-2026") || url.includes("s3.ap-southeast-2.amazonaws.com")) {
+    const key = url.replace(/^https?:\/\/[^\/]+\//, "");
+    return `${CLIENT_API_URL}/upload/media/${key}`;
+  }
+  return url;
+}
+
+function fixProduct(p: Product): Product {
+  return {
+    ...p,
+    colors: p.colors.map((c) => ({
+      ...c,
+      image: fixImageUrl(c.image),
+    })),
+  };
 }
 
 export async function getProducts(): Promise<Product[]> {
+  try {
+    const res = await fetch(`${SERVER_API_URL}/products`, {
+      next: { revalidate: 0 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json.data) && json.data.length > 0) {
+        return json.data.map(fixProduct);
+      }
+    }
+  } catch {
+    // Fall back to local mock products
+  }
   return products;
 }
 
 export async function getProductsByCollection(slug: string): Promise<Product[]> {
+  try {
+    const res = await fetch(`${SERVER_API_URL}/products?collection=${encodeURIComponent(slug)}`, {
+      next: { revalidate: 0 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json.data) && json.data.length > 0) {
+        return json.data.map(fixProduct);
+      }
+    }
+  } catch {
+    // Fall back to local mock products
+  }
   return getMockProductsByCollection(slug);
 }
 
 export async function getProduct(slug: string): Promise<Product | null> {
+  try {
+    const res = await fetch(`${SERVER_API_URL}/products/${encodeURIComponent(slug)}`, {
+      next: { revalidate: 0 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) {
+        return fixProduct(json.data);
+      }
+    }
+  } catch {
+    // Fall back to local mock product
+  }
   return getMockProduct(slug) || null;
 }
 
 export async function getCollections(): Promise<Collection[]> {
+  try {
+    const res = await fetch(`${SERVER_API_URL}/collections`, {
+      next: { revalidate: 0 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json.data) && json.data.length > 0) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fall back to local mock collections
+  }
   return collections;
 }
 
 export async function getCollection(slug: string): Promise<Collection | null> {
+  try {
+    const res = await fetch(`${SERVER_API_URL}/collections/${encodeURIComponent(slug)}`, {
+      next: { revalidate: 0 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fall back to local mock collection
+  }
   return getMockCollection(slug) || null;
 }
 
 export async function getFabrics(): Promise<Fabric[]> {
+  try {
+    const res = await fetch(`${SERVER_API_URL}/fabrics`, {
+      next: { revalidate: 0 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json.data) && json.data.length > 0) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fall back to local mock fabrics
+  }
   return fabrics;
 }
 
 export async function getReviews(): Promise<Review[]> {
+  try {
+    const res = await fetch(`${SERVER_API_URL}/reviews`, {
+      next: { revalidate: 0 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json.data) && json.data.length > 0) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fall back to local mock reviews
+  }
   return reviews;
 }
 
@@ -95,7 +206,6 @@ export async function postNewsletter(email: string): Promise<void> {
 
 // ---------- auth & account ----------
 
-// keeps the backend error message so forms can show it
 export class ApiError extends Error {
   description?: string;
   status: number;
