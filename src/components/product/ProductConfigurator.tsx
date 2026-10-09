@@ -47,6 +47,8 @@ export function ProductConfigurator({ product }: { product: Product }) {
   const { has: hasWishlist, toggle: toggleWishlist } = useWishlist();
   const saved = hasWishlist(product.slug);
 
+  const [apparelType, setApparelType] = useState<"blank" | "custom">("custom");
+  const [customViewIdx, setCustomViewIdx] = useState(0);
   const color = product.colors[colorIdx];
   const colorQty = qty[color.name] ?? {};
 
@@ -174,30 +176,120 @@ export function ProductConfigurator({ product }: { product: Product }) {
     <div className="grid gap-10 lg:grid-cols-2">
       {/* Gallery */}
       <div>
-        <div className="overflow-hidden border border-line bg-surface">
-          <Image
-            src={color.image}
-            alt={`${product.name} — ${color.name}`}
-            width={640}
-            height={640}
-            preload
-            className="h-auto w-full"
-          />
-        </div>
-        <div className="mt-3 flex gap-2">
-          {product.colors.map((c, i) => (
+        {/* Option Selector at top right corner above the image */}
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-body">Apparel Type</span>
+          <div className="inline-flex rounded-lg border border-line bg-surface p-1 shadow-sm">
             <button
-              key={c.name}
-              onClick={() => setColorIdx(i)}
-              aria-label={`View ${c.name}`}
-              className={`w-18 overflow-hidden border-2 bg-surface transition-colors sm:w-20 ${
-                i === colorIdx ? "border-ink" : "border-line hover:border-ink/40"
+              type="button"
+              onClick={() => setApparelType("blank")}
+              className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all ${
+                apparelType === "blank"
+                  ? "bg-ink text-white shadow-sm"
+                  : "text-body hover:text-ink"
               }`}
             >
-              <Image src={c.image} alt={c.name} width={100} height={100} className="h-auto w-full" />
+              Blank Apparel
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setApparelType("custom")}
+              className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all ${
+                apparelType === "custom"
+                  ? "bg-accent text-white shadow-sm"
+                  : "text-body hover:text-ink"
+              }`}
+            >
+              Custom Tees
+            </button>
+          </div>
         </div>
+
+        {(() => {
+          const viewImages = [
+            color.image,
+            color.backImage || color.image,
+            color.chestImage || color.image,
+            color.detailImage || color.image,
+            color.image4 || color.image,
+            color.image5 || color.image,
+          ];
+
+          const currentMainImage = apparelType === "custom" ? (viewImages[customViewIdx] || color.image) : color.image;
+
+          return (
+            <>
+              <div className="relative overflow-hidden border border-line bg-surface">
+                {/* Top-right corner badge directly over image */}
+                <div className="absolute right-3 top-3 z-10">
+                  <span
+                    className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider shadow-md backdrop-blur border ${
+                      apparelType === "custom"
+                        ? "border-accent/30 bg-accent/90 text-white"
+                        : "border-ink/20 bg-ink/90 text-white"
+                    }`}
+                  >
+                    {apparelType === "custom" ? "Custom Tees" : "Blank Apparel"}
+                  </span>
+                </div>
+
+                <Image
+                  src={currentMainImage}
+                  alt={`${product.name} — ${color.name}`}
+                  width={640}
+                  height={640}
+                  preload
+                  className="h-auto w-full"
+                />
+              </div>
+
+              {/* Thumbnail gallery below main image */}
+              {apparelType === "custom" ? (
+                /* For Custom Tees: 1 Main Image + 5 Reference Images (6 total thumbnails) for the active color */
+                <div className="mt-3 grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  {viewImages.map((imgSrc, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCustomViewIdx(idx)}
+                      className={`relative overflow-hidden border-2 bg-surface transition-all ${
+                        idx === customViewIdx
+                          ? "border-accent ring-2 ring-accent/20"
+                          : "border-line hover:border-ink/40"
+                      }`}
+                    >
+                      <Image
+                        src={imgSrc}
+                        alt={`Reference View ${idx + 1}`}
+                        width={140}
+                        height={140}
+                        className="h-auto w-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                /* For Blank Apparel: Color image thumbnail */
+                <div className="mt-3 flex gap-2">
+                  {product.colors.map((c, i) => (
+                    <button
+                      key={c.name}
+                      onClick={() => {
+                        setColorIdx(i);
+                        setCustomViewIdx(0);
+                      }}
+                      aria-label={`View ${c.name}`}
+                      className={`w-18 overflow-hidden border-2 bg-surface transition-colors sm:w-20 ${
+                        i === colorIdx ? "border-ink" : "border-line hover:border-ink/40"
+                      }`}
+                    >
+                      <Image src={c.image} alt={c.name} width={100} height={100} className="h-auto w-full" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Buy box */}
@@ -211,11 +303,10 @@ export function ProductConfigurator({ product }: { product: Product }) {
             onClick={() => toggleWishlist(product.slug)}
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={saved}
-            className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all hover:scale-110 ${
-              saved
+            className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all hover:scale-110 ${saved
                 ? "border-accent bg-accent-soft text-accent"
                 : "border-line text-body hover:border-accent hover:text-accent"
-            }`}
+              }`}
           >
             <Heart size={18} fill={saved ? "currentColor" : "none"} />
           </button>
@@ -245,11 +336,10 @@ export function ProductConfigurator({ product }: { product: Product }) {
               return (
                 <div
                   key={t.minQty}
-                  className={`rounded-lg border px-5 py-3 transition-all ${
-                    active
+                  className={`rounded-lg border px-5 py-3 transition-all ${active
                       ? "border-ink bg-ink text-white shadow-md"
                       : "border-line bg-white"
-                  }`}
+                    }`}
                 >
                   <p
                     className={`text-sm  ${active ? "text-white" : "text-ink"}`}
@@ -257,9 +347,8 @@ export function ProductConfigurator({ product }: { product: Product }) {
                     {t.minQty > 1 ? `${t.minQty}+ Pcs` : "Sample / Few Pcs"}
                   </p>
                   <p
-                    className={`mt-0.5 text-xs  ${
-                      active ? "text-white/70" : "text-body"
-                    }`}
+                    className={`mt-0.5 text-xs  ${active ? "text-white/70" : "text-body"
+                      }`}
                   >
                     ₹ {tierUnit}/pc
                   </p>
@@ -269,28 +358,30 @@ export function ProductConfigurator({ product }: { product: Product }) {
           </div>
         </div>
 
-        {/* Design approval note */}
-        <div className="mt-5 space-y-3.5 rounded-xl border-l-4 border-accent bg-accent-soft p-4 pl-5">
-          <p className="flex items-start gap-3 text-sm text-ink">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm">
-              <BadgeCheck size={16} />
-            </span>
-            <span className="pt-1">
-              We send a <strong>digital mockup for your approval</strong> after
-              the order is confirmed — nothing goes to production before you
-              sign off.
-            </span>
-          </p>
-          <p className="flex items-start gap-3 text-sm text-ink">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm">
-              <PenTool size={16} />
-            </span>
-            <span className="pt-1">
-              Don&apos;t have a logo? No problem — order with text only and our
-              team will <strong>create a custom design for you, free</strong>.
-            </span>
-          </p>
-        </div>
+        {/* Design approval note (only for Custom Tees) */}
+        {apparelType === "custom" && (
+          <div className="mt-5 space-y-3.5 rounded-xl border-l-4 border-accent bg-accent-soft p-4 pl-5">
+            <p className="flex items-start gap-3 text-sm text-ink">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm">
+                <BadgeCheck size={16} />
+              </span>
+              <span className="pt-1">
+                We send a <strong>digital mockup for your approval</strong> after
+                the order is confirmed — nothing goes to production before you
+                sign off.
+              </span>
+            </p>
+            <p className="flex items-start gap-3 text-sm text-ink">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm">
+                <PenTool size={16} />
+              </span>
+              <span className="pt-1">
+                Don&apos;t have a logo? No problem — order with text only and our
+                team will <strong>create a custom design for you, free</strong>.
+              </span>
+            </p>
+          </div>
+        )}
 
         {/* Step 1: Colors */}
         <div className="mt-6">
@@ -306,12 +397,14 @@ export function ProductConfigurator({ product }: { product: Product }) {
               return (
                 <button
                   key={c.name}
-                  onClick={() => setColorIdx(i)}
+                  onClick={() => {
+                    setColorIdx(i);
+                    setCustomViewIdx(0);
+                  }}
                   title={c.name}
                   aria-label={`Select ${c.name}${count > 0 ? ` (${count} pcs added)` : ""}`}
-                  className={`relative flex h-9 w-9 items-center justify-center rounded-full border transition-transform hover:scale-110 ${
-                    i === colorIdx ? "border-ink ring-2 ring-ink/20" : "border-ink/20"
-                  }`}
+                  className={`relative flex h-9 w-9 items-center justify-center rounded-full border transition-transform hover:scale-110 ${i === colorIdx ? "border-ink ring-2 ring-ink/20" : "border-ink/20"
+                    }`}
                   style={{ backgroundColor: c.hex }}
                 >
                   {i === colorIdx && (
@@ -384,11 +477,10 @@ export function ProductConfigurator({ product }: { product: Product }) {
               return (
                 <div key={s} className="flex items-center justify-between">
                   <span
-                    className={`min-w-24 rounded-lg border px-4 py-2.5 text-center text-sm  transition-all ${
-                      value > 0
+                    className={`min-w-24 rounded-lg border px-4 py-2.5 text-center text-sm  transition-all ${value > 0
                         ? "border-ink bg-ink text-white"
                         : "border-line bg-white text-ink"
-                    }`}
+                      }`}
                   >
                     {s}
                     {chest ? ` (${chest})` : ""}
@@ -520,93 +612,95 @@ export function ProductConfigurator({ product }: { product: Product }) {
           </div>
         )}
 
-        {/* Logo / branding */}
-        <div className="mt-6">
-          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-            <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-              3
-            </span>
-            Your Logo or Design
-          </p>
-          <div className="mt-2.5">
-            {logoPreview ? (
-              <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/50 p-3 pr-4">
-                {/* next/image can't handle blob: URLs */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logoPreview}
-                  alt="Your logo preview"
-                  className="h-14 w-14 rounded-lg border border-line bg-white object-contain p-1"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-ink">
-                    {logoName}
-                  </p>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-body">
-                    <BadgeCheck size={13} className="text-accent" />
-                    Ready — attach this file in the WhatsApp chat
-                  </p>
+        {/* Logo / branding (only for Custom Tees) */}
+        {apparelType === "custom" && (
+          <div className="mt-6">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
+              <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
+                3
+              </span>
+              Your Logo or Design
+            </p>
+            <div className="mt-2.5">
+              {logoPreview ? (
+                <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/50 p-3 pr-4">
+                  {/* next/image can't handle blob: URLs */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logoPreview}
+                    alt="Your logo preview"
+                    className="h-14 w-14 rounded-lg border border-line bg-white object-contain p-1"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-ink">
+                      {logoName}
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-body">
+                      <BadgeCheck size={13} className="text-accent" />
+                      Ready — attach this file in the WhatsApp chat
+                    </p>
+                  </div>
+                  <button
+                    onClick={clearLogo}
+                    aria-label="Remove logo"
+                    className="rounded-full p-1.5 text-body transition-colors hover:bg-white hover:text-accent"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
+              ) : (
                 <button
-                  onClick={clearLogo}
-                  aria-label="Remove logo"
-                  className="rounded-full p-1.5 text-body transition-colors hover:bg-white hover:text-accent"
+                  onClick={() => fileRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    onLogoChange(e.dataTransfer.files?.[0]);
+                  }}
+                  className="group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-ink/20 bg-surface/60 px-5 py-6 transition-colors hover:border-accent hover:bg-accent-soft/40"
                 >
-                  <X size={16} />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => fileRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  onLogoChange(e.dataTransfer.files?.[0]);
-                }}
-                className="group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-ink/20 bg-surface/60 px-5 py-6 transition-colors hover:border-accent hover:bg-accent-soft/40"
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-accent shadow-sm transition-transform group-hover:-translate-y-0.5">
-                  <CloudUpload size={20} />
-                </span>
-                <span className="text-sm font-bold text-ink">
-                  Drop your logo here or{" "}
-                  <span className="text-accent underline underline-offset-2">
-                    browse files
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-accent shadow-sm transition-transform group-hover:-translate-y-0.5">
+                    <CloudUpload size={20} />
                   </span>
-                </span>
-                <span className="text-xs text-body">
-                  PNG, JPG, SVG, PDF, AI, EPS — up to any size
-                </span>
-              </button>
+                  <span className="text-sm font-bold text-ink">
+                    Drop your logo here or{" "}
+                    <span className="text-accent underline underline-offset-2">
+                      browse files
+                    </span>
+                  </span>
+                  <span className="text-xs text-body">
+                    PNG, JPG, SVG, PDF, AI, EPS — up to any size
+                  </span>
+                </button>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*,.pdf,.ai,.eps,.cdr"
+                className="hidden"
+                onChange={(e) => onLogoChange(e.target.files?.[0])}
+              />
+            </div>
+            <p className="mt-2 text-xs text-body">
+              {logoName
+                ? "We'll ask for this file in the WhatsApp chat — just attach it there."
+                : "Or tell us the text to print instead:"}
+            </p>
+            {!logoName && (
+              <input
+                value={printText}
+                onChange={(e) => setPrintText(e.target.value)}
+                placeholder='e.g. "Team Phoenix — Est. 2026"'
+                className="mt-2 w-full border border-line px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
+              />
             )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*,.pdf,.ai,.eps,.cdr"
-              className="hidden"
-              onChange={(e) => onLogoChange(e.target.files?.[0])}
-            />
           </div>
-          <p className="mt-2 text-xs text-body">
-            {logoName
-              ? "We'll ask for this file in the WhatsApp chat — just attach it there."
-              : "Or tell us the text to print instead:"}
-          </p>
-          {!logoName && (
-            <input
-              value={printText}
-              onChange={(e) => setPrintText(e.target.value)}
-              placeholder='e.g. "Team Phoenix — Est. 2026"'
-              className="mt-2 w-full border border-line px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
-            />
-          )}
-        </div>
+        )}
 
-        {/* Step 4: CTAs */}
+        {/* Step Review & Add */}
         <div className="mt-7 flex flex-col gap-3">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
             <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-              4
+              {apparelType === "custom" ? "4" : "3"}
             </span>
             Review & Add
           </p>
@@ -669,9 +763,8 @@ export function ProductConfigurator({ product }: { product: Product }) {
       {/* Sticky mini summary */}
       <div
         aria-hidden={totalQty === 0}
-        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 backdrop-blur transition-transform duration-300 motion-reduce:transition-none ${
-          totalQty > 0 ? "translate-y-0" : "translate-y-full"
-        }`}
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 backdrop-blur transition-transform duration-300 motion-reduce:transition-none ${totalQty > 0 ? "translate-y-0" : "translate-y-full"
+          }`}
       >
         <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-4 px-4 py-3 pr-24 sm:px-6">
           <div className="min-w-0">

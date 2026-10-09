@@ -27,7 +27,16 @@ export interface Navigation {
 
 export async function getNavigation(): Promise<Navigation> {
   const liveCollections = await getCollections();
-  return { segments, collections: liveCollections };
+  const collectionsMap = new Map<string, Collection>();
+  for (const c of collections) {
+    collectionsMap.set(c.slug, c);
+  }
+  for (const c of liveCollections) {
+    if (!collectionsMap.has(c.slug)) {
+      collectionsMap.set(c.slug, c);
+    }
+  }
+  return { segments, collections: Array.from(collectionsMap.values()) };
 }
 
 function fixImageUrl(url: string | undefined): string {

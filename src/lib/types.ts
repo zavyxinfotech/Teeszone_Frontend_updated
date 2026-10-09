@@ -1,4 +1,4 @@
-export type SegmentSlug = "unisex" | "men" | "women" | "kids" | "shop-more";
+export type SegmentSlug = "unisex" | "men" | "women" | "kids" | "hoodies" | "specialty" | "shop-more";
 
 export interface Collection {
   slug: string;
@@ -19,6 +19,11 @@ export interface ProductColor {
   name: string;
   hex: string;
   image: string;
+  backImage?: string;
+  chestImage?: string;
+  detailImage?: string;
+  image4?: string;
+  image5?: string;
 }
 
 // quantity-based discount

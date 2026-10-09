@@ -26,6 +26,8 @@ const featuredBySegment: Record<string, string> = {
   men: "/products/crew-black.svg",
   women: "/products/crew-white.svg",
   kids: "/products/jersey-red.svg",
+  hoodies: "/products/crew-black.svg",
+  specialty: "/products/crew-white.svg",
 };
 
 export function Header({
@@ -91,21 +93,21 @@ export function Header({
               {/* Mega panel */}
               <div className="invisible absolute inset-x-0 top-full z-50 translate-y-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:translate-y-0">
                 <div className="border-t-2 border-accent bg-white shadow-xl">
-                  <div className="mx-auto flex max-w-[1320px] justify-center gap-12 px-6 py-8">
+                  <div className="mx-auto flex max-w-[1320px] justify-start lg:justify-center gap-8 xl:gap-12 px-6 py-8">
                   {seg.groups.map((group) => (
-                    <div key={group.title} className="min-w-36">
+                    <div key={group.title} className="min-w-[200px] max-w-[280px]">
                       <p className="mb-3 text-xs font-bold uppercase tracking-wider text-accent">
                         {group.title}
                       </p>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2.5">
                         {group.collections.map((slug) => {
                           const col = getCollection(slug);
                           if (!col) return null;
                           return (
                             <li key={slug}>
                               <Link
-                                href={`/collections/${slug}`}
-                                className="whitespace-nowrap text-sm text-body transition-colors hover:text-accent"
+                                href={`/products/${slug}`}
+                                className="block text-sm text-body transition-colors hover:text-accent leading-snug"
                               >
                                 {col.name}
                               </Link>
@@ -116,7 +118,7 @@ export function Header({
                     </div>
                   ))}
 
-                  <div className="min-w-36 border-l border-line pl-8">
+                  <div className="min-w-[160px] border-l border-line pl-8">
                     <p className="mb-3 text-xs font-bold uppercase tracking-wider text-accent">
                       By Use Case
                     </p>
@@ -125,7 +127,7 @@ export function Header({
                         <li key={u.label}>
                           <Link
                             href={u.href}
-                            className="whitespace-nowrap text-sm text-body transition-colors hover:text-accent"
+                            className="block text-sm text-body transition-colors hover:text-accent"
                           >
                             {u.label}
                           </Link>
@@ -155,11 +157,8 @@ export function Header({
             </div>
           ))}
 
-          <Link href="/collections/mega-sale" className={`${topLink} text-accent`}>
-            Mega Sale
-          </Link>
           <Link href="/contact" className={`${topLink} text-ink`}>
-            Wholesale
+            Bulk Order
           </Link>
           <div className="group relative">
             <button className={`${topLink} text-ink`}>
@@ -303,7 +302,7 @@ export function Header({
                         return (
                           <Link
                             key={slug}
-                            href={`/collections/${slug}`}
+                            href={`/products/${slug}`}
                             className="block py-1.5 pl-3 text-sm text-ink"
                           >
                             {col.name}
@@ -318,28 +317,20 @@ export function Header({
           ))}
           <div onClick={() => setOpen(false)}>
             <Link
-              href="/collections/mega-sale"
-              className="block border-b border-line py-3.5 text-sm font-bold uppercase tracking-wide text-accent"
-            >
-              Mega Sale
-            </Link>
-            {shopMore
-              .filter((c) => c.slug !== "mega-sale")
-              .map((col) => (
-                <Link
-                  key={col.slug}
-                  href={`/collections/${col.slug}`}
-                  className="block border-b border-line py-3.5 text-sm font-bold uppercase tracking-wide text-ink"
-                >
-                  {col.name}
-                </Link>
-              ))}
-            <Link
               href="/contact"
               className="block border-b border-line py-3.5 text-sm font-bold uppercase tracking-wide text-ink"
             >
-              Wholesale
+              Bulk Order
             </Link>
+            {shopMore.map((col) => (
+              <Link
+                key={col.slug}
+                href={`/collections/${col.slug}`}
+                className="block border-b border-line py-3.5 text-sm font-bold uppercase tracking-wide text-ink"
+              >
+                {col.name}
+              </Link>
+            ))}
             <Link
               href={user ? "/account" : "/login"}
               className="flex items-center gap-2 border-b border-line py-3.5 text-sm font-bold uppercase tracking-wide text-ink"

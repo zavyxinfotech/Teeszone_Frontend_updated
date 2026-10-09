@@ -70,12 +70,12 @@ export function Footer({ segments }: { segments: Segment[] }) {
               </li>
             ))}
             <li>
-              <Link href="/collections/best-sellers" className="hover:text-accent">
+              <Link href="/products" className="hover:text-accent">
                 Best Sellers
               </Link>
             </li>
             <li>
-              <Link href="/collections/new-arrival" className="hover:text-accent">
+              <Link href="/products" className="hover:text-accent">
                 New Arrival
               </Link>
             </li>
