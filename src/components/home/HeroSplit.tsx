@@ -84,14 +84,14 @@ export function HeroSplit() {
         <div className="mx-auto grid w-full max-w-md grid-cols-2 gap-4">
           {collage.map((c, i) => (
             <Reveal key={c.src.src} delay={i * 90} className={c.offset}>
-              <div className="overflow-hidden bg-white shadow-sm transition-transform duration-300 hover:scale-[1.03]">
+              <div className="overflow-hidden transition-transform duration-300 hover:scale-[1.03]">
                 <Image
                   src={c.src}
                   alt={c.alt}
                   width={400}
                   height={400}
                   preload={i < 2}
-                  className="h-auto w-full"
+                  className="h-auto w-full object-contain"
                 />
               </div>
             </Reveal>
