@@ -164,7 +164,7 @@ export function HeroSplit() {
           {/* Desktop Right Column: Hero Image (>= md) */}
           <div className="hidden md:flex items-center justify-end w-full">
             <Reveal delay={200} className="w-full">
-              <div className="relative ml-auto w-full max-w-xl lg:max-w-2xl xl:max-w-3xl transition-transform duration-300 md:scale-105 lg:scale-110 xl:scale-115 origin-right hover:scale-[1.18]">
+              <div className="relative ml-auto w-full max-w-xl lg:max-w-2xl xl:max-w-3xl md:scale-105 lg:scale-110 xl:scale-115 origin-right">
                 <Image
                   src={heroImg}
                   alt="Factory-Direct Custom Apparel"

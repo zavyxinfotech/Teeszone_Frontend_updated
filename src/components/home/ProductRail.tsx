@@ -27,13 +27,15 @@ export function ProductRail({
           </Link>
         </div>
       </Reveal>
-      <div className="rail mt-7 flex snap-x gap-4 overflow-x-auto pb-2">
-        {products.map((p) => (
-          <div key={p.id} className="w-64 shrink-0 snap-start sm:w-72">
-            <ProductCard product={p} />
-          </div>
-        ))}
-      </div>
+      <Reveal delay={80}>
+        <div className="rail mt-7 flex snap-x gap-4 overflow-x-auto pb-2">
+          {products.map((p) => (
+            <div key={p.id} className="w-64 shrink-0 snap-start sm:w-72">
+              <ProductCard product={p} />
+            </div>
+          ))}
+        </div>
+      </Reveal>
     </section>
   );
 }

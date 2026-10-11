@@ -8,6 +8,7 @@ import { FaqAccordion } from "@/components/product/FaqAccordion";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Check } from "lucide-react";
 import { site } from "@/lib/site";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const revalidate = 300;
 
@@ -85,43 +86,48 @@ export default async function ProductPage({
       <ProductConfigurator product={product} />
 
       {/* Product Details Specs */}
-      <section className="mt-14 max-w-2xl">
-        <h2 className="text-lg font-bold uppercase tracking-[0.08em]">
-          Product Details & Specifications
-        </h2>
-        <ul className="mt-5 space-y-3">
-          {product.features.map((f) => (
-            <li key={f} className="flex items-start gap-3 text-sm">
-              <Check size={17} className="mt-0.5 shrink-0 text-accent" />
-              {f}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <Reveal>
+        <section className="mt-14 max-w-2xl">
+          <h2 className="text-lg font-bold uppercase tracking-[0.08em]">
+            Product Details & Specifications
+          </h2>
+          <ul className="mt-5 space-y-3">
+            {product.features.map((f) => (
+              <li key={f} className="flex items-start gap-3 text-sm">
+                <Check size={17} className="mt-0.5 shrink-0 text-accent" />
+                {f}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </Reveal>
 
       {/* FAQs */}
-      <FaqAccordion />
-
+      <Reveal delay={80}>
+        <FaqAccordion />
+      </Reveal>
 
       {/* View Similar Products */}
-      <section className="mt-16">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold uppercase tracking-[0.08em]">
-            View Similar Products
-          </h2>
-          <Link
-            href="/products"
-            className="text-xs font-bold uppercase tracking-wider text-accent hover:underline"
-          >
-            View All Products &rarr;
-          </Link>
-        </div>
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {related.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      </section>
+      <Reveal delay={120}>
+        <section className="mt-16">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold uppercase tracking-[0.08em]">
+              View Similar Products
+            </h2>
+            <Link
+              href="/products"
+              className="text-xs font-bold uppercase tracking-wider text-accent hover:underline"
+            >
+              View All Products &rarr;
+            </Link>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {related.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      </Reveal>
     </div>
   );
 }

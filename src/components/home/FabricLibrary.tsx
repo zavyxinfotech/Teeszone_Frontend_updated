@@ -41,41 +41,43 @@ export function FabricLibrary({ fabrics }: { fabrics: Fabric[] }) {
       </Reveal>
 
       {/* key forces the crossfade on tab change */}
-      <div
-        key={fabric.key}
-        className="fade-swap mx-auto mt-8 grid max-w-4xl items-center gap-8 border border-line bg-white p-6 sm:p-8 md:grid-cols-[240px_1fr]"
-      >
-        <div className="mx-auto w-48 md:w-full">
-          <Image
-            src={fabric.image}
-            alt={fabric.name}
-            width={320}
-            height={320}
-            className="h-auto w-full"
-          />
+      <Reveal delay={100}>
+        <div
+          key={fabric.key}
+          className="fade-swap mx-auto mt-8 grid max-w-4xl items-center gap-8 border border-line bg-white p-6 sm:p-8 md:grid-cols-[240px_1fr]"
+        >
+          <div className="mx-auto w-48 md:w-full">
+            <Image
+              src={fabric.image}
+              alt={fabric.name}
+              width={320}
+              height={320}
+              className="h-auto w-full"
+            />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold uppercase tracking-wide text-ink">
+              {fabric.name}
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed">{fabric.description}</p>
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-accent">
+              Fit
+            </p>
+            <p className="mt-1 text-sm text-ink">{fabric.fit}</p>
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-accent">
+              Highlights
+            </p>
+            <ul className="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+              {fabric.highlights.map((h) => (
+                <li key={h} className="flex items-start gap-1.5 text-sm">
+                  <Check size={14} className="mt-0.5 shrink-0 text-gold" />
+                  {h}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <div>
-          <h3 className="text-lg font-bold uppercase tracking-wide text-ink">
-            {fabric.name}
-          </h3>
-          <p className="mt-2 text-sm leading-relaxed">{fabric.description}</p>
-          <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-accent">
-            Fit
-          </p>
-          <p className="mt-1 text-sm text-ink">{fabric.fit}</p>
-          <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-accent">
-            Highlights
-          </p>
-          <ul className="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
-            {fabric.highlights.map((h) => (
-              <li key={h} className="flex items-start gap-1.5 text-sm">
-                <Check size={14} className="mt-0.5 shrink-0 text-gold" />
-                {h}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      </Reveal>
     </section>
   );
 }
