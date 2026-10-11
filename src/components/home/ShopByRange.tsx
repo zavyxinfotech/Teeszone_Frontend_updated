@@ -4,16 +4,16 @@ import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 
 const feature = {
-  title: "Unisex Essentials",
-  text: "Round necks, polos and winterwear — the core of every bulk order.",
-  href: "/collections/unisex-round-neck",
+  title: "Hoodies Essentials",
+  text: "Premium zip and non-zip hoodies — warm, durable and retail-grade.",
+  href: "/collections/unisex-hoodie-zip-325",
   image: "/products/crew-white.svg",
 };
 
 const tiles = [
-  { title: "Men", href: "/collections/mens-oversized-tee", image: "/products/crew-black.svg" },
-  { title: "Women", href: "/collections/womens-round-neck", image: "/products/crew-white.svg" },
-  { title: "Kids", href: "/collections/kids-round-neck", image: "/products/jersey-red.svg" },
+  { title: "Men", href: "/collections/mens-rn-half-180", image: "/products/crew-black.svg" },
+  { title: "Women", href: "/collections/womens-rn-half-180", image: "/products/crew-white.svg" },
+  { title: "Kids", href: "/collections/kids-rn-half-180", image: "/products/jersey-red.svg" },
   { title: "Mega Sale", href: "/collections/mega-sale", image: "/products/tee-yellow.svg", sale: true },
 ];
 
@@ -45,7 +45,7 @@ export function ShopByRange() {
                 </h3>
                 <p className="mt-1.5 max-w-sm text-sm text-white/80">{feature.text}</p>
                 <span className="mt-4 inline-flex items-center gap-1.5 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-ink transition-colors group-hover:bg-gold group-hover:text-ink">
-                  Shop Unisex
+                  Shop Hoodies
                   <ArrowRight size={14} />
                 </span>
               </div>

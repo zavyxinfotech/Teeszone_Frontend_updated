@@ -1,4 +1,4 @@
-export type SegmentSlug = "unisex" | "men" | "women" | "kids" | "hoodies" | "specialty" | "shop-more";
+export type SegmentSlug = "men" | "women" | "kids" | "hoodies" | "specialty" | "shop-more";
 
 export interface Collection {
   slug: string;

@@ -15,14 +15,13 @@ const topLink =
   "relative flex items-center gap-1 px-4 py-5 text-sm  uppercase tracking-wide transition-colors hover:text-accent after:absolute after:bottom-3.5 after:left-4 after:right-4 after:h-0.5 after:origin-left after:scale-x-0 after:bg-accent after:transition-transform after:duration-200 hover:after:scale-x-100 motion-reduce:after:transition-none";
 
 const useCaseLinks = [
-  { label: "Corporate", href: "/collections/unisex-polo" },
-  { label: "Schools", href: "/collections/kids-polo" },
-  { label: "Sports Teams", href: "/collections/active-round-neck" },
-  { label: "Events & Merch", href: "/collections/mens-oversized-tee" },
+  { label: "Corporate", href: "/collections/mens-polo-240-cotton" },
+  { label: "Schools", href: "/collections/kids-rn-half-180" },
+  { label: "Sports Teams", href: "/collections/primoknit-polo-200" },
+  { label: "Events & Merch", href: "/collections/mens-oversize-200" },
 ];
 
 const featuredBySegment: Record<string, string> = {
-  unisex: "/products/crew-white.svg",
   men: "/products/crew-black.svg",
   women: "/products/crew-white.svg",
   kids: "/products/jersey-red.svg",

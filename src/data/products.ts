@@ -1,4 +1,4 @@
-import type { Product } from "@/lib/types";
+import type { Product } from "../lib/types";
 
 const ADULT = ["S", "M", "L", "XL", "XXL"];
 const KIDS = ["2-3Y", "4-5Y", "6-7Y", "8-9Y", "10-11Y", "12-13Y"];

@@ -1,4 +1,4 @@
-import type { Collection, Segment } from "@/lib/types";
+import type { Collection, Segment } from "../lib/types";
 
 export const collections: Collection[] = [
   // MEN'S CATEGORIES

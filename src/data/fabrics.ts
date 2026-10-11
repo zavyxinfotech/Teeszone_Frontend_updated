@@ -1,4 +1,4 @@
-import type { Fabric } from "@/lib/types";
+import type { Fabric } from "../lib/types";
 
 export const fabrics: Fabric[] = [
   {

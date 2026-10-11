@@ -7,25 +7,25 @@ const cases = [
     icon: Building2,
     title: "Corporate",
     text: "Polos and tees for teams, onboarding kits and client gifting.",
-    href: "/collections/unisex-polo",
+    href: "/collections/mens-polo-240-cotton",
   },
   {
     icon: GraduationCap,
     title: "Schools & Institutions",
     text: "Daily uniforms, house-color sports tees and crest embroidery.",
-    href: "/collections/kids-polo",
+    href: "/collections/kids-rn-half-180",
   },
   {
     icon: Trophy,
     title: "Sports Teams",
     text: "Quick-dry kits and jerseys with names, numbers and sponsors.",
-    href: "/collections/active-round-neck",
+    href: "/collections/primoknit-polo-200",
   },
   {
     icon: PartyPopper,
     title: "Events & Merch",
     text: "Oversized drops, fest tees and giveaway hoodies that get kept.",
-    href: "/collections/mens-oversized-tee",
+    href: "/collections/mens-oversize-200",
   },
 ];
 

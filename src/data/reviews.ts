@@ -1,4 +1,4 @@
-import type { Review } from "@/lib/types";
+import type { Review } from "../lib/types";
 
 // TODO: sample reviews, replace with real ones before launch
 export const reviews: Review[] = [
