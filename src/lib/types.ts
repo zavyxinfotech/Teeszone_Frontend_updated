@@ -66,6 +66,7 @@ export interface AuthUser {
   email: string;
   name: string;
   phone: string;
+  company?: string;
   role: "CUSTOMER" | "ADMIN";
   hasPassword: boolean; // false for Google-only accounts until they set one
   googleLinked: boolean;

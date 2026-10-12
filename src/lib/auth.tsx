@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { authApi, type AuthSession } from "@/lib/api";
+import { authApi, type AuthSession, type RegisterPayload } from "@/lib/api";
 import type { AuthUser } from "@/lib/types";
 
 // token lives in localStorage, profile is always re-fetched from /auth/me
@@ -20,7 +20,7 @@ interface AuthState {
   token: string | null;
   ready: boolean; // false until the stored session has been checked
   login: (email: string, password: string) => Promise<AuthUser>;
-  register: (name: string, email: string, password: string) => Promise<AuthUser>;
+  register: (input: RegisterPayload) => Promise<AuthUser>;
   loginWithGoogle: (credential: string) => Promise<AuthUser>;
   logout: () => void;
   setUser: (user: AuthUser) => void;
@@ -84,8 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (name: string, email: string, password: string) =>
-      adopt(await authApi.register({ name, email, password })),
+    async (input: RegisterPayload) => adopt(await authApi.register(input)),
     [adopt],
   );
 

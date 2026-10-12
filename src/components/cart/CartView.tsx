@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import {
   ArrowRight,
@@ -16,6 +17,7 @@ import {
 import { useCart, type CartItem } from "@/lib/cart";
 import type { Product } from "@/lib/types";
 import { waLink } from "@/lib/site";
+import { useAuth } from "@/lib/auth";
 
 interface PricedLine extends CartItem {
   unitPrice: number;
@@ -26,6 +28,8 @@ interface PricedLine extends CartItem {
 export function CartView({ products }: { products: Product[] }) {
   const { items, note, setNote, updateQty, removeItem, clear, totalItems } =
     useCart();
+  const { user } = useAuth();
+  const router = useRouter();
 
   const productBySlug = useMemo(
     () => new Map(products.map((p) => [p.slug, p])),
@@ -240,13 +244,19 @@ export function CartView({ products }: { products: Product[] }) {
           </p>
 
           <a
-            href={waLink(orderMessage)}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={user ? waLink(orderMessage) : "/login?next=/cart"}
+            onClick={(e) => {
+              if (!user) {
+                e.preventDefault();
+                router.push("/login?next=/cart");
+              }
+            }}
+            target={user ? "_blank" : undefined}
+            rel={user ? "noopener noreferrer" : undefined}
             className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp px-6 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-md shadow-whatsapp/25 transition-all hover:-translate-y-0.5 hover:bg-whatsapp-dark"
           >
             <MessageCircle size={17} />
-            Checkout on WhatsApp
+            {user ? "Checkout on WhatsApp" : "Sign In to Checkout"}
           </a>
           <p className="mt-3 flex items-start gap-1.5 text-xs text-body">
             <BadgeCheck size={14} className="mt-0.5 shrink-0 text-accent" />

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
@@ -20,6 +21,7 @@ import type { Product } from "@/lib/types";
 import { offPct } from "@/lib/pricing";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
+import { useAuth } from "@/lib/auth";
 
 const LIGHT_HEXES = new Set(["#F1F2F4", "#BFD8F0", "#E3B341", "#98D7C2", "#F4A7C3", "#C8A2C8"]);
 
@@ -45,6 +47,9 @@ export function ProductConfigurator({ product }: { product: Product }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const { addItems } = useCart();
   const { has: hasWishlist, toggle: toggleWishlist } = useWishlist();
+  const { user } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
   const saved = hasWishlist(product.slug);
 
   const [apparelType, setApparelType] = useState<"blank" | "custom">("custom");
@@ -141,6 +146,10 @@ export function ProductConfigurator({ product }: { product: Product }) {
 
   // branding note (logo filename or print text) goes in as the cart note
   const handleAddToCart = () => {
+    if (!user) {
+      router.push(`/login?next=${encodeURIComponent(pathname || `/products/${product.slug}`)}`);
+      return;
+    }
     const lines: Parameters<typeof addItems>[0] = [];
     for (const cn of colorsWithQty) {
       const swatch = product.colors.find((c) => c.name === cn);
@@ -168,6 +177,14 @@ export function ProductConfigurator({ product }: { product: Product }) {
     addItems(lines, note || undefined);
     setQty({});
     setJustAdded(true);
+  };
+
+  const handleToggleWishlist = () => {
+    if (!user) {
+      router.push(`/login?next=${encodeURIComponent(pathname || `/products/${product.slug}`)}`);
+      return;
+    }
+    toggleWishlist(product.slug);
   };
 
   const showSizeGuide = product.sizes.some((s) => SIZE_GUIDE[s]);
@@ -300,7 +317,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
             {product.name}
           </h1>
           <button
-            onClick={() => toggleWishlist(product.slug)}
+            onClick={handleToggleWishlist}
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={saved}
             className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all hover:scale-110 ${saved

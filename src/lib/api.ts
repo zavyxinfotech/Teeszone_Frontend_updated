@@ -253,8 +253,20 @@ export interface AuthSession {
   user: AuthUser;
 }
 
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  company?: string;
+  line1: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
 export const authApi = {
-  register: (input: { name: string; email: string; password: string }) =>
+  register: (input: RegisterPayload) =>
     request<AuthSession>("/auth/register", { method: "POST", body: input }),
   login: (input: { email: string; password: string }) =>
     request<AuthSession>("/auth/login", { method: "POST", body: input }),

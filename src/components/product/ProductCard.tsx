@@ -2,17 +2,32 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { ArrowRight, Heart } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { offPct } from "@/lib/pricing";
 import { useWishlist } from "@/lib/wishlist";
+import { useAuth } from "@/lib/auth";
 
 export function ProductCard({ product }: { product: Product }) {
+  const { user } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
   const { has, toggle } = useWishlist();
   const saved = has(product.slug);
   const maxOff = Math.max(...product.qtyDiscounts.map((t) => t.offPct));
   const bulkQty = [...product.qtyDiscounts].sort((a, b) => b.minQty - a.minQty)[0];
   const bulkPrice = Math.round(product.price * (1 - maxOff / 100));
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      router.push(`/login?next=${encodeURIComponent(pathname || "/")}`);
+      return;
+    }
+    toggle(product.slug);
+  };
 
   return (
     <div className="group relative bg-white">
@@ -28,7 +43,7 @@ export function ProductCard({ product }: { product: Product }) {
       )}
 
       <button
-        onClick={() => toggle(product.slug)}
+        onClick={handleLike}
         aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
         aria-pressed={saved}
         className={`absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm transition-all hover:scale-110 ${
