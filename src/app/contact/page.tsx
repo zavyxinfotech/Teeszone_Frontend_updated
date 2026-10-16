@@ -18,7 +18,7 @@ const details = [
   { icon: MapPin, label: "Address", value: site.address },
   { icon: Phone, label: "Phone / WhatsApp", value: site.phoneDisplay },
   { icon: Mail, label: "Email", value: site.email },
-  { icon: Clock, label: "Hours", value: "Mon–Sat, 9:30 AM – 7:00 PM IST" },
+  { icon: Clock, label: "Hours", value: "Mon–Sat, 9:30 AM – 6:00 PM IST" },
 ];
 
 export default async function ContactPage({

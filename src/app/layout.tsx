@@ -10,6 +10,7 @@ import { CartProvider } from "@/lib/cart";
 import { WishlistProvider } from "@/lib/wishlist";
 import { site } from "@/lib/site";
 import { getNavigation } from "@/lib/api";
+import Script from "next/script";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -58,6 +59,10 @@ export default async function RootLayout({
               <main className="flex-1">{children}</main>
               <Footer segments={segments} />
               <WhatsAppBubble />
+              <Script
+                src="https://checkout.razorpay.com/v1/checkout.js"
+                strategy="lazyOnload"
+              />
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>

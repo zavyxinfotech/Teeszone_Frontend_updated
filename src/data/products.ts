@@ -23,15 +23,103 @@ const c = {
 };
 
 export const products: Product[] = [
-  // 1. Men's Round Neck Half Sleeve - 180 GSM (100% Cotton)
+  // ==========================================
+  // MEN'S POLO T-SHIRTS (3 PRODUCTS)
+  // ==========================================
+
+  // 1. Aerosoft Polo T-Shirt - 200 GSM
+  {
+    id: "p-aerosoft-polo-200",
+    name: "Aerosoft Polo T-Shirt (200 GSM) | Custom Logo Printed Quick-Dry Performance Corporate Polo",
+    slug: "aerosoft-polo-200",
+    collections: ["aerosoft-polo-200", "men"],
+    description: "Engineered 200 GSM Aerosoft knit polo t-shirt. Ultra-soft breathable texture with moisture-wicking technology and anti-wrinkle performance, ideal for corporate uniforms, staff apparel, and daily workwear.",
+    fit: "Modern regular polo fit with tailored comfort.",
+    fabric: "200 GSM Aerosoft Poly-Rich Performance Knit",
+    gsm: 200,
+    mrp: 649,
+    price: 369,
+    colors: [
+      { ...c.royal, image: "/products/polo-navy.svg" },
+      { ...c.black, image: "/products/polo-black.svg" },
+      { ...c.white, image: "/products/polo-white.svg" },
+    ],
+    sizes: ADULT,
+    qtyDiscounts: QTY,
+    features: [
+      "Aerosoft lightweight 200 GSM knit for all-day breathability",
+      "Anti-pilling and color-fast technology for long-lasting wear",
+      "Reinforced ribbed collar and 3-button placket ready for company logo",
+    ],
+    isNew: true,
+  },
+
+  // 2. Mens Polo Half Sleeve - 240 GSM
+  {
+    id: "p-mens-polo-half-sleeve-240",
+    name: "Men's Polo Half Sleeve T-Shirt (240 GSM) | 100% Combed Cotton Heavy Pique Embroidered Corporate Uniform Polo",
+    slug: "mens-polo-half-sleeve-240",
+    collections: ["mens-polo-half-sleeve-240", "men"],
+    description: "Executive 240 GSM heavyweight combed cotton pique polo t-shirt. Features superior stitch density, anti-curl ribbed collar, and smooth hand-feel tailored for corporate teams and luxury brand merchandise.",
+    fit: "Classic executive regular polo fit.",
+    fabric: "100% Combed Cotton Heavy Pique",
+    gsm: 240,
+    mrp: 799,
+    price: 469,
+    colors: [
+      { ...c.navy, image: "/products/polo-navy.svg" },
+      { ...c.white, image: "/products/polo-white.svg" },
+      { ...c.black, image: "/products/polo-black.svg" },
+    ],
+    sizes: ADULT,
+    qtyDiscounts: QTY,
+    features: [
+      "240 GSM heavy combed cotton pique knit",
+      "Anti-curl collar band with reinforced seam stitching",
+      "High-density embroidery and screen printing ready",
+    ],
+    bestSeller: true,
+  },
+
+  // 3. Ecoblend Polo Neck - 240 GSM
+  {
+    id: "p-ecoblend-polo-neck-240",
+    name: "Ecoblend Polo Neck T-Shirt (240 GSM) | Heavy-Duty Anti-Fade Polycotton Industrial Workwear Polo",
+    slug: "ecoblend-polo-neck-240",
+    collections: ["ecoblend-polo-neck-240", "men"],
+    description: "Rugged 240 GSM polycotton Ecoblend polo shirt. Combines the natural softness of cotton with the heavy-duty durability and color retention of polyester, built to withstand 100+ commercial wash cycles.",
+    fit: "Structured corporate uniform fit.",
+    fabric: "240 GSM Polycotton Ecoblend Fabric",
+    gsm: 240,
+    mrp: 699,
+    price: 399,
+    colors: [
+      { ...c.navy, image: "/products/polo-navy.svg" },
+      { ...c.black, image: "/products/polo-black.svg" },
+      { ...c.grey, image: "/products/polo-navy.svg" },
+    ],
+    sizes: ADULT,
+    qtyDiscounts: QTY,
+    features: [
+      "240 GSM heavy-duty polycotton blend for industrial wash durability",
+      "Anti-fade and wrinkle-resistant fabric technology",
+      "Durable collar structure with neat top-stitching",
+    ],
+  },
+
+  // ==========================================
+  // MEN'S ROUND NECK T-SHIRTS (2 PRODUCTS)
+  // ==========================================
+
+  // 4. Mens Round Neck Half Sleeve - 180 GSM
   {
     id: "p-mens-rn-half-180",
-    name: "Men's Round Neck Half Sleeve - 180 GSM (100% Cotton)",
+    name: "Men's Round Neck Half Sleeve T-Shirt (180 GSM) | 100% Bio-Washed Combed Cotton Custom Printed T-Shirt",
     slug: "mens-rn-half-180",
     collections: ["mens-rn-half-180", "men"],
-    description: "Everyday 180 GSM bio-washed 100% cotton round neck tee. Soft, breathable, pre-shrunk, ideal for daily wear and custom printing.",
-    fit: "Classic regular fit with smooth drape.",
-    fabric: "100% Bio-Washed Cotton",
+    description: "Essential 180 GSM 100% bio-washed combed cotton half-sleeve crew neck t-shirt. Pre-shrunk, ultra-soft, breathable drape perfect for events, startups, and everyday branded apparel.",
+    fit: "Regular modern fit with smooth silhouette.",
+    fabric: "100% Bio-Washed Ring-Spun Cotton",
     gsm: 180,
     mrp: 499,
     price: 289,
@@ -44,93 +132,190 @@ export const products: Product[] = [
     sizes: ADULT,
     qtyDiscounts: QTY,
     features: [
-      "100% Bio-washed cotton for supreme softness",
-      "Pre-shrunk fabric to prevent shrinkage after wash",
-      "Reinforced double-needle stitching on hem and sleeves",
+      "100% Bio-washed ring-spun cotton for supreme softness",
+      "Pre-shrunk fabric to prevent shrinking after multiple washes",
+      "Double-needle hem and sleeve stitching for daily endurance",
     ],
     bestSeller: true,
   },
 
-  // 2. Men's Round Neck Half Sleeve - 200 GSM (100% Cotton)
+  // 5. Mens Round Neck Half Sleeve - 200 GSM (Lycra)
   {
-    id: "p-mens-rn-half-200-cotton",
-    name: "Men's Round Neck Half Sleeve - 200 GSM (100% Cotton)",
-    slug: "mens-rn-half-200-cotton",
-    collections: ["mens-rn-half-200-cotton", "men"],
-    description: "Heavyweight 200 GSM 100% combed cotton tee. Extra durable, structured silhouette with premium comfort.",
-    fit: "Relaxed heavy-fit with structured shoulder line.",
-    fabric: "100% Combed Heavyweight Cotton",
-    gsm: 200,
-    mrp: 649,
-    price: 379,
-    colors: [
-      { ...c.black, image: "/products/crew-black.svg" },
-      { ...c.white, image: "/products/crew-white.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "Heavyweight 200 GSM knit for structured drape",
-      "100% Combed cotton — pill-resistant finish",
-      "Ideal for premium streetwear and custom embroidery",
-    ],
-    isNew: true,
-  },
-
-  // 3. Men's Round Neck Half Sleeve - 200 GSM (95% Cotton & 5% Spandex)
-  {
-    id: "p-mens-rn-half-200-spandex",
-    name: "Men's Round Neck Half Sleeve - 200 GSM (95% Cotton & 5% Spandex)",
-    slug: "mens-rn-half-200-spandex",
-    collections: ["mens-rn-half-200-spandex", "men"],
-    description: "Stretchable 200 GSM cotton-spandex blend for athletic flexibility, retention, and maximum body contouring.",
-    fit: "Flexible stretch fit.",
-    fabric: "95% Cotton & 5% Spandex Elastic Blend",
+    id: "p-mens-rn-half-200-lycra",
+    name: "Men's Round Neck Half Sleeve T-Shirt 200 GSM (Lycra) | 4-Way Stretch Elastic Cotton Athletic Sports T-Shirt",
+    slug: "mens-rn-half-200-lycra",
+    collections: ["mens-rn-half-200-lycra", "men"],
+    description: "High-performance 200 GSM cotton-Lycra elastane round neck t-shirt. Delivers 4-way elastic stretch, remarkable shape recovery, and body contouring for athletic teams, fitness trainers, and modern corporate workwear.",
+    fit: "Tailored stretch athletic fit.",
+    fabric: "95% Combed Cotton & 5% Lycra Spandex",
     gsm: 200,
     mrp: 699,
     price: 399,
     colors: [
       { ...c.black, image: "/products/crew-black.svg" },
       { ...c.royal, image: "/products/crew-royal.svg" },
+      { ...c.white, image: "/products/crew-white.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
     features: [
-      "4-Way stretch technology for shape retention",
-      "Sweat-wicking breathability with cotton softness",
-      "Reinforced stretch collar line",
+      "4-Way stretch Lycra elastane blend with instant recovery",
+      "Sweat-absorbing breathable cotton weave",
+      "Non-sagging ribbed collar that retains shape",
     ],
+    isNew: true,
   },
 
-  // 4. Men's Round Neck Full Sleeve - 180 GSM (100% Cotton)
+  // ==========================================
+  // MEN'S OVERSIZE T-SHIRTS (1 PRODUCT)
+  // ==========================================
+
+  // 6. Mens Oversize Half Sleeve - 240 - 250 GSM (French Terry)
   {
-    id: "p-mens-rn-full-180",
-    name: "Men's Round Neck Full Sleeve - 180 GSM (100% Cotton)",
-    slug: "mens-rn-full-180",
-    collections: ["mens-rn-full-180", "men"],
-    description: "Full sleeve round neck tee crafted in 180 GSM bio-washed cotton. Ribbed cuffs for a snug fit during cooler seasons.",
-    fit: "Regular fit with fitted ribbed cuffs.",
-    fabric: "100% Bio-Washed Cotton",
-    gsm: 180,
-    mrp: 599,
-    price: 349,
+    id: "p-mens-oversize-french-terry-240",
+    name: "Men's Oversize Half Sleeve T-Shirt (240-250 GSM French Terry) | Heavyweight Drop-Shoulder Boxy Streetwear T-Shirt",
+    slug: "mens-oversize-french-terry-240",
+    collections: ["mens-oversize-french-terry-240", "men"],
+    description: "Urban luxury 240-250 GSM French Terry cotton oversized half sleeve t-shirt. Styled with dropped shoulders, structured boxy silhouette, and loopback cotton interior for authentic modern streetwear merch.",
+    fit: "Boxy oversized streetwear fit with drop shoulders.",
+    fabric: "100% Combed Cotton French Terry (240-250 GSM)",
+    gsm: 245,
+    mrp: 849,
+    price: 499,
     colors: [
-      { ...c.white, image: "/products/longsleeve-white.svg" },
-      { ...c.maroon, image: "/products/longsleeve-maroon.svg" },
+      { ...c.black, image: "/products/crew-black.svg" },
+      { ...c.charcoal, image: "/products/crew-black.svg" },
+      { ...c.white, image: "/products/crew-white.svg" },
     ],
     sizes: ADULT,
     qtyDiscounts: QTY,
     features: [
-      "Full sleeve coverage with soft stretch cuffs",
-      "Pre-shrunk 100% cotton fabric",
-      "Layer-friendly weight for all-year comfort",
+      "Heavyweight 240-250 GSM French Terry loopback fabric",
+      "Dropped shoulder seams for authentic boxy street silhouette",
+      "Thick rib collar with zero distortion after wash",
+    ],
+    bestSeller: true,
+  },
+
+  // ==========================================
+  // HOODIES CATEGORIES (4 PRODUCTS)
+  // ==========================================
+
+  // 7. Hoodies with Zip - 320 GSM
+  {
+    id: "p-hoodie-with-zip-320",
+    name: "Hoodies with Zip (320 GSM) | Custom Full-Zip Cotton Rich Brushed Fleece Heavyweight Winter Hoodie",
+    slug: "hoodie-with-zip-320",
+    collections: ["hoodie-with-zip-320", "hoodies"],
+    description: "Comfortable 320 GSM cotton-rich brushed fleece full-zip hoodie. Equipped with an antique-finish metal zipper, split kangaroo front pockets, and double-layered warm hood for winter corporate gifting and team gear.",
+    fit: "Classic full-zip layering fit.",
+    fabric: "320 GSM Cotton Rich Brushed Fleece",
+    gsm: 320,
+    mrp: 1299,
+    price: 749,
+    colors: [
+      { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
+      { ...c.navy, image: "/products/hoodie-navy.svg" },
+      { ...c.black, image: "/products/hoodie-charcoal.svg" },
+    ],
+    sizes: ADULT,
+    qtyDiscounts: QTY,
+    features: [
+      "320 GSM plush brushed fleece interior for winter warmth",
+      "Heavy-duty metallic full front zipper with easy-glide puller",
+      "Split kangaroo pockets with reinforced stress seams",
+    ],
+    bestSeller: true,
+  },
+
+  // 8. Hoodies without Zip - 320 GSM
+  {
+    id: "p-hoodie-without-zip-320",
+    name: "Hoodies without Zip (320 GSM) | Custom Pullover Kangaroo Pocket Cotton Rich Fleece Winter Hoodie",
+    slug: "hoodie-without-zip-320",
+    collections: ["hoodie-without-zip-320", "hoodies"],
+    description: "Classic 320 GSM pullover hoodie constructed in heavy cotton-rich fleece. Designed with spacious front kangaroo pocket, double-layer drawstring hood, and stretch-ribbed cuffs and waistband.",
+    fit: "Comfortable relaxed pullover hoodie fit.",
+    fabric: "320 GSM Cotton Rich Brushed Fleece",
+    gsm: 320,
+    mrp: 1199,
+    price: 699,
+    colors: [
+      { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
+      { ...c.navy, image: "/products/hoodie-navy.svg" },
+      { ...c.maroon, image: "/products/hoodie-charcoal.svg" },
+    ],
+    sizes: ADULT,
+    qtyDiscounts: QTY,
+    features: [
+      "320 GSM dense fleece lining for thermal insulation",
+      "Spacious kangaroo pouch pocket for hands and essentials",
+      "Matching flat braided drawcords with capped aglets",
     ],
   },
 
-  // 5. Women's Round Neck Half Sleeve - 180 GSM (100% Cotton)
+  // 9. Unisex Hoodies - 325 GSM
+  {
+    id: "p-unisex-hoodie-325",
+    name: "Unisex Hoodies (325 GSM) | 100% Pure Cotton Brushed Fleece Premium All-Season Sweatshirt Hoodie",
+    slug: "unisex-hoodie-325",
+    collections: ["unisex-hoodie-325", "hoodies"],
+    description: "Plush 325 GSM 100% cotton brushed fleece unisex hoodie. Versatile contemporary styling suited for both men and women, featuring clean flatlock stitching and vibrant printing/embroidery surfaces.",
+    fit: "Universal unisex comfort fit.",
+    fabric: "100% Cotton Brushed Fleece (325 GSM)",
+    gsm: 325,
+    mrp: 1399,
+    price: 799,
+    colors: [
+      { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
+      { ...c.navy, image: "/products/hoodie-navy.svg" },
+      { ...c.royal, image: "/products/hoodie-charcoal.svg" },
+    ],
+    sizes: ADULT,
+    qtyDiscounts: QTY,
+    features: [
+      "100% Cotton 325 GSM ultra-soft brushed fleece",
+      "Neutral unisex proportions for universal flattering fit",
+      "Superior surface for high-definition DTF and embroidery",
+    ],
+    isNew: true,
+  },
+
+  // 10. Unisex Hoodies - (360 - 370 GSM)
+  {
+    id: "p-unisex-hoodie-360",
+    name: "Unisex Hoodies (360-370 GSM) | Ultra-Heavyweight Thermal Cold-Proof Cotton-Poly Winter Fleece Hoodie",
+    slug: "unisex-hoodie-360",
+    collections: ["unisex-hoodie-360", "hoodies"],
+    description: "Ultra-heavy 360-370 GSM cotton-poly thermal fleece unisex hoodie. Built for extreme winter cold, high durability, and luxury heavyweight hand-feel with shape retention that never sags.",
+    fit: "Heavy structured unisex thermal fit.",
+    fabric: "80% Cotton & 20% Polyester Heavy Thermal Fleece",
+    gsm: 365,
+    mrp: 1599,
+    price: 899,
+    colors: [
+      { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
+      { ...c.pink, image: "/products/hoodie-pink.svg" },
+      { ...c.black, image: "/products/hoodie-charcoal.svg" },
+    ],
+    sizes: ADULT,
+    qtyDiscounts: QTY,
+    features: [
+      "360-370 GSM maximum density thermal winter warmth",
+      "80/20 Cotton-poly composition prevents shrinkage",
+      "Double-layered extra deep hood with metal tipping",
+    ],
+    bestSeller: true,
+  },
+
+  // ==========================================
+  // WOMEN'S CATEGORIES
+  // ==========================================
+
+  // 11. Women's Round Neck Half Sleeve - 180 GSM (100% Cotton)
   {
     id: "p-womens-rn-half-180",
-    name: "Women's Round Neck Half Sleeve - 180 GSM (100% Cotton)",
+    name: "Women's Round Neck Half Sleeve T-Shirt (180 GSM) | 100% Bio-Washed Ring-Spun Cotton Tailored Fit T-Shirt",
     slug: "womens-rn-half-180",
     collections: ["womens-rn-half-180", "women"],
     description: "Tailored women's round neck tee in 180 GSM pure bio-washed cotton. Slim sleeves and gentle waist contouring.",
@@ -153,10 +338,14 @@ export const products: Product[] = [
     bestSeller: true,
   },
 
-  // 6. Kids Round Neck Half Sleeve - 180 GSM (100% Cotton)
+  // ==========================================
+  // KIDS' CATEGORIES
+  // ==========================================
+
+  // 12. Kids Round Neck Half Sleeve - 180 GSM (100% Cotton)
   {
     id: "p-kids-rn-half-180",
-    name: "Kids Round Neck Half Sleeve - 180 GSM (100% Cotton)",
+    name: "Kids Round Neck Half Sleeve T-Shirt (180 GSM) | Skin-Safe Super-Combed Cotton School & Sports Event T-Shirt",
     slug: "kids-rn-half-180",
     collections: ["kids-rn-half-180", "kids"],
     description: "Soft, skin-safe 180 GSM cotton kids tee. Tested for playground durability and vibrant color retention.",
@@ -178,189 +367,14 @@ export const products: Product[] = [
     ],
   },
 
-  // 7. Men's Oversize Half Sleeve - 200 GSM (100% Cotton)
-  {
-    id: "p-mens-oversize-200",
-    name: "Men's Oversize Half Sleeve - 200 GSM (100% Cotton)",
-    slug: "mens-oversize-200",
-    collections: ["mens-oversize-200", "men"],
-    description: "Trendy 200 GSM boxy oversized tee with dropped shoulders for modern streetwear style.",
-    fit: "Oversized boxy fit with drop shoulders.",
-    fabric: "100% Heavyweight Cotton",
-    gsm: 200,
-    mrp: 699,
-    price: 419,
-    colors: [
-      { ...c.black, image: "/products/crew-black.svg" },
-      { ...c.white, image: "/products/crew-white.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "Dropped shoulder seams for boxy streetwear fit",
-      "Heavyweight 200 GSM knit",
-      "Generous canvas for front and back graphics",
-    ],
-  },
+  // ==========================================
+  // SPECIALTY & FABRICS CATEGORIES
+  // ==========================================
 
-  // 8. Men's Oversize Half Sleeve - 240 - 250 GSM (100% Cotton)
-  {
-    id: "p-mens-oversize-240",
-    name: "Men's Oversize Half Sleeve - 240-250 GSM (100% Cotton)",
-    slug: "mens-oversize-240",
-    collections: ["mens-oversize-240", "men"],
-    description: "Ultra heavyweight 240-250 GSM 100% cotton boxy tee. Thick, structured, and luxurious drape.",
-    fit: "Heavy oversized boxy cut.",
-    fabric: "100% Heavyweight Compact Cotton",
-    gsm: 245,
-    mrp: 849,
-    price: 499,
-    colors: [
-      { ...c.black, image: "/products/crew-black.svg" },
-      { ...c.charcoal, image: "/products/crew-black.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "240-250 GSM dense luxury knit",
-      "Zero deformation collar design",
-      "Top-tier streetwear silhouette",
-    ],
-    bestSeller: true,
-  },
-
-  // 9. Men's Polo Half Sleeve - 240 - 250 GSM (100% Cotton)
-  {
-    id: "p-mens-polo-240-cotton",
-    name: "Men's Polo Half Sleeve - 240-250 GSM (100% Cotton)",
-    slug: "mens-polo-240-cotton",
-    collections: ["mens-polo-240-cotton", "men"],
-    description: "Classic 240-250 GSM 100% combed cotton pique polo. Sharp collar retention, ideal for corporate uniforms.",
-    fit: "Structured executive polo fit.",
-    fabric: "100% Combed Cotton Pique",
-    gsm: 245,
-    mrp: 799,
-    price: 469,
-    colors: [
-      { ...c.navy, image: "/products/polo-navy.svg" },
-      { ...c.white, image: "/products/polo-white.svg" },
-      { ...c.black, image: "/products/polo-black.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "Anti-curl ribbed collar and cuffs",
-      "Breathable 100% combed cotton pique",
-      "Custom embroidery-ready chest surface",
-    ],
-    bestSeller: true,
-  },
-
-  // 10. Men's Polo Half Sleeve - 240 - 250 GSM (95% Cotton & 5% Spandex)
-  {
-    id: "p-mens-polo-240-spandex",
-    name: "Men's Polo Half Sleeve - 240-250 GSM (95% Cotton & 5% Spandex)",
-    slug: "mens-polo-240-spandex",
-    collections: ["mens-polo-240-spandex", "men"],
-    description: "Premium 240-250 GSM cotton-spandex stretch polo for flexible active workwear and executive style.",
-    fit: "Tailored stretch polo fit.",
-    fabric: "95% Cotton & 5% Spandex Stretch Pique",
-    gsm: 245,
-    mrp: 899,
-    price: 529,
-    colors: [
-      { ...c.navy, image: "/products/polo-navy.svg" },
-      { ...c.black, image: "/products/polo-black.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "Flexible stretch comfort with executive look",
-      "Durable shape retention after 50+ washes",
-      "Reinforced placket and buttons",
-    ],
-  },
-
-  // 11. Men's Polo Half Sleeve Mars - 200 GSM (100% Micro Polyester)
-  {
-    id: "p-mens-polo-mars-200",
-    name: "Men's Polo Half Sleeve Mars - 200 GSM (100% Micro Polyester)",
-    slug: "mens-polo-mars-200",
-    collections: ["mens-polo-mars-200", "men"],
-    description: "Activewear Mars performance polo in 200 GSM micro polyester. Quick-drying, anti-microbial, wrinkle-free.",
-    fit: "Athletic activewear fit.",
-    fabric: "100% Micro Polyester Quick-Dry",
-    gsm: 200,
-    mrp: 599,
-    price: 349,
-    colors: [
-      { ...c.royal, image: "/products/polo-navy.svg" },
-      { ...c.black, image: "/products/polo-black.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "Quick-dry moisture management tech",
-      "Wrinkle-resistant and iron-free",
-      "Sublimation printing friendly",
-    ],
-  },
-
-  // 12. Unisex Hoodies with Zip - 325 GSM (100% Cotton)
-  {
-    id: "p-unisex-hoodie-zip-325",
-    name: "Unisex Hoodies with Zip - 325 GSM (100% Cotton)",
-    slug: "unisex-hoodie-zip-325",
-    collections: ["unisex-hoodie-zip-325", "hoodies"],
-    description: "Plush 325 GSM 100% cotton brushed fleece zipped hoodie with sturdy metal YKK zip and double hood.",
-    fit: "Cozy unisex layering fit.",
-    fabric: "100% Cotton Brushed Fleece",
-    gsm: 325,
-    mrp: 1399,
-    price: 799,
-    colors: [
-      { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
-      { ...c.navy, image: "/products/hoodie-navy.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "325 GSM plush brushed fleece interior",
-      "Heavy-duty metal front zipper",
-      "Split kangaroo pouch pockets",
-    ],
-  },
-
-  // 13. Unisex Hoodies with Zip - 360 - 370 GSM (80% Cotton & 20% Polyester)
-  {
-    id: "p-unisex-hoodie-zip-360",
-    name: "Unisex Hoodies with Zip - 360-370 GSM (80% Cotton & 20% Polyester)",
-    slug: "unisex-hoodie-zip-360",
-    collections: ["unisex-hoodie-zip-360", "hoodies"],
-    description: "Ultra-heavy 360-370 GSM cotton-poly blend zipped hoodie for extreme winter warmth and shape retention.",
-    fit: "Heavy structured winter fit.",
-    fabric: "80% Cotton & 20% Polyester Heavy Fleece",
-    gsm: 365,
-    mrp: 1599,
-    price: 899,
-    colors: [
-      { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
-      { ...c.pink, image: "/products/hoodie-pink.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "360-370 GSM ultra heavyweight thermal warmth",
-      "Shrink-resistant cotton-poly blend",
-      "Double-layered hood with metal drawcord tips",
-    ],
-    isNew: true,
-  },
-
-  // 14. Ecoblend Round Neck T-Shirts - 180 GSM (Polycotton Fabric)
+  // 13. Ecoblend Round Neck T-Shirts - 180 GSM (Polycotton Fabric)
   {
     id: "p-ecoblend-rn-180",
-    name: "Ecoblend Round Neck T-Shirts - 180 GSM (Polycotton Fabric)",
+    name: "Ecoblend Round Neck T-Shirt (180 GSM) | Durable Eco Polycotton Industrial Workwear Uniform T-Shirt",
     slug: "ecoblend-rn-180",
     collections: ["ecoblend-rn-180", "specialty"],
     description: "Durable 180 GSM polycotton blend round neck tee. Fast drying, stain-resistant, perfect for high-usage uniforms.",
@@ -382,10 +396,10 @@ export const products: Product[] = [
     ],
   },
 
-  // 15. Biowash Round Neck T-Shirts - 180 GSM (100% Cotton)
+  // 14. Biowash Round Neck T-Shirts - 180 GSM (100% Cotton)
   {
     id: "p-biowash-rn-180",
-    name: "Biowash Round Neck T-Shirts - 180 GSM (100% Cotton)",
+    name: "Biowash Round Neck T-Shirt (180 GSM) | 100% Bio-Enzyme Washed Lint-Free DTF & Screen Printing T-Shirt",
     slug: "biowash-rn-180",
     collections: ["biowash-rn-180", "specialty"],
     description: "Bio-enzyme washed 180 GSM pure cotton tee for silky smooth touch and lint-free print surface.",
@@ -407,10 +421,10 @@ export const products: Product[] = [
     ],
   },
 
-  // 16. Primoknit Polo T-Shirt - 200 GSM (Dotknit Fabrics)
+  // 15. Primoknit Polo T-Shirt - 200 GSM (Dotknit Fabrics)
   {
     id: "p-primoknit-polo-200",
-    name: "Primoknit Polo T-Shirt - 200 GSM (Dotknit Fabrics)",
+    name: "Primoknit Dotknit Polo T-Shirt (200 GSM) | Breathable Moisture-Wicking Sports Athletic Team Polo",
     slug: "primoknit-polo-200",
     collections: ["primoknit-polo-200", "specialty"],
     description: "Engineered 200 GSM Primoknit Dotknit polo. Breathable micro-dots for sports performance and team wear.",
@@ -432,10 +446,10 @@ export const products: Product[] = [
     ],
   },
 
-  // 17. Ecoblend Polo Neck T-Shirts - 240 GSM (Polycotton Ecoblend Fabric)
+  // 16. Ecoblend Polo Neck T-Shirts - 240 GSM (Polycotton Ecoblend Fabric)
   {
     id: "p-ecoblend-polo-240",
-    name: "Ecoblend Polo Neck T-Shirts - 240 GSM (Polycotton Ecoblend Fabric)",
+    name: "Ecoblend Heavy Polo Neck T-Shirt (240 GSM) | Anti-Shrink Polycotton Industrial Staff Uniform Polo",
     slug: "ecoblend-polo-240",
     collections: ["ecoblend-polo-240", "specialty"],
     description: "Heavy-duty 240 GSM polycotton Ecoblend polo shirt. Maintains crisp collar and vibrant color through hundreds of industrial washes.",
@@ -457,10 +471,10 @@ export const products: Product[] = [
     ],
   },
 
-  // 18. Aeropiq Polo T-Shirts - 210 GSM (Nano Poly Fabric)
+  // 17. Aeropiq Polo T-Shirts - 210 GSM (Nano Poly Fabric)
   {
     id: "p-aeropiq-polo-210",
-    name: "Aeropiq Polo T-Shirts - 210 GSM (Nano Poly Fabric)",
+    name: "Aeropiq Nano-Poly Polo T-Shirt (210 GSM) | Stain & Odor Resistant High-Tech Corporate Workwear Polo",
     slug: "aeropiq-polo-210",
     collections: ["aeropiq-polo-210", "specialty"],
     description: "Advanced 210 GSM Nano Poly Aeropiq polo. Ultra lightweight tech knit with active odor resistance.",
@@ -482,10 +496,10 @@ export const products: Product[] = [
     ],
   },
 
-  // 19. Organic Polo T-Shirts - 270 GSM (100% Premium Cotton)
+  // 18. Organic Polo T-Shirts - 270 GSM (100% Premium Cotton)
   {
     id: "p-organic-polo-270",
-    name: "Organic Polo T-Shirts - 270 GSM (100% Premium Cotton)",
+    name: "Organic Cotton Polo T-Shirt (270 GSM) | GOTS Certified 100% Organic Luxury Heavyweight Eco-Friendly Polo",
     slug: "organic-polo-270",
     collections: ["organic-polo-270", "specialty"],
     description: "Luxurious 270 GSM certified organic 100% premium cotton polo. Ultra heavy weight with eco-luxury touch.",
@@ -508,10 +522,10 @@ export const products: Product[] = [
     bestSeller: true,
   },
 
-  // 20. Organic Polo Plain T-Shirts - 270 GSM (100% Premium Cotton)
+  // 19. Organic Polo Plain T-Shirts - 270 GSM (100% Premium Cotton)
   {
     id: "p-organic-polo-plain-270",
-    name: "Organic Polo Plain T-Shirts - 270 GSM (100% Premium Cotton)",
+    name: "Organic Cotton Plain Polo T-Shirt (270 GSM) | Minimalist Executive Premium Organic Apparel",
     slug: "organic-polo-plain-270",
     collections: ["organic-polo-plain-270", "specialty"],
     description: "Clean minimalist 270 GSM organic plain cotton polo. Premium feel for luxury retail and corporate gifting.",
@@ -532,60 +546,10 @@ export const products: Product[] = [
       "Premium wooden touch buttons",
     ],
   },
-
-  // 21. Hoodies without Zip - 320 GSM (Cotton Rich Fabric)
-  {
-    id: "p-hoodie-without-zip-320",
-    name: "Hoodies without Zip - 320 GSM (Cotton Rich Fabric)",
-    slug: "hoodie-without-zip-320",
-    collections: ["hoodie-without-zip-320", "hoodies"],
-    description: "Classic pullover hoodie in 320 GSM cotton rich fleece. Kangaroo pouch pocket and double lined hood.",
-    fit: "Relaxed pullover hoodie fit.",
-    fabric: "320 GSM Cotton Rich Fleece",
-    gsm: 320,
-    mrp: 1199,
-    price: 699,
-    colors: [
-      { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
-      { ...c.navy, image: "/products/hoodie-navy.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "320 GSM fleece interior warmth",
-      "Large front kangaroo pouch pocket",
-      "Flat braided matching drawcords",
-    ],
-  },
-
-  // 22. Hoodies with Zip - 320 GSM (Cotton Rich Fabric)
-  {
-    id: "p-hoodie-with-zip-320",
-    name: "Hoodies with Zip - 320 GSM (Cotton Rich Fabric)",
-    slug: "hoodie-with-zip-320",
-    collections: ["hoodie-with-zip-320", "hoodies"],
-    description: "Full-zip hoodie in 320 GSM cotton rich fleece with smooth metal zipper and split front pockets.",
-    fit: "Comfortable full-zip hoodie fit.",
-    fabric: "320 GSM Cotton Rich Fleece",
-    gsm: 320,
-    mrp: 1299,
-    price: 749,
-    colors: [
-      { ...c.charcoal, image: "/products/hoodie-charcoal.svg" },
-      { ...c.navy, image: "/products/hoodie-navy.svg" },
-    ],
-    sizes: ADULT,
-    qtyDiscounts: QTY,
-    features: [
-      "Full zipper front for versatile layering",
-      "320 GSM soft fleece weight",
-      "Double stitched pocket stress points",
-    ],
-  },
 ];
 
 export function getProduct(slug: string): Product | undefined {
-  return products.find((p) => p.slug === slug);
+  return products.find((p) => p.slug === slug || p.id === slug);
 }
 
 export function getProductsByCollection(slug: string): Product[] {
@@ -593,6 +557,15 @@ export function getProductsByCollection(slug: string): Product[] {
   if (matches.length > 0) return matches;
 
   const s = slug.toLowerCase();
+  if (s.includes("best-sellers") || s.includes("bestseller")) {
+    return products.filter((p) => p.bestSeller);
+  }
+  if (s.includes("new-arrival") || s.includes("new")) {
+    return products.filter((p) => p.isNew);
+  }
+  if (s.includes("unisex")) {
+    return products.filter((p) => p.slug.includes("unisex"));
+  }
   if (s.includes("hoodie") || s.includes("zip")) {
     return products.filter((p) => p.slug.includes("hoodie"));
   }
@@ -601,9 +574,6 @@ export function getProductsByCollection(slug: string): Product[] {
   }
   if (s.includes("oversize")) {
     return products.filter((p) => p.slug.includes("oversize"));
-  }
-  if (s.includes("full")) {
-    return products.filter((p) => p.slug.includes("full"));
   }
   if (s.includes("women")) {
     return products.filter((p) => p.slug.includes("womens"));

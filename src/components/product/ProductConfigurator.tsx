@@ -1,13 +1,17 @@
-"use client";
+"use client"; // TeesZone Product Configurator
 
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   BadgeCheck,
+  Building2,
   Check,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   CloudUpload,
   Heart,
   Minus,
@@ -15,6 +19,7 @@ import {
   Plus,
   ShoppingBag,
   Sparkles,
+  Star,
   X,
 } from "lucide-react";
 import type { Product } from "@/lib/types";
@@ -22,6 +27,9 @@ import { offPct } from "@/lib/pricing";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
+import { reviews as defaultReviews } from "@/data/reviews";
+import { getProductRating } from "@/data/ratings";
+import type { Review } from "@/lib/types";
 
 const LIGHT_HEXES = new Set(["#F1F2F4", "#BFD8F0", "#E3B341", "#98D7C2", "#F4A7C3", "#C8A2C8"]);
 
@@ -35,7 +43,16 @@ const SIZE_GUIDE: Record<string, string> = {
   XXL: '44"',
 };
 
-export function ProductConfigurator({ product }: { product: Product }) {
+export function ProductConfigurator({
+  product,
+  initialReviews,
+}: {
+  product: Product;
+  initialReviews?: Review[];
+}) {
+  const reviewsList = initialReviews && initialReviews.length > 0 ? initialReviews : defaultReviews;
+  const ratingInfo = getProductRating(product.id || product.slug);
+  const deliveredOrdersCount = product.ordersDelivered != null ? product.ordersDelivered : ratingInfo.deliveredCompanies;
   const [colorIdx, setColorIdx] = useState(0);
   // size split per color: color -> size -> qty
   const [qty, setQty] = useState<Record<string, Record<string, number>>>({});
@@ -45,6 +62,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
   const [justAdded, setJustAdded] = useState(false);
   const [pasteText, setPasteText] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const reviewsRef = useRef<HTMLDivElement>(null);
   const { addItems } = useCart();
   const { has: hasWishlist, toggle: toggleWishlist } = useWishlist();
   const { user } = useAuth();
@@ -54,8 +72,18 @@ export function ProductConfigurator({ product }: { product: Product }) {
 
   const [apparelType, setApparelType] = useState<"blank" | "custom">("custom");
   const [customViewIdx, setCustomViewIdx] = useState(0);
+  const [blankStartIdx, setBlankStartIdx] = useState(0);
   const color = product.colors[colorIdx];
   const colorQty = qty[color.name] ?? {};
+
+  // Auto-scroll blank apparel carousel when a color is selected
+  useEffect(() => {
+    if (colorIdx < blankStartIdx) {
+      setBlankStartIdx(colorIdx);
+    } else if (colorIdx >= blankStartIdx + 6) {
+      setBlankStartIdx(Math.max(0, Math.min(product.colors.length - 6, colorIdx - 5)));
+    }
+  }, [colorIdx, product.colors.length, blankStartIdx]);
 
   const colorTotals = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -285,24 +313,78 @@ export function ProductConfigurator({ product }: { product: Product }) {
                   ))}
                 </div>
               ) : (
-                /* For Blank Apparel: Color image thumbnail */
-                <div className="mt-3 flex gap-2">
-                  {product.colors.map((c, i) => (
-                    <button
-                      key={c.name}
-                      onClick={() => {
-                        setColorIdx(i);
-                        setCustomViewIdx(0);
-                      }}
-                      aria-label={`View ${c.name}`}
-                      className={`w-18 overflow-hidden border-2 bg-surface transition-colors sm:w-20 ${
-                        i === colorIdx ? "border-ink" : "border-line hover:border-ink/40"
-                      }`}
-                    >
-                      <Image src={c.image} alt={c.name} width={100} height={100} className="h-auto w-full" />
-                    </button>
-                  ))}
-                </div>
+                /* For Blank Apparel: Color image thumbnails with 6 visible by default & navigation arrows for 7+ colors */
+                (() => {
+                  const hasMoreColors = product.colors.length > 6;
+                  const maxIdx = Math.max(0, product.colors.length - 6);
+                  const visibleColors = hasMoreColors
+                    ? product.colors.slice(blankStartIdx, blankStartIdx + 6)
+                    : product.colors;
+
+                  return (
+                    <div className="mt-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        {hasMoreColors && (
+                          <button
+                            type="button"
+                            onClick={() => setBlankStartIdx((prev) => Math.max(0, prev - 1))}
+                            disabled={blankStartIdx === 0}
+                            aria-label="Previous colors"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink shadow-sm transition hover:bg-neutral-100 disabled:opacity-25 disabled:cursor-not-allowed"
+                          >
+                            <ChevronLeft className="h-5 w-5" />
+                          </button>
+                        )}
+
+                        <div className="flex-1 overflow-hidden">
+                          <div className="grid grid-cols-6 gap-2">
+                            {visibleColors.map((c, sliceIdx) => {
+                              const actualIdx = hasMoreColors ? blankStartIdx + sliceIdx : sliceIdx;
+                              const isSelected = actualIdx === colorIdx;
+                              return (
+                                <button
+                                  key={c.name}
+                                  type="button"
+                                  onClick={() => {
+                                    setColorIdx(actualIdx);
+                                    setCustomViewIdx(0);
+                                  }}
+                                  aria-label={`View ${c.name}`}
+                                  title={c.name}
+                                  className={`group relative overflow-hidden rounded-md border-2 bg-surface transition-all ${
+                                    isSelected
+                                      ? "border-accent ring-2 ring-accent/20"
+                                      : "border-line hover:border-ink/40"
+                                  }`}
+                                >
+                                  <Image
+                                    src={c.image}
+                                    alt={c.name}
+                                    width={140}
+                                    height={140}
+                                    className="h-auto w-full object-cover aspect-square"
+                                  />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {hasMoreColors && (
+                          <button
+                            type="button"
+                            onClick={() => setBlankStartIdx((prev) => Math.min(maxIdx, prev + 1))}
+                            disabled={blankStartIdx >= maxIdx}
+                            aria-label="Next colors"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink shadow-sm transition hover:bg-neutral-100 disabled:opacity-25 disabled:cursor-not-allowed"
+                          >
+                            <ChevronRight className="h-5 w-5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()
               )}
             </>
           );
@@ -327,6 +409,26 @@ export function ProductConfigurator({ product }: { product: Product }) {
           >
             <Heart size={18} fill={saved ? "currentColor" : "none"} />
           </button>
+        </div>
+
+        {/* Rating & Reviews + Orders Delivered (aligned below, larger, no border/bg) */}
+        <div className="mt-2.5">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center text-amber-500">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} size={18} className="fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            <span className="text-base sm:text-lg font-bold text-ink">{ratingInfo.rating}</span>
+            <span className="text-sm sm:text-base font-semibold text-body">
+              ({ratingInfo.reviews.toLocaleString("en-IN")} Reviews)
+            </span>
+          </div>
+
+          <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
+            <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+            <span>{deliveredOrdersCount.toLocaleString("en-IN")}+ orders delivered</span>
+          </p>
         </div>
 
         {/* Price row */}
@@ -746,6 +848,116 @@ export function ProductConfigurator({ product }: { product: Product }) {
             <Sparkles size={13} className="text-accent" />
             Free design support · Mockup before production · Pan-India delivery
           </p>
+        </div>
+
+        {/* Customer Reviews Section */}
+        <div className="mt-8">
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl sm:text-4xl font-extrabold text-ink">{ratingInfo.rating}</span>
+                <div>
+                  <div className="flex items-center gap-0.5 text-amber-500">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={16} className="fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="mt-0.5 text-sm font-semibold text-body">
+                    {ratingInfo.reviews.toLocaleString("en-IN")} verified reviews
+                  </p>
+                </div>
+              </div>
+              <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
+                <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                <span>{deliveredOrdersCount.toLocaleString("en-IN")}+ orders delivered</span>
+              </p>
+            </div>
+            <button
+              type="button"
+              className="rounded-full border border-line px-3.5 py-1 text-xs font-semibold text-ink transition-colors hover:border-ink hover:text-accent"
+            >
+              See all &gt;
+            </button>
+          </div>
+
+          {/* Review Cards Carousel (No border, no shadow) */}
+          <div className="relative mt-4">
+            <button
+              type="button"
+              onClick={() => {
+                reviewsRef.current?.scrollBy({ left: -260, behavior: "smooth" });
+              }}
+              aria-label="Previous reviews"
+              className="absolute -left-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md text-ink transition-all hover:scale-110"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                reviewsRef.current?.scrollBy({ left: 260, behavior: "smooth" });
+              }}
+              aria-label="Next reviews"
+              className="absolute -right-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md text-ink transition-all hover:scale-110"
+            >
+              <ChevronRight size={16} />
+            </button>
+
+            <div
+              ref={reviewsRef}
+              className="flex gap-3.5 overflow-x-auto scroll-smooth py-1 scrollbar-none"
+            >
+              {reviewsList.map((rev, idx) => (
+                <div
+                  key={idx}
+                  className="flex w-[230px] shrink-0 flex-col justify-between rounded-2xl bg-surface/80 p-3"
+                >
+                  <div>
+                    {rev.image && (
+                      <div className="relative mb-2.5 h-32 w-full overflow-hidden rounded-xl bg-ink/5">
+                        <Image
+                          src={rev.image}
+                          alt={`${rev.author}'s review photo`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-0.5 text-orange-500">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={12}
+                            className={
+                              i < rev.stars
+                                ? "fill-orange-500 text-orange-500"
+                                : "fill-line text-line"
+                            }
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs font-bold text-ink">
+                        {rev.stars}.0
+                      </span>
+                    </div>
+                    <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-ink/85">
+                      {rev.quote}
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs">
+                    <span className="font-bold text-ink">{rev.author}</span>
+                    {rev.verified && (
+                      <span className="inline-flex items-center gap-0.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600">
+                        ✓ Verified
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Production & shipping */}

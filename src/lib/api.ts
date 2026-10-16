@@ -54,6 +54,11 @@ function fixProduct(p: Product): Product {
     colors: p.colors.map((c) => ({
       ...c,
       image: fixImageUrl(c.image),
+      backImage: c.backImage ? fixImageUrl(c.backImage) : undefined,
+      chestImage: c.chestImage ? fixImageUrl(c.chestImage) : undefined,
+      detailImage: c.detailImage ? fixImageUrl(c.detailImage) : undefined,
+      image4: c.image4 ? fixImageUrl(c.image4) : undefined,
+      image5: c.image5 ? fixImageUrl(c.image5) : undefined,
     })),
   };
 }

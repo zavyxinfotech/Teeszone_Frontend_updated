@@ -1,0 +1,26 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="cloth" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1E4CB8" />
+      <stop offset="60%" stop-color="#143B96" />
+      <stop offset="100%" stop-color="#0E2B72" />
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Fabric background -->
+  <rect width="400" height="300" rx="16" fill="url(#cloth)" />
+  <!-- Fabric texture lines -->
+  <path d="M0 50 Q 200 120 400 80 M0 140 Q 200 200 400 160 M0 220 Q 200 270 400 240" stroke="#255EE0" stroke-width="0.8" opacity="0.3" fill="none" />
+  
+  <!-- Embroidered Logo Novarix -->
+  <g transform="translate(240, 140)" filter="url(#shadow)">
+    <!-- 'N' logo mark -->
+    <path d="M -25 -25 L -10 -25 L 12 18 L 12 -25 L 24 -25 L 24 25 L 9 25 L -13 -18 L -13 25 L -25 25 Z" fill="#F0F4FC" />
+    <polygon points="12,-25 24,-25 24,-8" fill="#F97316" />
+    <!-- Brand text -->
+    <text x="0" y="44" font-family="system-ui, sans-serif" font-weight="800" font-size="15" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">NOVARIX</text>
+    <text x="0" y="58" font-family="system-ui, sans-serif" font-weight="600" font-size="9" fill="#93C5FD" text-anchor="middle" letter-spacing="3">SOLUTIONS</text>
+  </g>
+</svg>

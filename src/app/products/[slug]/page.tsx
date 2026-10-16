@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getProduct, getProducts, getNavigation } from "@/lib/api";
+import { getProduct, getProducts, getNavigation, getReviews } from "@/lib/api";
 import { offPct } from "@/lib/pricing";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 import { FaqAccordion } from "@/components/product/FaqAccordion";
@@ -37,9 +37,10 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [product, allProducts] = await Promise.all([
+  const [product, allProducts, reviews] = await Promise.all([
     getProduct(slug),
     getProducts(),
+    getReviews(),
   ]);
   if (!product) redirect("/products");
 
@@ -83,7 +84,7 @@ export default async function ProductPage({
       </p>
 
       {/* Main Product Configurator & Details */}
-      <ProductConfigurator product={product} />
+      <ProductConfigurator product={product} initialReviews={reviews} />
 
       {/* Product Details Specs */}
       <Reveal>

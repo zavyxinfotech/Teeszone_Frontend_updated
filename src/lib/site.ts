@@ -6,8 +6,9 @@ export const site = {
   phoneDisplay: "+91 75500 67704",
   phoneHref: "tel:+917550067704",
   whatsappNumber: "917550067704",
-  email: "hello@teeszone.in", // TODO: confirm with Madhan
-  address: "Tiruppur, Tamil Nadu, India",
+  email: "info@teeszone.in",
+  address:
+    "#2155, Fortune City, Global Market – Texvalley, NH 544 Bengaluru–Cochin National Highway, Chithode, Erode – 638 102, Tamil Nadu, India.",
   url: "https://teeszone.in", // TODO: confirm final domain
 };
 

@@ -3,67 +3,46 @@ import type { Collection, Segment } from "../lib/types";
 export const collections: Collection[] = [
   // MEN'S CATEGORIES
   {
+    slug: "aerosoft-polo-200",
+    name: "Aerosoft Polo T-Shirt - 200 GSM",
+    segment: "men",
+    group: "Polo T-Shirts",
+    description: "Aerosoft Polo T-Shirt - 200 GSM",
+  },
+  {
+    slug: "mens-polo-half-sleeve-240",
+    name: "Mens Polo Half Sleeve - 240 GSM",
+    segment: "men",
+    group: "Polo T-Shirts",
+    description: "Mens Polo Half Sleeve - 240 GSM",
+  },
+  {
+    slug: "ecoblend-polo-neck-240",
+    name: "Ecoblend Polo Neck - 240 GSM",
+    segment: "men",
+    group: "Polo T-Shirts",
+    description: "Ecoblend Polo Neck - 240 GSM",
+  },
+  {
     slug: "mens-rn-half-180",
-    name: "Half Sleeve - 180 GSM (100% Cotton)",
+    name: "Mens Round Neck Half Sleeve - 180 GSM",
     segment: "men",
     group: "Round Neck T-Shirts",
-    description: "Men's Round Neck Half Sleeve - 180 GSM (100% Cotton)",
+    description: "Mens Round Neck Half Sleeve - 180 GSM",
   },
   {
-    slug: "mens-rn-half-200-cotton",
-    name: "Half Sleeve - 200 GSM (100% Cotton)",
+    slug: "mens-rn-half-200-lycra",
+    name: "Mens Round Neck Half Sleeve - 200 GSM (Lycra)",
     segment: "men",
     group: "Round Neck T-Shirts",
-    description: "Men's Round Neck Half Sleeve - 200 GSM (100% Cotton)",
+    description: "Mens Round Neck Half Sleeve - 200 GSM (Lycra)",
   },
   {
-    slug: "mens-rn-half-200-spandex",
-    name: "Half Sleeve - 200 GSM (95% Cotton & 5% Spandex)",
-    segment: "men",
-    group: "Round Neck T-Shirts",
-    description: "Men's Round Neck Half Sleeve - 200 GSM (95% Cotton & 5% Spandex)",
-  },
-  {
-    slug: "mens-rn-full-180",
-    name: "Full Sleeve - 180 GSM (100% Cotton)",
-    segment: "men",
-    group: "Round Neck T-Shirts",
-    description: "Men's Round Neck Full Sleeve - 180 GSM (100% Cotton)",
-  },
-  {
-    slug: "mens-oversize-200",
-    name: "Half Sleeve - 200 GSM (100% Cotton)",
+    slug: "mens-oversize-french-terry-240",
+    name: "Mens Oversize Half Sleeve - 240 - 250 GSM (French Terry)",
     segment: "men",
     group: "Oversize T-Shirts",
-    description: "Men's Oversize Half Sleeve - 200 GSM (100% Cotton)",
-  },
-  {
-    slug: "mens-oversize-240",
-    name: "Half Sleeve - 240-250 GSM (100% Cotton)",
-    segment: "men",
-    group: "Oversize T-Shirts",
-    description: "Men's Oversize Half Sleeve - 240-250 GSM (100% Cotton)",
-  },
-  {
-    slug: "mens-polo-240-cotton",
-    name: "Half Sleeve - 240-250 GSM (100% Cotton)",
-    segment: "men",
-    group: "Polo T-Shirts",
-    description: "Men's Polo Half Sleeve - 240-250 GSM (100% Cotton)",
-  },
-  {
-    slug: "mens-polo-240-spandex",
-    name: "Half Sleeve - 240-250 GSM (95% Cotton & 5% Spandex)",
-    segment: "men",
-    group: "Polo T-Shirts",
-    description: "Men's Polo Half Sleeve - 240-250 GSM (95% Cotton & 5% Spandex)",
-  },
-  {
-    slug: "mens-polo-mars-200",
-    name: "Mars Half Sleeve - 200 GSM (100% Micro Poly)",
-    segment: "men",
-    group: "Polo T-Shirts",
-    description: "Men's Polo Half Sleeve Mars - 200 GSM (100% Micro Polyester)",
+    description: "Mens Oversize Half Sleeve - 240 - 250 GSM (French Terry)",
   },
 
   // WOMEN'S CATEGORIES
@@ -86,32 +65,32 @@ export const collections: Collection[] = [
 
   // HOODIES CATEGORIES
   {
-    slug: "unisex-hoodie-zip-325",
-    name: "325 GSM (100% Cotton)",
-    segment: "hoodies",
-    group: "With Zip",
-    description: "Unisex Hoodies with Zip - 325 GSM (100% Cotton)",
-  },
-  {
-    slug: "unisex-hoodie-zip-360",
-    name: "360-370 GSM (80% Cotton & 20% Poly)",
-    segment: "hoodies",
-    group: "With Zip",
-    description: "Unisex Hoodies with Zip - 360-370 GSM (80% Cotton & 20% Polyester)",
-  },
-  {
     slug: "hoodie-with-zip-320",
-    name: "320 GSM (Cotton Rich Fabric)",
+    name: "Hoodies with Zip - 320 GSM",
     segment: "hoodies",
     group: "With Zip",
-    description: "Hoodies with Zip - 320 GSM (Cotton Rich Fabric)",
+    description: "Hoodies with Zip - 320 GSM",
   },
   {
     slug: "hoodie-without-zip-320",
-    name: "320 GSM (Cotton Rich Fabric)",
+    name: "Hoodies without Zip - 320 GSM",
     segment: "hoodies",
     group: "Without Zip",
-    description: "Hoodies without Zip - 320 GSM (Cotton Rich Fabric)",
+    description: "Hoodies without Zip - 320 GSM",
+  },
+  {
+    slug: "unisex-hoodie-325",
+    name: "Unisex Hoodies - 325 GSM",
+    segment: "hoodies",
+    group: "Unisex Hoodies",
+    description: "Unisex Hoodies - 325 GSM",
+  },
+  {
+    slug: "unisex-hoodie-360",
+    name: "Unisex Hoodies - (360 - 370 GSM)",
+    segment: "hoodies",
+    group: "Unisex Hoodies",
+    description: "Unisex Hoodies - (360 - 370 GSM)",
   },
 
   // SPECIALTY & FABRICS CATEGORIES
@@ -172,27 +151,24 @@ export const segments: Segment[] = [
     name: "Men",
     groups: [
       {
+        title: "Polo T-Shirts",
+        collections: [
+          "aerosoft-polo-200",
+          "mens-polo-half-sleeve-240",
+          "ecoblend-polo-neck-240",
+        ],
+      },
+      {
         title: "Round Neck T-Shirts",
         collections: [
           "mens-rn-half-180",
-          "mens-rn-half-200-cotton",
-          "mens-rn-half-200-spandex",
-          "mens-rn-full-180",
+          "mens-rn-half-200-lycra",
         ],
       },
       {
         title: "Oversize T-Shirts",
         collections: [
-          "mens-oversize-200",
-          "mens-oversize-240",
-        ],
-      },
-      {
-        title: "Polo T-Shirts",
-        collections: [
-          "mens-polo-240-cotton",
-          "mens-polo-240-spandex",
-          "mens-polo-mars-200",
+          "mens-oversize-french-terry-240",
         ],
       },
     ],
@@ -228,8 +204,6 @@ export const segments: Segment[] = [
       {
         title: "With Zip",
         collections: [
-          "unisex-hoodie-zip-325",
-          "unisex-hoodie-zip-360",
           "hoodie-with-zip-320",
         ],
       },
@@ -237,6 +211,13 @@ export const segments: Segment[] = [
         title: "Without Zip",
         collections: [
           "hoodie-without-zip-320",
+        ],
+      },
+      {
+        title: "Unisex Hoodies",
+        collections: [
+          "unisex-hoodie-325",
+          "unisex-hoodie-360",
         ],
       },
     ],

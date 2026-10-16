@@ -50,6 +50,7 @@ export interface Product {
   isNew?: boolean;
   bestSeller?: boolean;
   megaSale?: boolean;
+  ordersDelivered?: number;
 }
 
 export interface Review {
@@ -57,6 +58,8 @@ export interface Review {
   quote: string;
   author: string;
   product: string;
+  image?: string;
+  verified?: boolean;
 }
 
 // ---------- auth & account ----------

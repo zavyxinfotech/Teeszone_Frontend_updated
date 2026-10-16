@@ -1,0 +1,30 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="blackcloth" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#2D3035" />
+      <stop offset="60%" stop-color="#1F2124" />
+      <stop offset="100%" stop-color="#141517" />
+    </radialGradient>
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <!-- Fabric background -->
+  <rect width="400" height="300" rx="16" fill="url(#blackcloth)" />
+  <!-- Fabric wave creases -->
+  <path d="M0 70 Q 200 130 400 90 M0 170 Q 200 220 400 180" stroke="#3F4249" stroke-width="0.7" opacity="0.3" fill="none" />
+  
+  <!-- Embroidered Logo Voyvio -->
+  <g transform="translate(250, 135)" filter="url(#glow)">
+    <!-- Globe & Palm & Plane mark -->
+    <circle cx="0" cy="-10" r="24" stroke="#00C4CC" stroke-width="3" fill="#141517" />
+    <path d="M -16 -10 Q 0 5 16 -10 M -16 -10 Q 0 -25 16 -10" stroke="#00C4CC" stroke-width="2" fill="none" />
+    <circle cx="0" cy="-10" r="8" fill="#F59E0B" />
+    <!-- Airplane swoosh -->
+    <path d="M -22 10 Q 10 -30 25 -25" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    <polygon points="25,-25 22,-20 28,-22" fill="#FFFFFF" />
+    <!-- Brand text -->
+    <text x="0" y="32" font-family="system-ui, sans-serif" font-weight="900" font-size="16" fill="#00C4CC" text-anchor="middle" letter-spacing="2">VOYVIO</text>
+    <text x="0" y="45" font-family="system-ui, sans-serif" font-weight="700" font-size="8" fill="#F59E0B" text-anchor="middle" letter-spacing="3">TRAVELS</text>
+  </g>
+</svg>

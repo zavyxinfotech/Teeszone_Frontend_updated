@@ -2,22 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowRight,
   BadgeCheck,
+  CheckCircle2,
+  CreditCard,
   Minus,
-  MessageCircle,
   Plus,
+  ShieldCheck,
   ShoppingBag,
   Trash2,
   X,
 } from "lucide-react";
 import { useCart, type CartItem } from "@/lib/cart";
 import type { Product } from "@/lib/types";
-import { waLink } from "@/lib/site";
 import { useAuth } from "@/lib/auth";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 
 interface PricedLine extends CartItem {
   unitPrice: number;
@@ -29,7 +30,13 @@ export function CartView({ products }: { products: Product[] }) {
   const { items, note, setNote, updateQty, removeItem, clear, totalItems } =
     useCart();
   const { user } = useAuth();
-  const router = useRouter();
+
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState<{
+    payment_id: string;
+    order_id: string;
+  } | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const productBySlug = useMemo(
     () => new Map(products.map((p) => [p.slug, p])),
@@ -62,16 +69,76 @@ export function CartView({ products }: { products: Product[] }) {
   const mrpTotal = priced.reduce((a, l) => a + l.mrp * l.qty, 0);
   const savings = mrpTotal - subtotal;
 
-  // checkout goes to WhatsApp for now
-  const orderMessage = [
-    "Hi TeesZone! I'd like to place this order:",
-    ...priced.map(
-      (l) =>
-        `• ${l.name} — ${l.colorName}, ${l.size} × ${l.qty} @ ₹${l.unitPrice}/pc`,
-    ),
-    `Total: ${totalItems} pcs — est. ₹${subtotal.toLocaleString("en-IN")}`,
-    note ? `Branding: ${note}` : "Branding: will discuss in chat",
-  ].join("\n");
+  const handleRazorpayPay = async () => {
+    if (subtotal <= 0) return;
+    setPaymentError(null);
+    setIsPaying(true);
+
+    await openRazorpayCheckout({
+      amountInRupees: subtotal,
+      user: user
+        ? {
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+          }
+        : null,
+      notes: {
+        totalItems: totalItems.toString(),
+        totalPcs: totalItems.toString(),
+      },
+      onSuccess: ({ payment_id, order_id }) => {
+        setIsPaying(false);
+        setPaymentSuccess({ payment_id, order_id });
+        clear();
+      },
+      onFailure: (err) => {
+        setIsPaying(false);
+        setPaymentError(err);
+      },
+      onDismiss: () => {
+        setIsPaying(false);
+        setPaymentError("Payment was cancelled.");
+      },
+    });
+  };
+
+
+  if (paymentSuccess) {
+    return (
+      <div className="mx-auto flex max-w-[800px] flex-col items-center px-4 py-20 text-center sm:px-6">
+        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+          <CheckCircle2 size={40} />
+        </span>
+        <h1 className="mt-5 text-2xl font-bold uppercase tracking-[0.08em] text-ink sm:text-3xl">
+          Payment Successful!
+        </h1>
+        <p className="mt-2 max-w-md text-sm text-body">
+          Thank you for your order! Your payment has been verified securely via Razorpay. Our production team will contact you shortly with your digital mockup.
+        </p>
+
+        <div className="mt-6 flex flex-wrap justify-center gap-4 rounded-xl border border-line bg-surface p-4 text-xs font-mono text-ink">
+          <div>
+            <span className="text-body">Order ID: </span>
+            <span className="font-bold">{paymentSuccess.order_id}</span>
+          </div>
+          <span className="text-line">•</span>
+          <div>
+            <span className="text-body">Payment ID: </span>
+            <span className="font-bold">{paymentSuccess.payment_id}</span>
+          </div>
+        </div>
+
+        <Link
+          href="/products"
+          className="mt-8 inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent"
+        >
+          Continue Shopping
+          <ArrowRight size={16} />
+        </Link>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -243,25 +310,30 @@ export function CartView({ products }: { products: Product[] }) {
             delivery included.
           </p>
 
-          <a
-            href={user ? waLink(orderMessage) : "/login?next=/cart"}
-            onClick={(e) => {
-              if (!user) {
-                e.preventDefault();
-                router.push("/login?next=/cart");
-              }
-            }}
-            target={user ? "_blank" : undefined}
-            rel={user ? "noopener noreferrer" : undefined}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp px-6 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-md shadow-whatsapp/25 transition-all hover:-translate-y-0.5 hover:bg-whatsapp-dark"
+          {/* Payment Status / Error notice */}
+          {paymentError && (
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+              <p className="font-semibold">Payment Alert</p>
+              <p className="mt-0.5">{paymentError}</p>
+            </div>
+          )}
+
+          {/* Razorpay Online Checkout Button */}
+          <button
+            type="button"
+            disabled={isPaying || subtotal <= 0}
+            onClick={handleRazorpayPay}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-6 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-accent disabled:opacity-50"
           >
-            <MessageCircle size={17} />
-            {user ? "Checkout on WhatsApp" : "Sign In to Checkout"}
-          </a>
-          <p className="mt-3 flex items-start gap-1.5 text-xs text-body">
-            <BadgeCheck size={14} className="mt-0.5 shrink-0 text-accent" />
-            Online payment is coming soon — for now checkout sends your order
-            to our team on WhatsApp and we confirm with a mockup + invoice.
+            <CreditCard size={18} />
+            {isPaying
+              ? "Opening Razorpay..."
+              : `Pay ₹ ${subtotal.toLocaleString("en-IN")} Online`}
+          </button>
+
+          <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[11px] text-body">
+            <ShieldCheck size={14} className="text-emerald-600" />
+            Secured by Razorpay · UPI, Cards, NetBanking
           </p>
 
           <Link

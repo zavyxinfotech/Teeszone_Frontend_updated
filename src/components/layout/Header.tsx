@@ -15,10 +15,10 @@ const topLink =
   "relative flex items-center gap-1 px-4 py-5 text-sm  uppercase tracking-wide transition-colors hover:text-accent after:absolute after:bottom-3.5 after:left-4 after:right-4 after:h-0.5 after:origin-left after:scale-x-0 after:bg-accent after:transition-transform after:duration-200 hover:after:scale-x-100 motion-reduce:after:transition-none";
 
 const useCaseLinks = [
-  { label: "Corporate", href: "/collections/mens-polo-240-cotton" },
-  { label: "Schools", href: "/collections/kids-rn-half-180" },
-  { label: "Sports Teams", href: "/collections/primoknit-polo-200" },
-  { label: "Events & Merch", href: "/collections/mens-oversize-200" },
+  { label: "Corporate", href: "/products/mens-polo-half-sleeve-240" },
+  { label: "Schools", href: "/products/kids-rn-half-180" },
+  { label: "Sports Teams", href: "/products/aerosoft-polo-200" },
+  { label: "Events & Merch", href: "/products/mens-oversize-french-terry-240" },
 ];
 
 const featuredBySegment: Record<string, string> = {
@@ -28,6 +28,24 @@ const featuredBySegment: Record<string, string> = {
   hoodies: "/products/crew-black.svg",
   specialty: "/products/crew-white.svg",
 };
+
+function getCategoryHref(segSlug: string, groupTitle: string): string {
+  const t = groupTitle.toLowerCase();
+  if (t.includes("polo")) return "/products?category=polo-t-shirts";
+  if (t.includes("oversize")) return "/products?category=oversize-t-shirts";
+  if (t.includes("round neck")) {
+    if (segSlug === "women") return "/products?category=women";
+    if (segSlug === "kids") return "/products?category=kids";
+    return "/products?category=round-neck-t-shirts";
+  }
+  if (t.includes("unisex")) return "/products?category=unisex-hoodies";
+  if (t.includes("without zip")) return "/products?category=without-zip";
+  if (t.includes("zip")) return "/products?category=with-zip";
+  if (t.includes("eco") || t.includes("biowash")) return "/products?category=eco-biowash";
+  if (t.includes("performance")) return "/products?category=performance-fabrics";
+  if (t.includes("organic")) return "/products?category=organic-collection";
+  return `/products?category=${encodeURIComponent(t.replace(/\s+/g, "-"))}`;
+}
 
 export function Header({
   segments,
@@ -93,68 +111,75 @@ export function Header({
               <div className="invisible absolute inset-x-0 top-full z-50 translate-y-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:translate-y-0">
                 <div className="border-t-2 border-accent bg-white shadow-xl">
                   <div className="mx-auto flex max-w-[1320px] justify-start lg:justify-center gap-8 xl:gap-12 px-6 py-8">
-                  {seg.groups.map((group) => (
-                    <div key={group.title} className="min-w-[200px] max-w-[280px]">
+                    {/* Groups and Products */}
+                    {seg.groups.map((group) => (
+                      <div key={group.title} className="min-w-[190px] max-w-[280px]">
+                        <Link
+                          href={getCategoryHref(seg.slug, group.title)}
+                          className="mb-3 block text-xs font-bold uppercase tracking-wider text-accent transition-colors hover:text-ink whitespace-nowrap"
+                        >
+                          {group.title}
+                        </Link>
+                        <ul className="space-y-2">
+                          {group.collections.map((slug) => {
+                            const col = getCollection(slug);
+                            if (!col) return null;
+                            return (
+                              <li key={slug}>
+                                <Link
+                                  href={`/products/${slug}`}
+                                  className="block text-sm text-body transition-colors hover:text-accent leading-snug"
+                                >
+                                  {col.name}
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ))}
+
+                    {/* By Use Case column */}
+                    <div className="min-w-[160px] border-l border-line pl-8 xl:pl-12">
                       <p className="mb-3 text-xs font-bold uppercase tracking-wider text-accent">
-                        {group.title}
+                        By Use Case
                       </p>
-                      <ul className="space-y-2.5">
-                        {group.collections.map((slug) => {
-                          const col = getCollection(slug);
-                          if (!col) return null;
-                          return (
-                            <li key={slug}>
-                              <Link
-                                href={`/products/${slug}`}
-                                className="block text-sm text-body transition-colors hover:text-accent leading-snug"
-                              >
-                                {col.name}
-                              </Link>
-                            </li>
-                          );
-                        })}
+                      <ul className="space-y-2">
+                        {useCaseLinks.map((u) => (
+                          <li key={u.label}>
+                            <Link
+                              href={u.href}
+                              className="block text-sm text-body transition-colors hover:text-accent"
+                            >
+                              {u.label}
+                            </Link>
+                          </li>
+                        ))}
                       </ul>
                     </div>
-                  ))}
 
-                  <div className="min-w-[160px] border-l border-line pl-8">
-                    <p className="mb-3 text-xs font-bold uppercase tracking-wider text-accent">
-                      By Use Case
-                    </p>
-                    <ul className="space-y-2">
-                      {useCaseLinks.map((u) => (
-                        <li key={u.label}>
-                          <Link
-                            href={u.href}
-                            className="block text-sm text-body transition-colors hover:text-accent"
-                          >
-                            {u.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <Link
-                    href={`/collections/${seg.groups[0].collections[0]}`}
-                    className="group/tile relative hidden w-44 overflow-hidden bg-surface xl:block"
-                  >
-                    <Image
-                      src={featuredBySegment[seg.slug] ?? "/products/crew-white.svg"}
-                      alt={`${seg.name} range`}
-                      width={220}
-                      height={220}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover/tile:scale-105"
-                    />
-                    <span className="absolute inset-x-0 bottom-0 bg-ink/80 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-white">
-                      Shop {seg.name}
-                    </span>
-                  </Link>
+                    {/* Image tile */}
+                    <Link
+                      href={getCategoryHref(seg.slug, seg.groups[0]?.title ?? "")}
+                      className="group/tile relative hidden w-44 overflow-hidden bg-surface xl:block"
+                    >
+                      <Image
+                        src={featuredBySegment[seg.slug] ?? "/products/crew-white.svg"}
+                        alt={`${seg.name} range`}
+                        width={220}
+                        height={220}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover/tile:scale-105"
+                      />
+                      <span className="absolute inset-x-0 bottom-0 bg-ink/80 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-white">
+                        Shop {seg.name}
+                      </span>
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
           ))}
+
 
           <Link href="/contact" className={`${topLink} text-ink`}>
             Bulk Order
