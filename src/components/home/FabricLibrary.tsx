@@ -3,22 +3,30 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Check } from "lucide-react";
-import type { Fabric } from "@/lib/types";
+import type { Fabric, FabricLibraryContent } from "@/lib/types";
 import { Reveal } from "@/components/ui/Reveal";
 
-export function FabricLibrary({ fabrics }: { fabrics: Fabric[] }) {
+export function FabricLibrary({
+  fabrics,
+  content,
+}: {
+  fabrics: Fabric[];
+  content?: FabricLibraryContent;
+}) {
   const [active, setActive] = useState(0);
   const fabric = fabrics[active];
   if (!fabric) return null;
 
+  const title = content?.title || "The Fabric Library";
+  const subtitle =
+    content?.subtitle ||
+    "Eight knits, each engineered for a job. Pick one to see what it does best.";
+
   return (
     <section className="mx-auto max-w-[1320px] px-4 py-14 sm:px-6 md:py-18">
       <Reveal>
-        <h2 className="section-title">The Fabric Library</h2>
-        <p className="mx-auto mt-3 max-w-xl text-center text-sm">
-          Eight knits, each engineered for a job. Pick one to see what it does
-          best.
-        </p>
+        <h2 className="section-title">{title}</h2>
+        <p className="mx-auto mt-3 max-w-xl text-center text-sm">{subtitle}</p>
       </Reveal>
 
       {/* Tabs */}

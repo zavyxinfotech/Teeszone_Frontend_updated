@@ -1,6 +1,7 @@
 import { Reveal } from "@/components/ui/Reveal";
+import type { ProcessStepsContent } from "@/lib/types";
 
-const steps = [
+const defaultSteps = [
   {
     title: "Share Your Requirement",
     text: "Product, quantity, size split and your logo — on WhatsApp, the cart, or the enquiry form.",
@@ -19,19 +20,23 @@ const steps = [
   },
 ];
 
-export function ProcessSteps() {
+export function ProcessSteps({ content }: { content?: ProcessStepsContent }) {
+  const title = content?.title || "The TeesZone Process";
+  const subtitle =
+    content?.subtitle || "From first message to delivered boxes in four steps.";
+  const steps =
+    content?.steps && content.steps.length > 0 ? content.steps : defaultSteps;
+
   return (
     <section className="bg-surface">
       <div className="mx-auto max-w-[1320px] px-4 py-14 sm:px-6 md:py-18">
         <Reveal>
-          <h2 className="section-title">The TeesZone Process</h2>
-          <p className="mx-auto mt-3 max-w-lg text-center text-sm">
-            From first message to delivered boxes in four steps.
-          </p>
+          <h2 className="section-title">{title}</h2>
+          <p className="mx-auto mt-3 max-w-lg text-center text-sm">{subtitle}</p>
         </Reveal>
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, i) => (
-            <Reveal key={step.title} delay={i * 90}>
+            <Reveal key={step.title + i} delay={i * 90}>
               <div className="relative">
                 <span className="flex h-12 w-12 items-center justify-center bg-accent font-heading text-lg font-bold text-white">
                   {i + 1}

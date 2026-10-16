@@ -9,42 +9,88 @@ import {
 } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
+import type { HeroContent } from "@/lib/types";
 
 import heroImg from "@/assets/images/Home_page_Hero_image.png";
 import heroBgDesktop from "@/assets/images/home_page_hero_section background_image.png";
 import heroBgMobile from "@/assets/images/Home_page_hero_section_Bg_mobile_view.png";
 
-const stats = [
+const defaultStats = [
   { end: 100, suffix: "%", label: "In-House Production", icon: Factory },
   { end: 6, suffix: "", label: "QC Checks Per Piece", icon: ShieldCheck },
   { end: 25, suffix: "+", label: "Product Lines", icon: LayoutGrid },
 ];
 
-export function HeroSplit() {
+export function HeroSplit({ content }: { content?: HeroContent }) {
+  const badge = content?.badge || "Tiruppur · India's Knitwear Capital";
+  const title = content?.title || "Factory-Direct\nCustom Apparel";
+  const description =
+    content?.description ||
+    "Tees, polos, hoodies and uniforms — cut, stitched, printed and quality-checked under one roof, then delivered anywhere in India with your branding on every piece.";
+  const primaryBtnText = content?.primaryBtnText || "Shop the Range";
+  const primaryBtnLink = content?.primaryBtnLink || "/products";
+  const secondaryBtnText = content?.secondaryBtnText || "Bulk Enquiry";
+  const secondaryBtnLink = content?.secondaryBtnLink || "/contact";
+
+  const statIcons = [Factory, ShieldCheck, LayoutGrid];
+  const activeStats =
+    content?.stats && content.stats.length > 0
+      ? content.stats.map((s, idx) => ({
+          ...s,
+          icon: statIcons[idx % statIcons.length],
+        }))
+      : defaultStats;
+
+  const titleLines = title.split("\n");
+
   return (
     <section className="relative bg-ivory overflow-hidden">
       {/* Background image for desktop (>= md) */}
       <div className="absolute inset-0 hidden md:block pointer-events-none select-none">
-        <Image
-          src={heroBgDesktop}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center"
-        />
+        {content?.bgImageDesktop ? (
+          <Image
+            src={content.bgImageDesktop}
+            alt=""
+            fill
+            priority
+            unoptimized
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        ) : (
+          <Image
+            src={heroBgDesktop}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        )}
       </div>
 
       {/* Background image for mobile (< md) */}
       <div className="absolute inset-0 block md:hidden pointer-events-none select-none">
-        <Image
-          src={heroBgMobile}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-top"
-        />
+        {content?.bgImageMobile ? (
+          <Image
+            src={content.bgImageMobile}
+            alt=""
+            fill
+            priority
+            unoptimized
+            sizes="100vw"
+            className="object-cover object-top"
+          />
+        ) : (
+          <Image
+            src={heroBgMobile}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-top"
+          />
+        )}
       </div>
 
       <div className="relative z-10 mx-auto max-w-[1320px] px-4 py-10 sm:px-6 md:py-20">
@@ -54,7 +100,7 @@ export function HeroSplit() {
             <Reveal>
               <div className="flex items-center justify-center md:justify-start gap-2.5">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">
-                  Tiruppur · India&apos;s Knitwear Capital
+                  {badge}
                 </p>
                 <span className="inline-block h-px w-8 sm:w-10 bg-accent/60" />
               </div>
@@ -62,38 +108,38 @@ export function HeroSplit() {
 
             <Reveal delay={80}>
               <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase leading-[1.05] tracking-tight text-ink text-center md:text-left">
-                Factory-Direct
-                <br />
-                Custom Apparel
+                {titleLines.map((line, idx) => (
+                  <span key={idx} className="block">
+                    {line}
+                  </span>
+                ))}
               </h1>
             </Reveal>
 
             <Reveal delay={160}>
               <p className="mt-4 sm:mt-5 max-w-md text-sm sm:text-base md:text-lg leading-relaxed text-body text-center md:text-left">
-                Tees, polos, hoodies and uniforms — cut, stitched, printed and
-                quality-checked under one roof, then delivered anywhere in India
-                with your branding on every piece.
+                {description}
               </p>
             </Reveal>
 
             <Reveal delay={240} className="w-full">
               <div className="mt-6 sm:mt-8 flex flex-row flex-wrap items-center justify-center md:justify-start gap-3 w-full">
                 <Link
-                  href="/products"
+                  href={primaryBtnLink}
                   className="group inline-flex items-center justify-center gap-2 bg-accent px-5 sm:px-8 py-3.5 sm:py-4 text-xs sm:text-sm font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-0.5 hover:bg-accent-dark hover:shadow-lg"
                 >
-                  Shop the Range
+                  {primaryBtnText}
                   <ArrowRight
                     size={16}
                     className="transition-transform group-hover:translate-x-1"
                   />
                 </Link>
                 <Link
-                  href="/contact"
+                  href={secondaryBtnLink}
                   className="inline-flex items-center justify-center gap-2 border border-ink bg-transparent px-5 sm:px-8 py-3.5 sm:py-4 text-xs sm:text-sm font-bold uppercase tracking-wider text-ink transition-colors hover:bg-ink hover:text-white"
                 >
                   <MessageCircle size={16} />
-                  Bulk Enquiry
+                  {secondaryBtnText}
                 </Link>
               </div>
             </Reveal>
@@ -102,12 +148,24 @@ export function HeroSplit() {
             <div className="mt-6 sm:mt-8 w-full max-w-[420px] mx-auto md:hidden">
               <Reveal delay={280}>
                 <div className="relative w-full">
-                  <Image
-                    src={heroImg}
-                    alt="Factory-Direct Custom Apparel"
-                    priority
-                    className="h-auto w-full object-contain mx-auto"
-                  />
+                  {content?.heroImage ? (
+                    <Image
+                      src={content.heroImage}
+                      alt={title}
+                      priority
+                      width={600}
+                      height={600}
+                      unoptimized
+                      className="h-auto w-full object-contain mx-auto"
+                    />
+                  ) : (
+                    <Image
+                      src={heroImg}
+                      alt={title}
+                      priority
+                      className="h-auto w-full object-contain mx-auto"
+                    />
+                  )}
                 </div>
               </Reveal>
             </div>
@@ -116,7 +174,7 @@ export function HeroSplit() {
             <div className="mt-8 w-full max-w-md mx-auto md:hidden">
               <Reveal delay={340}>
                 <div className="grid grid-cols-3 divide-x divide-ink/10 pt-2">
-                  {stats.map((s) => {
+                  {activeStats.map((s) => {
                     const Icon = s.icon;
                     return (
                       <div
@@ -145,7 +203,7 @@ export function HeroSplit() {
             <div className="hidden md:block w-full">
               <Reveal delay={320}>
                 <dl className="mt-10 flex flex-wrap gap-x-10 gap-y-4 border-t border-ink/10 pt-6">
-                  {stats.map((s) => (
+                  {activeStats.map((s) => (
                     <div key={s.label}>
                       <dt className="sr-only">{s.label}</dt>
                       <dd className="font-heading text-3xl font-bold text-accent">
@@ -165,12 +223,24 @@ export function HeroSplit() {
           <div className="hidden md:flex items-center justify-end w-full">
             <Reveal delay={200} className="w-full">
               <div className="relative ml-auto w-full max-w-xl lg:max-w-2xl xl:max-w-3xl md:scale-105 lg:scale-110 xl:scale-115 origin-right">
-                <Image
-                  src={heroImg}
-                  alt="Factory-Direct Custom Apparel"
-                  priority
-                  className="h-auto w-full object-contain ml-auto"
-                />
+                {content?.heroImage ? (
+                  <Image
+                    src={content.heroImage}
+                    alt={title}
+                    priority
+                    width={800}
+                    height={800}
+                    unoptimized
+                    className="h-auto w-full object-contain ml-auto"
+                  />
+                ) : (
+                  <Image
+                    src={heroImg}
+                    alt={title}
+                    priority
+                    className="h-auto w-full object-contain ml-auto"
+                  />
+                )}
               </div>
             </Reveal>
           </div>

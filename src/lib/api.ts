@@ -4,6 +4,7 @@ import type {
   AuthUser,
   Collection,
   Fabric,
+  HomeContent,
   Product,
   Review,
   Segment,
@@ -216,6 +217,19 @@ export async function postNewsletter(email: string): Promise<void> {
     body: JSON.stringify({ email }),
   });
   if (!res.ok) throw new Error(`Newsletter signup failed with ${res.status}`);
+}
+
+export async function getHomeContent(): Promise<HomeContent | null> {
+  try {
+    const res = await fetch(`${SERVER_API_URL}/home-content`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data as HomeContent;
+  } catch (err) {
+    return null;
+  }
 }
 
 // ---------- auth & account ----------

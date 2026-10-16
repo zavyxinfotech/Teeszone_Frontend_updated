@@ -7,29 +7,35 @@ import { ProcessSteps } from "@/components/home/ProcessSteps";
 import { StatsBand } from "@/components/home/StatsBand";
 import { ReviewsGrid } from "@/components/home/ReviewsGrid";
 import { CtaBand } from "@/components/home/CtaBand";
-import { getFabrics, getProductsByCollection, getReviews } from "@/lib/api";
+import {
+  getFabrics,
+  getHomeContent,
+  getProductsByCollection,
+  getReviews,
+} from "@/lib/api";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [bestSellers, fabrics, reviews] = await Promise.all([
+  const [bestSellers, fabrics, reviews, homeContent] = await Promise.all([
     getProductsByCollection("best-sellers"),
     getFabrics(),
     getReviews(),
+    getHomeContent(),
   ]);
 
   return (
     <>
-      <HeroSplit />
+      <HeroSplit content={homeContent?.hero} />
       <UseCases />
-      <ShopByRange />
+      <ShopByRange content={homeContent?.shopByRange} />
       <ProductRail
         title="Best Sellers"
         products={bestSellers}
         viewAllHref="/collections/best-sellers"
       />
-      <FabricLibrary fabrics={fabrics} />
-      <ProcessSteps />
+      <FabricLibrary fabrics={fabrics} content={homeContent?.fabricLibrary} />
+      <ProcessSteps content={homeContent?.processSteps} />
       <StatsBand />
       <ReviewsGrid reviews={reviews} />
       <CtaBand />
