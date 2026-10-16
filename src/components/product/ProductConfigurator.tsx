@@ -212,7 +212,7 @@ export function ProductConfigurator({
       router.push(`/login?next=${encodeURIComponent(pathname || `/products/${product.slug}`)}`);
       return;
     }
-    toggleWishlist(product.slug);
+    toggleWishlist(product.slug, product.name);
   };
 
   const showSizeGuide = product.sizes.some((s) => SIZE_GUIDE[s]);

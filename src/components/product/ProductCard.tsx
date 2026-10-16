@@ -29,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
       router.push(`/login?next=${encodeURIComponent(pathname || "/")}`);
       return;
     }
-    toggle(product.slug);
+    toggle(product.slug, product.name);
   };
 
   return (

@@ -19,9 +19,8 @@ const cards = [
   {
     icon: Package,
     title: "Your Orders",
-    text: "Orders currently confirm over WhatsApp — history lands here with online checkout.",
-    href: waLink("Hi TeesZone! I'd like an update on my order."),
-    external: true,
+    text: "Orders currently confirm over WhatsApp — track your production and order status.",
+    href: "/account/orders",
   },
   {
     icon: KeyRound,
