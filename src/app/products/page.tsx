@@ -184,10 +184,10 @@ export default async function ProductsPage({
           {pageDesc}
         </p>
 
-        <div className="mt-7 flex flex-wrap gap-2">
+        <div className="mt-5 sm:mt-7 flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none">
           <Link
             href="/products"
-            className={`border px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+            className={`shrink-0 whitespace-nowrap border px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
               !category
                 ? "border-ink bg-ink text-white"
                 : "border-line text-ink hover:border-ink"
@@ -197,7 +197,7 @@ export default async function ProductsPage({
           </Link>
           <Link
             href="/products?category=polo-t-shirts"
-            className={`border px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+            className={`shrink-0 whitespace-nowrap border px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
               category === "polo-t-shirts"
                 ? "border-ink bg-ink text-white"
                 : "border-line text-ink hover:border-ink"
@@ -207,7 +207,7 @@ export default async function ProductsPage({
           </Link>
           <Link
             href="/products?category=round-neck-t-shirts"
-            className={`border px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+            className={`shrink-0 whitespace-nowrap border px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
               category === "round-neck-t-shirts"
                 ? "border-ink bg-ink text-white"
                 : "border-line text-ink hover:border-ink"
@@ -217,7 +217,7 @@ export default async function ProductsPage({
           </Link>
           <Link
             href="/products?category=oversize-t-shirts"
-            className={`border px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+            className={`shrink-0 whitespace-nowrap border px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
               category === "oversize-t-shirts"
                 ? "border-ink bg-ink text-white"
                 : "border-line text-ink hover:border-ink"
@@ -227,7 +227,7 @@ export default async function ProductsPage({
           </Link>
           <Link
             href="/products?category=with-zip"
-            className={`border px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+            className={`shrink-0 whitespace-nowrap border px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
               category === "with-zip"
                 ? "border-ink bg-ink text-white"
                 : "border-line text-ink hover:border-ink"
@@ -237,7 +237,7 @@ export default async function ProductsPage({
           </Link>
           <Link
             href="/products?category=without-zip"
-            className={`border px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+            className={`shrink-0 whitespace-nowrap border px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
               category === "without-zip"
                 ? "border-ink bg-ink text-white"
                 : "border-line text-ink hover:border-ink"
@@ -247,7 +247,7 @@ export default async function ProductsPage({
           </Link>
           <Link
             href="/products?category=unisex-hoodies"
-            className={`border px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+            className={`shrink-0 whitespace-nowrap border px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
               category === "unisex-hoodies"
                 ? "border-ink bg-ink text-white"
                 : "border-line text-ink hover:border-ink"
@@ -259,7 +259,7 @@ export default async function ProductsPage({
       </Reveal>
 
       <Reveal delay={80}>
-        <div className="mt-9 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-6 sm:mt-9 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
           {displayProducts.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

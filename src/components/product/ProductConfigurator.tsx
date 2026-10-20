@@ -219,10 +219,13 @@ export function ProductConfigurator({
 
   const showSizeGuide = product.sizes.some((s) => SIZE_GUIDE[s]);
 
-  // Size Chart Image resolver (DB override -> S3 media proxy / local fallback)
+  // Size Chart Image resolver (High-speed local WebP / S3 media proxy)
   const sizeChartImg = useMemo(() => {
     let url = product.sizeChartImage;
     if (url) {
+      if (url.includes("hoodie-size-chart.webp")) return "/size-charts/hoodie-size-chart.webp";
+      if (url.includes("womens-polo-size-chart.webp")) return "/size-charts/womens-polo-size-chart.webp";
+      if (url.includes("mens-polo-size-chart.webp")) return "/size-charts/mens-polo-size-chart.webp";
       if (url.includes("teeszone-catalogue-images-2026.s3")) {
         const keyMatch = url.match(/teeszone\/.*$/);
         if (keyMatch) return `http://localhost:4010/api/upload/media/${keyMatch[0]}`;
@@ -234,13 +237,10 @@ export function ProductConfigurator({
     if (s.includes("hoodie") || n.includes("hoodie")) {
       return "/size-charts/hoodie-size-chart.webp";
     }
-    if ((s.includes("polo") || n.includes("polo")) && (s.includes("women") || n.includes("women"))) {
+    if (s.includes("women") || n.includes("women")) {
       return "/size-charts/womens-polo-size-chart.webp";
     }
-    if (s.includes("polo") || n.includes("polo")) {
-      return "/size-charts/mens-polo-size-chart.webp";
-    }
-    return null;
+    return "/size-charts/mens-polo-size-chart.webp";
   }, [product.sizeChartImage, product.slug, product.name]);
 
   // Close size chart modal on Escape and lock scroll
@@ -259,9 +259,9 @@ export function ProductConfigurator({
   }, [sizeChartOpen]);
 
   return (
-    <div className="grid gap-10 lg:grid-cols-2">
+    <div className="grid gap-8 lg:gap-10 lg:grid-cols-2 min-w-0 w-full max-w-full overflow-hidden">
       {/* Gallery */}
-      <div>
+      <div className="min-w-0 w-full">
         {/* Option Selector at top right corner above the image */}
         <div className="mb-3 flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-body">Apparel Type</span>
@@ -302,10 +302,12 @@ export function ProductConfigurator({
           ];
 
           const currentMainImage = apparelType === "custom" ? (viewImages[customViewIdx] || color.image) : color.image;
+          const isSvg = typeof currentMainImage === "string" && currentMainImage.toLowerCase().endsWith(".svg");
 
           return (
             <>
-              <div className="relative overflow-hidden border border-line bg-surface">
+              {/* Main Product Image Container - Responsive 3:4 aspect ratio with mobile height bounds */}
+              <div className="relative aspect-[3/4] max-h-[440px] sm:max-h-[580px] w-full overflow-hidden rounded-xl border border-line bg-surface flex items-center justify-center">
                 {/* Top-right corner badge directly over image */}
                 <div className="absolute right-3 top-3 z-10">
                   <span
@@ -322,36 +324,45 @@ export function ProductConfigurator({
                 <Image
                   src={currentMainImage}
                   alt={`${product.name} — ${color.name}`}
-                  width={640}
-                  height={640}
-                  preload
-                  className="h-auto w-full"
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  className={`transition-all duration-300 ${
+                    isSvg ? "object-contain p-6" : "object-cover object-top"
+                  }`}
                 />
               </div>
 
               {/* Thumbnail gallery below main image */}
               {apparelType === "custom" ? (
                 /* For Custom Tees: 1 Main Image + 5 Reference Images (6 total thumbnails) for the active color */
-                <div className="mt-3 grid grid-cols-4 sm:grid-cols-6 gap-2">
-                  {viewImages.map((imgSrc, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCustomViewIdx(idx)}
-                      className={`relative overflow-hidden border-2 bg-surface transition-all ${
-                        idx === customViewIdx
-                          ? "border-accent ring-2 ring-accent/20"
-                          : "border-line hover:border-ink/40"
-                      }`}
-                    >
-                      <Image
-                        src={imgSrc}
-                        alt={`Reference View ${idx + 1}`}
-                        width={140}
-                        height={140}
-                        className="h-auto w-full object-cover"
-                      />
-                    </button>
-                  ))}
+                <div className="mt-2.5 sm:mt-3 grid grid-cols-6 gap-1.5 sm:gap-2">
+                  {viewImages.map((imgSrc, idx) => {
+                    const thumbIsSvg = typeof imgSrc === "string" && imgSrc.toLowerCase().endsWith(".svg");
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setCustomViewIdx(idx)}
+                        aria-label={`View angle ${idx + 1}`}
+                        className={`group relative aspect-square overflow-hidden rounded-lg border-2 bg-surface transition-all ${
+                          idx === customViewIdx
+                            ? "border-accent ring-2 ring-accent/20 shadow-xs"
+                            : "border-line hover:border-ink/40"
+                        }`}
+                      >
+                        <Image
+                          src={imgSrc}
+                          alt={`Reference View ${idx + 1}`}
+                          fill
+                          sizes="(max-width: 640px) 16vw, 100px"
+                          className={`h-full w-full ${
+                            thumbIsSvg ? "object-contain p-1" : "object-cover object-top"
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 /* For Blank Apparel: Color image thumbnails with 6 visible by default & navigation arrows for 7+ colors */
@@ -363,7 +374,7 @@ export function ProductConfigurator({
                     : product.colors;
 
                   return (
-                    <div className="mt-3">
+                    <div className="mt-2.5 sm:mt-3">
                       <div className="flex items-center gap-1.5 sm:gap-2">
                         {hasMoreColors && (
                           <button
@@ -378,10 +389,11 @@ export function ProductConfigurator({
                         )}
 
                         <div className="flex-1 overflow-hidden">
-                          <div className="grid grid-cols-6 gap-2">
+                          <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
                             {visibleColors.map((c, sliceIdx) => {
                               const actualIdx = hasMoreColors ? blankStartIdx + sliceIdx : sliceIdx;
                               const isSelected = actualIdx === colorIdx;
+                              const swatchIsSvg = typeof c.image === "string" && c.image.toLowerCase().endsWith(".svg");
                               return (
                                 <button
                                   key={c.name}
@@ -392,18 +404,20 @@ export function ProductConfigurator({
                                   }}
                                   aria-label={`View ${c.name}`}
                                   title={c.name}
-                                  className={`group relative overflow-hidden rounded-md border-2 bg-surface transition-all ${
+                                  className={`group relative aspect-square overflow-hidden rounded-lg border-2 bg-surface transition-all ${
                                     isSelected
-                                      ? "border-accent ring-2 ring-accent/20"
+                                      ? "border-accent ring-2 ring-accent/20 shadow-xs"
                                       : "border-line hover:border-ink/40"
                                   }`}
                                 >
                                   <Image
                                     src={c.image}
                                     alt={c.name}
-                                    width={140}
-                                    height={140}
-                                    className="h-auto w-full object-cover aspect-square"
+                                    fill
+                                    sizes="(max-width: 640px) 16vw, 100px"
+                                    className={`h-full w-full ${
+                                      swatchIsSvg ? "object-contain p-1" : "object-cover object-top"
+                                    }`}
                                   />
                                 </button>
                               );
@@ -433,7 +447,7 @@ export function ProductConfigurator({
       </div>
 
       {/* Buy box */}
-      <div>
+      <div className="min-w-0 w-full max-w-full">
         <p className="text-[11px] uppercase tracking-wider text-body">TeesZone</p>
         <div className="mt-1 flex items-start justify-between gap-4">
           <h1 className="text-2xl font-bold leading-snug sm:text-3xl">
@@ -520,22 +534,22 @@ export function ProductConfigurator({
 
         {/* Design approval note (only for Custom Tees) */}
         {apparelType === "custom" && (
-          <div className="mt-5 space-y-3.5 rounded-xl border-l-4 border-accent bg-accent-soft p-4 pl-5">
-            <p className="flex items-start gap-3 text-sm text-ink">
+          <div className="mt-5 space-y-3.5 rounded-xl border-l-4 border-accent bg-accent-soft p-4 pl-4 sm:pl-5 min-w-0 max-w-full">
+            <p className="flex items-start gap-3 text-sm text-ink min-w-0">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm">
                 <BadgeCheck size={16} />
               </span>
-              <span className="pt-1">
+              <span className="pt-1 min-w-0 flex-1 break-words">
                 We send a <strong>digital mockup for your approval</strong> after
                 the order is confirmed — nothing goes to production before you
                 sign off.
               </span>
             </p>
-            <p className="flex items-start gap-3 text-sm text-ink">
+            <p className="flex items-start gap-3 text-sm text-ink min-w-0">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm">
                 <PenTool size={16} />
               </span>
-              <span className="pt-1">
+              <span className="pt-1 min-w-0 flex-1 break-words">
                 Don&apos;t have a logo? No problem — order with text only and our
                 team will <strong>create a custom design for you, free</strong>.
               </span>
@@ -586,9 +600,9 @@ export function ProductConfigurator({
         </div>
 
         {/* Size-quantity matrix */}
-        <div className="mt-6">
-          <div className="flex items-baseline justify-between">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
+        <div className="mt-6 min-w-0 max-w-full">
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink shrink-0">
               <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
                 2
               </span>
@@ -596,9 +610,10 @@ export function ProductConfigurator({
             </p>
             {sizeChartImg ? (
               <button
+                id="size-chart-btn"
                 type="button"
                 onClick={() => setSizeChartOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent hover:text-accent-dark hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent hover:text-accent-dark hover:underline transition-colors cursor-pointer shrink-0"
                 aria-label="Open Size Chart"
               >
                 <Ruler size={14} className="shrink-0" />
@@ -1065,22 +1080,26 @@ export function ProductConfigurator({
           </button>
         </div>
       </div>
+      {/* Preload Size Chart WebP image in background so modal opens instantly */}
+      {sizeChartImg && <link rel="preload" as="image" href={sizeChartImg} />}
+
       {/* Size Chart Popup Modal (Desktop & Mobile with Blurred Background) */}
       {sizeChartOpen && sizeChartImg && (
         <div
+          id="size-chart-modal"
           role="dialog"
           aria-modal="true"
           aria-label={`${product.name} Size Chart`}
           onClick={() => setSizeChartOpen(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative flex flex-col max-h-[92vh] w-full max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl border border-line animate-in zoom-in-95 duration-200"
+            className="relative flex flex-col max-h-[90vh] w-full max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl border border-line animate-in zoom-in-95 duration-200"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-line px-5 py-3.5 bg-[#FAF8F5]">
-              <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-between border-b border-line px-4 sm:px-5 py-3 sm:py-3.5 bg-[#FAF8F5]">
+              <div className="flex items-center gap-2 sm:gap-2.5">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent">
                   <Ruler size={16} />
                 </div>
@@ -1088,7 +1107,7 @@ export function ProductConfigurator({
                   <h3 className="font-heading text-xs sm:text-sm font-bold uppercase tracking-wider text-ink">
                     Size Chart &amp; Fit Guide
                   </h3>
-                  <p className="text-[11px] text-body truncate max-w-[200px] sm:max-w-md">
+                  <p className="text-[11px] text-body truncate max-w-[190px] sm:max-w-md">
                     {product.name}
                   </p>
                 </div>
@@ -1104,31 +1123,33 @@ export function ProductConfigurator({
             </div>
 
             {/* Modal Content - Centered Size Chart Picture */}
-            <div className="flex-1 overflow-auto p-3 sm:p-6 flex items-center justify-center bg-[#FAF8F5]">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-2 sm:p-6 flex items-center justify-center bg-[#FAF8F5]">
               <img
                 src={sizeChartImg}
                 alt={`${product.name} Size Chart`}
+                loading="eager"
+                decoding="async"
                 onError={(e) => {
                   const s = (product.slug || "").toLowerCase();
                   if (s.includes("hoodie")) {
                     e.currentTarget.src = "/size-charts/hoodie-size-chart.webp";
-                  } else if (s.includes("polo") && s.includes("women")) {
+                  } else if (s.includes("women")) {
                     e.currentTarget.src = "/size-charts/womens-polo-size-chart.webp";
                   } else {
                     e.currentTarget.src = "/size-charts/mens-polo-size-chart.webp";
                   }
                 }}
-                className="max-h-[72vh] w-auto max-w-full object-contain rounded-lg shadow-sm mx-auto"
+                className="max-h-[66vh] sm:max-h-[72vh] w-auto max-w-full object-contain rounded-lg shadow-sm mx-auto"
               />
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-between border-t border-line px-5 py-2.5 bg-white text-[11px] text-body">
-              <span>All measurements are in inches. Standard fit.</span>
+            <div className="flex items-center justify-between border-t border-line px-4 sm:px-5 py-2.5 bg-white text-[11px] text-body">
+              <span className="truncate pr-2">Measurements in inches. Standard fit.</span>
               <button
                 type="button"
                 onClick={() => setSizeChartOpen(false)}
-                className="font-bold text-accent hover:underline uppercase tracking-wider"
+                className="font-bold text-accent hover:underline uppercase tracking-wider shrink-0"
               >
                 Done
               </button>

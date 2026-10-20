@@ -53,13 +53,17 @@ export function ProductCard({ product }: { product: Product }) {
       <div>
         {/* Product Image - Constant 3:4 Aspect Ratio */}
         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-surface">
-          <Link href={`/products/${product.slug}`} className="block h-full w-full">
+          <Link href={`/products/${product.slug}`} className="relative block h-full w-full">
             <Image
               src={product.colors[0]?.image || "/products/crew-white.svg"}
               alt={product.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
+              className={`transition-transform duration-300 group-hover:scale-105 ${
+                (product.colors[0]?.image || "").toLowerCase().endsWith(".svg")
+                  ? "object-contain p-3"
+                  : "object-cover object-top"
+              }`}
             />
           </Link>
         </div>

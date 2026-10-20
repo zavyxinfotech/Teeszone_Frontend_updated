@@ -23,8 +23,13 @@ export function Reveal({
           observer.disconnect();
         }
       },
-      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
+      { threshold: 0, rootMargin: "0px 0px 100px 0px" },
     );
+    // If element is already in viewport on mount, make visible immediately
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight) {
+      el.classList.add("is-visible");
+    }
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
