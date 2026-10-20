@@ -19,7 +19,8 @@ export function ProductCard({ product }: { product: Product }) {
   const saved = has(product.slug);
 
   const ratingInfo = getProductRating(product.id || product.slug);
-  const priceFor2 = (product.price * 2).toLocaleString("en-IN");
+  const originalPrice = product.mrp.toLocaleString("en-IN");
+  const sellingPrice = product.price.toLocaleString("en-IN");
   const discount = offPct(product);
 
   const handleLike = (e: React.MouseEvent) => {
@@ -34,8 +35,8 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <div className="group relative flex flex-col justify-between bg-white p-2">
-      {/* Top badges */}
-      <span className="absolute right-4 top-4 z-10 rounded-md bg-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+      {/* Top badges - Offer badge removed on mobile, visible on desktop */}
+      <span className="hidden sm:inline-block absolute right-3 top-3 z-10 rounded-md bg-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
         {discount}% OFF
       </span>
 
@@ -43,11 +44,11 @@ export function ProductCard({ product }: { product: Product }) {
         onClick={handleLike}
         aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
         aria-pressed={saved}
-        className={`absolute left-4 top-4 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow-xs transition-all hover:scale-110 ${
+        className={`absolute left-2 top-2 sm:left-3 sm:top-3 z-10 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/90 shadow-xs transition-all hover:scale-110 ${
           saved ? "text-accent" : "text-body hover:text-accent"
         }`}
       >
-        <Heart size={14} fill={saved ? "currentColor" : "none"} />
+        <Heart size={12} fill={saved ? "currentColor" : "none"} />
       </button>
 
       <div>
@@ -69,15 +70,15 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
 
         {/* Content */}
-        <div className="pt-3.5">
+        <div className="pt-2 sm:pt-3.5">
           <Link href={`/products/${product.slug}`} className="block min-w-0">
-            <h3 className="line-clamp-2 text-sm font-bold text-ink transition-colors hover:text-accent leading-snug">
+            <h3 className="line-clamp-2 text-xs sm:text-sm font-medium sm:font-bold text-ink transition-colors hover:text-accent leading-snug">
               {product.name}
             </h3>
           </Link>
 
-          {/* Reviews Line */}
-          <div className="mt-2 flex items-center gap-1.5 text-xs">
+          {/* Reviews Line - Desktop only */}
+          <div className="mt-2 hidden sm:flex items-center gap-1.5 text-xs">
             <div className="flex items-center text-amber-500">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} size={12} className="fill-amber-400 text-amber-400" />
@@ -87,12 +88,15 @@ export function ProductCard({ product }: { product: Product }) {
             <span className="text-body">({ratingInfo.reviews} Reviews)</span>
           </div>
 
-          {/* Price for 2 pcs */}
-          <div className="mt-2.5 flex items-baseline gap-1.5">
-            <span className="font-heading text-lg font-extrabold text-accent">
-              ₹ {priceFor2}
+          {/* Price - Original Price & Selling Price */}
+          <div className="mt-1.5 sm:mt-2.5 flex items-baseline gap-1.5">
+            <span className="text-[11px] sm:text-xs text-body line-through">
+              ₹ {originalPrice}
             </span>
-            <span className="text-xs font-medium text-body">for 2 pcs</span>
+            <span className="font-heading text-sm sm:text-lg font-bold sm:font-extrabold text-accent whitespace-nowrap">
+              ₹ {sellingPrice}
+            </span>
+            <span className="hidden sm:inline text-xs font-medium text-body">/ pc</span>
           </div>
         </div>
       </div>
@@ -100,10 +104,10 @@ export function ProductCard({ product }: { product: Product }) {
       {/* Order Now Button */}
       <Link
         href={`/products/${product.slug}`}
-        className="mt-3.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-ink py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent"
+        className="mt-2.5 sm:mt-3.5 flex w-full items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl bg-ink py-1.5 sm:py-2.5 text-[11px] sm:text-xs font-semibold sm:font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent"
       >
         Order Now
-        <ArrowRight size={13} />
+        <ArrowRight size={12} />
       </Link>
     </div>
   );
