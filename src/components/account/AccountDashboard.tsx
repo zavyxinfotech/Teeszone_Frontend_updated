@@ -15,7 +15,15 @@ import { AccountShell } from "@/components/account/AccountShell";
 import { useAuth } from "@/lib/auth";
 import { waLink } from "@/lib/site";
 
-const cards = [
+interface DashboardCard {
+  icon: any;
+  title: string;
+  text: string;
+  href: string;
+  external?: boolean;
+}
+
+const cards: DashboardCard[] = [
   {
     icon: Package,
     title: "Your Orders",

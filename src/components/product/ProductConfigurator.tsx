@@ -17,6 +17,7 @@ import {
   Minus,
   PenTool,
   Plus,
+  Ruler,
   ShoppingBag,
   Sparkles,
   Star,
@@ -54,6 +55,7 @@ export function ProductConfigurator({
   const ratingInfo = getProductRating(product.id || product.slug);
   const deliveredOrdersCount = product.ordersDelivered != null ? product.ordersDelivered : ratingInfo.deliveredCompanies;
   const [colorIdx, setColorIdx] = useState(0);
+  const [sizeChartOpen, setSizeChartOpen] = useState(false);
   // size split per color: color -> size -> qty
   const [qty, setQty] = useState<Record<string, Record<string, number>>>({});
   const [printText, setPrintText] = useState("");
@@ -216,6 +218,45 @@ export function ProductConfigurator({
   };
 
   const showSizeGuide = product.sizes.some((s) => SIZE_GUIDE[s]);
+
+  // Size Chart Image resolver (DB override -> S3 media proxy / local fallback)
+  const sizeChartImg = useMemo(() => {
+    let url = product.sizeChartImage;
+    if (url) {
+      if (url.includes("teeszone-catalogue-images-2026.s3")) {
+        const keyMatch = url.match(/teeszone\/.*$/);
+        if (keyMatch) return `http://localhost:4010/api/upload/media/${keyMatch[0]}`;
+      }
+      return url;
+    }
+    const s = (product.slug || "").toLowerCase();
+    const n = (product.name || "").toLowerCase();
+    if (s.includes("hoodie") || n.includes("hoodie")) {
+      return "/size-charts/hoodie-size-chart.webp";
+    }
+    if ((s.includes("polo") || n.includes("polo")) && (s.includes("women") || n.includes("women"))) {
+      return "/size-charts/womens-polo-size-chart.webp";
+    }
+    if (s.includes("polo") || n.includes("polo")) {
+      return "/size-charts/mens-polo-size-chart.webp";
+    }
+    return null;
+  }, [product.sizeChartImage, product.slug, product.name]);
+
+  // Close size chart modal on Escape and lock scroll
+  useEffect(() => {
+    if (!sizeChartOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSizeChartOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [sizeChartOpen]);
 
   return (
     <div className="grid gap-10 lg:grid-cols-2">
@@ -553,7 +594,17 @@ export function ProductConfigurator({
               </span>
               Sizes & Quantities
             </p>
-            {showSizeGuide && (
+            {sizeChartImg ? (
+              <button
+                type="button"
+                onClick={() => setSizeChartOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent hover:text-accent-dark hover:underline transition-colors"
+                aria-label="Open Size Chart"
+              >
+                <Ruler size={14} className="shrink-0" />
+                <span>Size Chart</span>
+              </button>
+            ) : showSizeGuide ? (
               <details className="relative">
                 <summary className="cursor-pointer list-none text-xs font-bold text-accent underline underline-offset-4 [&::-webkit-details-marker]:hidden">
                   Size Guide
@@ -576,7 +627,7 @@ export function ProductConfigurator({
                   </table>
                 </div>
               </details>
-            )}
+            ) : null}
           </div>
           <p className="mt-1 text-xs text-body">
             Entering sizes for{" "}
@@ -1014,6 +1065,77 @@ export function ProductConfigurator({
           </button>
         </div>
       </div>
+      {/* Size Chart Popup Modal (Desktop & Mobile with Blurred Background) */}
+      {sizeChartOpen && sizeChartImg && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${product.name} Size Chart`}
+          onClick={() => setSizeChartOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative flex flex-col max-h-[92vh] w-full max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl border border-line animate-in zoom-in-95 duration-200"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-line px-5 py-3.5 bg-[#FAF8F5]">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                  <Ruler size={16} />
+                </div>
+                <div>
+                  <h3 className="font-heading text-xs sm:text-sm font-bold uppercase tracking-wider text-ink">
+                    Size Chart &amp; Fit Guide
+                  </h3>
+                  <p className="text-[11px] text-body truncate max-w-[200px] sm:max-w-md">
+                    {product.name}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSizeChartOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-body hover:bg-black/5 hover:text-ink transition-colors"
+                aria-label="Close size chart modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content - Centered Size Chart Picture */}
+            <div className="flex-1 overflow-auto p-3 sm:p-6 flex items-center justify-center bg-[#FAF8F5]">
+              <img
+                src={sizeChartImg}
+                alt={`${product.name} Size Chart`}
+                onError={(e) => {
+                  const s = (product.slug || "").toLowerCase();
+                  if (s.includes("hoodie")) {
+                    e.currentTarget.src = "/size-charts/hoodie-size-chart.webp";
+                  } else if (s.includes("polo") && s.includes("women")) {
+                    e.currentTarget.src = "/size-charts/womens-polo-size-chart.webp";
+                  } else {
+                    e.currentTarget.src = "/size-charts/mens-polo-size-chart.webp";
+                  }
+                }}
+                className="max-h-[72vh] w-auto max-w-full object-contain rounded-lg shadow-sm mx-auto"
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between border-t border-line px-5 py-2.5 bg-white text-[11px] text-body">
+              <span>All measurements are in inches. Standard fit.</span>
+              <button
+                type="button"
+                onClick={() => setSizeChartOpen(false)}
+                className="font-bold text-accent hover:underline uppercase tracking-wider"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
