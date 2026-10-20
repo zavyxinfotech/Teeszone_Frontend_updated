@@ -35,8 +35,8 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <div className="group relative flex flex-col justify-between bg-white p-2">
-      {/* Top badges - Offer badge removed on mobile, visible on desktop */}
-      <span className="hidden sm:inline-block absolute right-3 top-3 z-10 rounded-md bg-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+      {/* Top badges - Offer badge removed on mobile, visible on desktop with increased size */}
+      <span className="hidden sm:inline-block absolute right-3.5 top-3.5 z-10 rounded-md bg-ink px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-xs">
         {discount}% OFF
       </span>
 
@@ -44,11 +44,11 @@ export function ProductCard({ product }: { product: Product }) {
         onClick={handleLike}
         aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
         aria-pressed={saved}
-        className={`absolute left-2 top-2 sm:left-3 sm:top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-transparent transition-all hover:scale-110 ${
+        className={`absolute left-2 top-2 sm:left-3.5 sm:top-3.5 z-10 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-transparent transition-all hover:scale-110 ${
           saved ? "text-accent" : "text-ink/60 hover:text-accent"
         }`}
       >
-        <Heart size={15} fill={saved ? "currentColor" : "none"} strokeWidth={2} />
+        <Heart className="h-4 w-4 sm:h-5 sm:w-5" fill={saved ? "currentColor" : "none"} strokeWidth={2.2} />
       </button>
 
       <div>

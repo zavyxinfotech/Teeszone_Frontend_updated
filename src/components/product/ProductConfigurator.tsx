@@ -308,8 +308,8 @@ export function ProductConfigurator({
 
           return (
             <>
-              {/* Main Product Image Container - Responsive 3:4 aspect ratio with mobile height bounds */}
-              <div className="relative aspect-[3/4] max-h-[440px] sm:max-h-[580px] w-full overflow-hidden rounded-xl border border-line bg-surface flex items-center justify-center p-2 sm:p-4">
+              {/* Main Product Image Container - Natural 3:4 aspect ratio with centered position */}
+              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-line bg-surface">
                 <Image
                   src={currentMainImage}
                   alt={`${product.name} — ${color.name}`}
@@ -317,7 +317,7 @@ export function ProductConfigurator({
                   priority
                   sizes="(max-width: 640px) 100vw, 50vw"
                   className={`transition-all duration-300 ${
-                    isSvg ? "object-contain p-4 sm:p-6" : "object-contain"
+                    isSvg ? "object-contain p-4 sm:p-6" : "object-cover object-center"
                   }`}
                 />
               </div>
