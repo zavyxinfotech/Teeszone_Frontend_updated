@@ -72,7 +72,7 @@ export default async function ProductPage({
       />
       
       {/* Breadcrumb */}
-      <p className="mb-6 text-xs uppercase tracking-wider text-body">
+      <p className="mb-4 sm:mb-6 text-[11px] sm:text-xs font-normal uppercase tracking-wider text-body leading-relaxed">
         <Link href="/" className="hover:text-accent">
           Home
         </Link>{" "}
@@ -80,7 +80,7 @@ export default async function ProductPage({
         <Link href="/products" className="hover:text-accent">
           Products
         </Link>{" "}
-        / {product.name}
+        / <span className="line-clamp-2 inline sm:inline">{product.name}</span>
       </p>
 
       {/* Main Product Configurator & Details */}
@@ -110,19 +110,19 @@ export default async function ProductPage({
 
       {/* View Similar Products */}
       <Reveal delay={120}>
-        <section className="mt-16">
+        <section className="mt-12 sm:mt-16">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold uppercase tracking-[0.08em]">
+            <h2 className="text-sm sm:text-lg font-semibold sm:font-bold uppercase tracking-[0.06em] sm:tracking-[0.08em]">
               View Similar Products
             </h2>
             <Link
               href="/products"
-              className="text-xs font-bold uppercase tracking-wider text-accent hover:underline"
+              className="text-[10px] sm:text-xs font-semibold sm:font-bold uppercase tracking-wider text-accent hover:underline"
             >
               View All Products &rarr;
             </Link>
           </div>
-          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

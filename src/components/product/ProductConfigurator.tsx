@@ -263,15 +263,17 @@ export function ProductConfigurator({
       {/* Gallery */}
       <div className="min-w-0 w-full">
         {/* Option Selector at top right corner above the image */}
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-body">Apparel Type</span>
-          <div className="inline-flex rounded-lg border border-line bg-surface p-1 shadow-sm">
+        <div className="mb-2 sm:mb-3 flex items-center justify-between">
+          <span className="text-[11px] sm:text-xs font-medium sm:font-bold uppercase tracking-wider text-body">
+            Apparel Type
+          </span>
+          <div className="inline-flex rounded-lg border border-line bg-surface p-0.5 sm:p-1 shadow-xs">
             <button
               type="button"
               onClick={() => setApparelType("blank")}
-              className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`rounded-md px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium sm:font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
                 apparelType === "blank"
-                  ? "bg-ink text-white shadow-sm"
+                  ? "bg-ink text-white shadow-xs"
                   : "text-body hover:text-ink"
               }`}
             >
@@ -280,9 +282,9 @@ export function ProductConfigurator({
             <button
               type="button"
               onClick={() => setApparelType("custom")}
-              className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`rounded-md px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium sm:font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
                 apparelType === "custom"
-                  ? "bg-accent text-white shadow-sm"
+                  ? "bg-accent text-white shadow-xs"
                   : "text-body hover:text-ink"
               }`}
             >
@@ -307,20 +309,7 @@ export function ProductConfigurator({
           return (
             <>
               {/* Main Product Image Container - Responsive 3:4 aspect ratio with mobile height bounds */}
-              <div className="relative aspect-[3/4] max-h-[440px] sm:max-h-[580px] w-full overflow-hidden rounded-xl border border-line bg-surface flex items-center justify-center">
-                {/* Top-right corner badge directly over image */}
-                <div className="absolute right-3 top-3 z-10">
-                  <span
-                    className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider shadow-md backdrop-blur border ${
-                      apparelType === "custom"
-                        ? "border-accent/30 bg-accent/90 text-white"
-                        : "border-ink/20 bg-ink/90 text-white"
-                    }`}
-                  >
-                    {apparelType === "custom" ? "Custom Tees" : "Blank Apparel"}
-                  </span>
-                </div>
-
+              <div className="relative aspect-[3/4] max-h-[440px] sm:max-h-[580px] w-full overflow-hidden rounded-xl border border-line bg-surface flex items-center justify-center p-2 sm:p-4">
                 <Image
                   src={currentMainImage}
                   alt={`${product.name} — ${color.name}`}
@@ -328,7 +317,7 @@ export function ProductConfigurator({
                   priority
                   sizes="(max-width: 640px) 100vw, 50vw"
                   className={`transition-all duration-300 ${
-                    isSvg ? "object-contain p-6" : "object-cover object-top"
+                    isSvg ? "object-contain p-4 sm:p-6" : "object-contain"
                   }`}
                 />
               </div>
@@ -449,16 +438,16 @@ export function ProductConfigurator({
       {/* Buy box */}
       <div className="min-w-0 w-full max-w-full">
         <p className="text-[11px] uppercase tracking-wider text-body">TeesZone</p>
-        <div className="mt-1 flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-bold leading-snug sm:text-3xl">
+        <div className="mt-1 flex items-start justify-between gap-3 sm:gap-4">
+          <h1 className="line-clamp-4 text-base sm:text-2xl lg:text-3xl font-medium sm:font-bold leading-snug text-ink">
             {product.name}
           </h1>
           <button
             onClick={handleToggleWishlist}
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={saved}
-            className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all hover:scale-110 ${saved
-                ? "border-accent bg-accent-soft text-accent"
+            className={`mt-0.5 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border bg-transparent transition-all hover:scale-110 ${saved
+                ? "border-accent text-accent"
                 : "border-line text-body hover:border-accent hover:text-accent"
               }`}
           >

@@ -44,11 +44,11 @@ export function ProductCard({ product }: { product: Product }) {
         onClick={handleLike}
         aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
         aria-pressed={saved}
-        className={`absolute left-2 top-2 sm:left-3 sm:top-3 z-10 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-white/90 shadow-xs transition-all hover:scale-110 ${
-          saved ? "text-accent" : "text-body hover:text-accent"
+        className={`absolute left-2 top-2 sm:left-3 sm:top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-transparent transition-all hover:scale-110 ${
+          saved ? "text-accent" : "text-ink/60 hover:text-accent"
         }`}
       >
-        <Heart size={12} fill={saved ? "currentColor" : "none"} />
+        <Heart size={15} fill={saved ? "currentColor" : "none"} strokeWidth={2} />
       </button>
 
       <div>

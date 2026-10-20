@@ -79,14 +79,14 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white">
-      <div className="mx-auto flex h-16 max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-[1320px] items-center justify-between gap-1 sm:gap-4 px-2 sm:px-6">
         <button
-          className="p-2 text-ink lg:hidden"
+          className="p-1.5 sm:p-2 text-ink lg:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
         >
-          {open ? <X size={22} /> : <Menu size={22} />}
+          {open ? <X className="h-5 w-5 sm:h-[22px] sm:w-[22px]" /> : <Menu className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />}
         </button>
 
         <Link href="/" aria-label="TeesZone home" className="shrink-0">
@@ -95,6 +95,7 @@ export function Header({
             alt="TeesZone — elevate your style with custom tees"
             width={168}
             height={33}
+            className="w-[125px] sm:w-[168px] h-auto object-contain"
             preload
           />
         </Link>
@@ -206,15 +207,15 @@ export function Header({
           </div>
         </nav>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1">
           {/* Account */}
           <div className="group relative">
             <Link
               href={user ? "/account" : "/login"}
               aria-label={user ? `Account, signed in as ${user.name || user.email}` : "Sign in"}
-              className="flex items-center gap-1.5 p-2 text-ink transition-colors hover:text-accent"
+              className="flex items-center gap-1.5 p-1.5 sm:p-2 text-ink transition-colors hover:text-accent"
             >
-              <CircleUserRound size={20} />
+              <CircleUserRound className="h-5 w-5 sm:h-5 sm:w-5" />
               <span className="hidden text-left leading-tight xl:block">
                 <span className="block max-w-28 truncate text-[10px] text-body">
                   {user ? `Hi, ${firstName ?? user.email}` : "Hello, Sign in"}
@@ -271,11 +272,11 @@ export function Header({
           <Link
             href="/wishlist"
             aria-label={`Wishlist, ${wishlistCount} items`}
-            className="relative p-2 text-ink transition-colors hover:text-accent"
+            className="relative p-1.5 sm:p-2 text-ink transition-colors hover:text-accent"
           >
-            <Heart size={20} />
+            <Heart className="h-5 w-5 sm:h-5 sm:w-5" />
             {wishlistCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 sm:h-5 sm:min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[9px] sm:text-[10px] font-bold text-white">
                 {wishlistCount > 99 ? "99+" : wishlistCount}
               </span>
             )}
@@ -283,11 +284,11 @@ export function Header({
           <Link
             href="/cart"
             aria-label={`Cart, ${totalItems} items`}
-            className="relative p-2 text-ink transition-colors hover:text-accent"
+            className="relative p-1.5 sm:p-2 text-ink transition-colors hover:text-accent"
           >
-            <ShoppingBag size={20} />
+            <ShoppingBag className="h-5 w-5 sm:h-5 sm:w-5" />
             {totalItems > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 sm:h-5 sm:min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[9px] sm:text-[10px] font-bold text-white">
                 {totalItems > 99 ? "99+" : totalItems}
               </span>
             )}
