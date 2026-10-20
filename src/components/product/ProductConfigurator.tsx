@@ -259,9 +259,9 @@ export function ProductConfigurator({
   }, [sizeChartOpen]);
 
   return (
-    <div className="grid gap-8 lg:gap-10 lg:grid-cols-2 min-w-0 w-full max-w-full overflow-hidden">
-      {/* Gallery */}
-      <div className="min-w-0 w-full">
+    <div className="grid gap-8 lg:gap-10 lg:grid-cols-2 min-w-0 w-full max-w-full">
+      {/* Gallery - Sticky on desktop view */}
+      <div className="min-w-0 w-full lg:sticky lg:top-20 self-start">
         {/* Option Selector at top right corner above the image */}
         <div className="mb-2 sm:mb-3 flex items-center justify-between">
           <span className="text-[11px] sm:text-xs font-medium sm:font-bold uppercase tracking-wider text-body">

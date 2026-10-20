@@ -65,7 +65,7 @@ export default async function ProductPage({
   };
 
   return (
-    <div className="mx-auto max-w-[1320px] px-3 sm:px-6 py-6 sm:py-10 md:py-14 min-w-0 w-full overflow-hidden">
+    <div className="mx-auto max-w-[1320px] px-3 sm:px-6 py-6 sm:py-10 md:py-14 min-w-0 w-full">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

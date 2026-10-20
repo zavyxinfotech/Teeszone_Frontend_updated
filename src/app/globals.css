@@ -20,13 +20,13 @@
 
 html {
   scroll-behavior: smooth;
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
 }
 
 body {
   @apply bg-white text-body font-sans antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
 }
 
