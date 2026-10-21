@@ -87,19 +87,6 @@ const CATEGORY_MAP: Record<
     desc: "GOTS certified 100% organic cotton luxury polo t-shirts.",
     slugs: ["organic-polo-270", "organic-polo-plain-270"],
   },
-  "specialty": {
-    title: "Specialty & Fabrics",
-    desc: "Eco & biowash fabrics, high-performance athletic dotknit & nano-poly, and certified organic cotton polos.",
-    slugs: [
-      "ecoblend-rn-180",
-      "biowash-rn-180",
-      "ecoblend-polo-240",
-      "primoknit-polo-200",
-      "aeropiq-polo-210",
-      "organic-polo-270",
-      "organic-polo-plain-270",
-    ],
-  },
 };
 
 // Aliases for user-friendly navigation
@@ -120,7 +107,8 @@ export async function generateMetadata({
   searchParams?: Promise<{ category?: string }>;
 }): Promise<Metadata> {
   const sp = searchParams ? await searchParams : {};
-  const cat = sp?.category?.toLowerCase();
+  const rawCat = sp?.category?.toLowerCase();
+  const cat = rawCat === "specialty" || rawCat === "speciality" ? undefined : rawCat;
   if (!cat) return { title: "All Products | TeesZone" };
   const matched = CATEGORY_MAP[cat];
   if (matched) {
@@ -135,7 +123,8 @@ export default async function ProductsPage({
   searchParams?: Promise<{ category?: string }>;
 }) {
   const sp = searchParams ? await searchParams : {};
-  const category = sp?.category?.toLowerCase();
+  const rawCat = sp?.category?.toLowerCase();
+  const category = rawCat === "specialty" || rawCat === "speciality" ? undefined : rawCat;
   const [allProducts] = await Promise.all([getProducts()]);
 
   let pageTitle = "All Products";

@@ -26,7 +26,6 @@ const featuredBySegment: Record<string, string> = {
   women: "/products/crew-white.svg",
   kids: "/products/jersey-red.svg",
   hoodies: "/products/crew-black.svg",
-  specialty: "/products/crew-white.svg",
 };
 
 function getCategoryHref(segSlug: string, groupTitle: string): string {

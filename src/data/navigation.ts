@@ -222,34 +222,6 @@ export const segments: Segment[] = [
       },
     ],
   },
-  {
-    slug: "specialty",
-    name: "Specialty & Fabrics",
-    groups: [
-      {
-        title: "Eco & Biowash",
-        collections: [
-          "ecoblend-rn-180",
-          "biowash-rn-180",
-          "ecoblend-polo-240",
-        ],
-      },
-      {
-        title: "Performance Fabrics",
-        collections: [
-          "primoknit-polo-200",
-          "aeropiq-polo-210",
-        ],
-      },
-      {
-        title: "Organic Collection",
-        collections: [
-          "organic-polo-270",
-          "organic-polo-plain-270",
-        ],
-      },
-    ],
-  },
 ];
 
 export function getCollection(slug: string): Collection | undefined {
