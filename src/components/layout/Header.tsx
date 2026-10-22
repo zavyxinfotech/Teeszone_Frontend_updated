@@ -22,9 +22,9 @@ const useCaseLinks = [
 ];
 
 const featuredBySegment: Record<string, string> = {
-  men: "/products/crew-black.svg",
-  women: "/products/crew-white.svg",
-  kids: "/products/jersey-red.svg",
+  men: "/dropdown/mens_dropdown_img.webp",
+  women: "/dropdown/womens_dropdown_img.webp",
+  kids: "/dropdown/kids_dropdown_img.webp",
   hoodies: "/products/crew-black.svg",
 };
 
