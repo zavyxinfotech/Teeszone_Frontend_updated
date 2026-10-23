@@ -21,6 +21,7 @@ import {
   ShoppingBag,
   Sparkles,
   Star,
+  Tag,
   X,
 } from "lucide-react";
 import type { Product } from "@/lib/types";
@@ -32,17 +33,121 @@ import { reviews as defaultReviews } from "@/data/reviews";
 import { getProductRating } from "@/data/ratings";
 import type { Review } from "@/lib/types";
 
+/**
+ * Dynamically determines the customized apparel option label based on the product category.
+ * e.g., "Customized Hoodies" for hoodies, "Customized Polo" for polos, "Customized Oversize", etc.
+ */
+export function getCustomizedApparelName(product: Product): string {
+  const s = (product.slug || "").toLowerCase();
+  const n = (product.name || "").toLowerCase();
+  const cols = (product.collections || []).map((c) => c.toLowerCase());
+
+  if (s.includes("hoodie") || n.includes("hoodie") || cols.some((c) => c.includes("hoodie"))) {
+    return "Customized Hoodies";
+  }
+  if (s.includes("polo") || n.includes("polo") || cols.some((c) => c.includes("polo"))) {
+    return "Customized Polo";
+  }
+  if (s.includes("oversize") || n.includes("oversize") || cols.some((c) => c.includes("oversize"))) {
+    return "Customized Oversize";
+  }
+  if (s.includes("sweatshirt") || n.includes("sweatshirt") || cols.some((c) => c.includes("sweatshirt"))) {
+    return "Customized Sweatshirt";
+  }
+  if (s.includes("kid") || n.includes("kid") || cols.some((c) => c.includes("kid"))) {
+    return "Customized Kids Tees";
+  }
+  if (s.includes("women") || n.includes("women") || cols.some((c) => c.includes("women"))) {
+    return "Customized Women Tees";
+  }
+  if (
+    s.includes("rn-") ||
+    s.includes("round-neck") ||
+    n.includes("round neck") ||
+    n.includes("rn ") ||
+    cols.some((c) => c.includes("round-neck"))
+  ) {
+    return "Customized Round Neck";
+  }
+  if (s.includes("jacket") || n.includes("jacket") || cols.some((c) => c.includes("jacket"))) {
+    return "Customized Jackets";
+  }
+  return "Customized Tees";
+}
+
 const LIGHT_HEXES = new Set(["#F1F2F4", "#BFD8F0", "#E3B341", "#98D7C2", "#F4A7C3", "#C8A2C8"]);
 
-// adult size guide, chest in inches (kids sizes skip it)
-const SIZE_GUIDE: Record<string, string> = {
-  XS: '34"',
-  S: '36"',
-  M: '38"',
-  L: '40"',
-  XL: '42"',
-  XXL: '44"',
-};
+/**
+ * Resolves the exact sizes and chest measurements based on the official size chart images:
+ * - Hoodies (hoodie-size-chart.webp): S (40"), M (42"), L (44"), XL (46"), 2XL (48")
+ * - Men's Polo & Tees (mens-polo-size-chart.webp): S (38"), M (40"), L (42"), XL (44"), 2XL (46"), 3XL (48")
+ * - Women's Polo & Tees (womens-polo-size-chart.webp): S (36"), M (38"), L (40"), XL (42"), 2XL (44"), 3XL (46")
+ * - Kids: 2-3Y, 4-5Y, 6-7Y, 8-9Y, 10-11Y, 12-13Y
+ */
+export function getProductSizeConfig(product: Product): {
+  sizes: string[];
+  sizeGuide: Record<string, string>;
+} {
+  const s = (product.slug || "").toLowerCase();
+  const n = (product.name || "").toLowerCase();
+
+  // Kids products
+  if (s.includes("kid") || n.includes("kid")) {
+    const kidsSizes =
+      product.sizes && product.sizes.length > 0 && product.sizes[0].includes("Y")
+        ? product.sizes
+        : ["2-3Y", "4-5Y", "6-7Y", "8-9Y", "10-11Y", "12-13Y"];
+    return {
+      sizes: kidsSizes,
+      sizeGuide: {},
+    };
+  }
+
+  // Hoodies (based on hoodie-size-chart.webp: S 40", M 42", L 44", XL 46", 2XL 48")
+  if (s.includes("hoodie") || n.includes("hoodie")) {
+    return {
+      sizes: ["S", "M", "L", "XL", "2XL"],
+      sizeGuide: {
+        S: '40"',
+        M: '42"',
+        L: '44"',
+        XL: '46"',
+        "2XL": '48"',
+        XXL: '48"',
+      },
+    };
+  }
+
+  // Women's apparel (based on womens-polo-size-chart.webp: S 36", M 38", L 40", XL 42", 2XL 44", 3XL 46")
+  if (s.includes("women") || n.includes("women")) {
+    return {
+      sizes: ["S", "M", "L", "XL", "2XL", "3XL"],
+      sizeGuide: {
+        S: '36"',
+        M: '38"',
+        L: '40"',
+        XL: '42"',
+        "2XL": '44"',
+        XXL: '44"',
+        "3XL": '46"',
+      },
+    };
+  }
+
+  // Men's / Adult Polo, Round Neck, Oversize (based on mens-polo-size-chart.webp: S 38", M 40", L 42", XL 44", 2XL 46", 3XL 48")
+  return {
+    sizes: ["S", "M", "L", "XL", "2XL", "3XL"],
+    sizeGuide: {
+      S: '38"',
+      M: '40"',
+      L: '42"',
+      XL: '44"',
+      "2XL": '46"',
+      XXL: '46"',
+      "3XL": '48"',
+    },
+  };
+}
 
 export function ProductConfigurator({
   product,
@@ -54,6 +159,10 @@ export function ProductConfigurator({
   const reviewsList = initialReviews && initialReviews.length > 0 ? initialReviews : defaultReviews;
   const ratingInfo = getProductRating(product.id || product.slug);
   const deliveredOrdersCount = product.ordersDelivered != null ? product.ordersDelivered : ratingInfo.deliveredCompanies;
+  const { sizes: productSizes, sizeGuide: sizeGuideMap } = useMemo(
+    () => getProductSizeConfig(product),
+    [product]
+  );
   const [colorIdx, setColorIdx] = useState(0);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
   // size split per color: color -> size -> qty
@@ -72,11 +181,55 @@ export function ProductConfigurator({
   const pathname = usePathname();
   const saved = hasWishlist(product.slug);
 
-  const [apparelType, setApparelType] = useState<"blank" | "custom">("custom");
-  const [customViewIdx, setCustomViewIdx] = useState(0);
+  const customizedApparelName = useMemo(() => getCustomizedApparelName(product), [product]);
+  const [apparelType, setApparelType] = useState<"blank" | "custom">("blank");
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [isGalleryHovered, setIsGalleryHovered] = useState(false);
   const [blankStartIdx, setBlankStartIdx] = useState(0);
   const color = product.colors[colorIdx];
   const colorQty = qty[color.name] ?? {};
+
+  // Compute all available images for auto-scrolling
+  const displayImages = useMemo(() => {
+    const angles = [
+      color.image,
+      color.backImage,
+      color.chestImage,
+      color.detailImage,
+      color.image4,
+      color.image5,
+    ].filter((img): img is string => typeof img === "string" && img.trim().length > 0);
+
+    const uniqueAngles = Array.from(new Set(angles));
+    if (uniqueAngles.length > 1) {
+      return uniqueAngles;
+    }
+    // Fallback if current color has single angle: cycle other color images
+    if (product.colors.length > 1) {
+      const colorImgs = product.colors.map((c) => c.image).filter(Boolean);
+      const uniqueColorImgs = Array.from(new Set(colorImgs));
+      if (uniqueColorImgs.length > 1) {
+        return uniqueColorImgs;
+      }
+    }
+    return uniqueAngles.length > 0 ? uniqueAngles : [color.image];
+  }, [color, product.colors]);
+
+  // Reset image view index when color is switched
+  useEffect(() => {
+    setActiveImageIdx(0);
+  }, [colorIdx]);
+
+  // 3-second auto-scroll interval (pauses when user hovers gallery)
+  useEffect(() => {
+    if (displayImages.length <= 1 || isGalleryHovered) return;
+
+    const timer = setInterval(() => {
+      setActiveImageIdx((prev) => (prev + 1) % displayImages.length);
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [displayImages.length, isGalleryHovered]);
 
   // Auto-scroll blank apparel carousel when a color is selected
   useEffect(() => {
@@ -95,6 +248,29 @@ export function ProductConfigurator({
     }
     return totals;
   }, [qty]);
+
+  // Color Mode Option: "single" color or "multiple" colors (Mix & Match)
+  const [colorMode, setColorMode] = useState<"single" | "multiple">("single");
+  const [selectedColorNames, setSelectedColorNames] = useState<string[]>(() => [
+    product.colors[0]?.name || "",
+  ]);
+
+  // Sync selectedColorNames if product changes
+  useEffect(() => {
+    if (product.colors[0]?.name) {
+      setSelectedColorNames([product.colors[0].name]);
+      setColorMode("single");
+    }
+  }, [product.id, product.slug]);
+
+  // If user enters pieces for multiple colors, auto-reflect in selectedColorNames & colorMode
+  useEffect(() => {
+    const activeColorsWithQty = Object.keys(colorTotals);
+    if (activeColorsWithQty.length > 1) {
+      setColorMode("multiple");
+      setSelectedColorNames((prev) => Array.from(new Set([...prev, ...activeColorsWithQty])));
+    }
+  }, [colorTotals]);
 
   // tiers apply on the total across all colors
   const totalQty = useMemo(
@@ -129,25 +305,87 @@ export function ProductConfigurator({
       },
     }));
 
-  const removeColorSplit = (colorName: string) =>
+  const handleColorModeChange = (mode: "single" | "multiple") => {
+    setColorMode(mode);
+    if (mode === "single") {
+      // In single mode, ensure the active color is the selected single color
+      setSelectedColorNames([color.name]);
+    } else {
+      // In multiple mode, ensure active color is in the list
+      if (!selectedColorNames.includes(color.name)) {
+        setSelectedColorNames((prev) => [...prev, color.name]);
+      }
+    }
+  };
+
+  const handleSwatchClick = (idx: number) => {
+    const target = product.colors[idx];
+    if (!target) return;
+    setColorIdx(idx);
+    setActiveImageIdx(0);
+    if (colorMode === "single") {
+      setSelectedColorNames([target.name]);
+    } else {
+      if (!selectedColorNames.includes(target.name)) {
+        setSelectedColorNames((prev) => [...prev, target.name]);
+      }
+    }
+  };
+
+  const handleRemoveSelectedColor = (colorName: string) => {
+    if (selectedColorNames.length <= 1) return;
+    // Clear quantity for this color
     setQty((q) => {
       const next = { ...q };
       delete next[colorName];
       return next;
     });
+    const updated = selectedColorNames.filter((cn) => cn !== colorName);
+    setSelectedColorNames(updated);
+    if (color.name === colorName) {
+      const nextIdx = product.colors.findIndex((c) => c.name === updated[0]);
+      if (nextIdx !== -1) {
+        setColorIdx(nextIdx);
+        setActiveImageIdx(0);
+      }
+    }
+  };
+
+  const removeColorSplit = (colorName: string) => {
+    setQty((q) => {
+      const next = { ...q };
+      delete next[colorName];
+      return next;
+    });
+    if (colorMode === "multiple" && selectedColorNames.length > 1) {
+      const remaining = selectedColorNames.filter((cn) => cn !== colorName);
+      setSelectedColorNames(remaining);
+      if (color.name === colorName) {
+        const nextIdx = product.colors.findIndex((c) => c.name === remaining[0]);
+        if (nextIdx !== -1) {
+          setColorIdx(nextIdx);
+          setActiveImageIdx(0);
+        }
+      }
+    }
+  };
 
   const splitFor = (colorName: string) =>
-    product.sizes
+    productSizes
       .filter((s) => (qty[colorName]?.[s] ?? 0) > 0)
       .map((s) => `${s}×${qty[colorName]![s]}`)
       .join(", ");
 
-  // parse "S-4 M-3 XL-10" (also S:4 / S 4 / S×4) into the active color's split
+  // parse "S-4 M-3 XL-10" (also S:4 / S 4 / S×4 / 2XL-5) into the active color's split
   const applyPaste = () => {
     const parsed: Record<string, number> = {};
     for (const m of pasteText.matchAll(/([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\s*[-:x×]?\s*(\d+)/g)) {
-      const size = product.sizes.find(
-        (s) => s.toLowerCase() === m[1].toLowerCase(),
+      const token = m[1].toLowerCase();
+      const size = productSizes.find(
+        (s) =>
+          s.toLowerCase() === token ||
+          (token === "xxl" && s.toLowerCase() === "2xl") ||
+          (token === "2xl" && s.toLowerCase() === "xxl")
       );
       if (size) parsed[size] = Math.min(9999, Number(m[2]));
     }
@@ -184,7 +422,7 @@ export function ProductConfigurator({
     for (const cn of colorsWithQty) {
       const swatch = product.colors.find((c) => c.name === cn);
       if (!swatch) continue;
-      for (const s of product.sizes) {
+      for (const s of productSizes) {
         const n = qty[cn]?.[s] ?? 0;
         if (n > 0)
           lines.push({
@@ -199,11 +437,14 @@ export function ProductConfigurator({
       }
     }
     if (lines.length === 0) return;
-    const note = logoName
-      ? `Logo file ready: ${logoName} (will share on WhatsApp)`
-      : printText
-        ? `Print text: "${printText}"`
-        : "";
+    const note =
+      apparelType === "custom"
+        ? logoName
+          ? `${customizedApparelName} — Logo: ${logoName} (will share on WhatsApp)`
+          : printText
+            ? `${customizedApparelName} — Print text: "${printText}"`
+            : `${customizedApparelName}`
+        : "Blank Apparel (No customization)";
     addItems(lines, note || undefined);
     setQty({});
     setJustAdded(true);
@@ -217,7 +458,7 @@ export function ProductConfigurator({
     toggleWishlist(product.slug, product.name);
   };
 
-  const showSizeGuide = product.sizes.some((s) => SIZE_GUIDE[s]);
+  const showSizeGuide = productSizes.some((s) => sizeGuideMap[s]);
 
   // Size Chart Image resolver (High-speed local WebP / S3 media proxy)
   const sizeChartImg = useMemo(() => {
@@ -261,7 +502,11 @@ export function ProductConfigurator({
   return (
     <div className="grid gap-8 lg:gap-10 lg:grid-cols-2 min-w-0 w-full max-w-full">
       {/* Gallery - Sticky on desktop view */}
-      <div className="min-w-0 w-full lg:sticky lg:top-20 self-start">
+      <div
+        className="min-w-0 w-full lg:sticky lg:top-20 self-start"
+        onMouseEnter={() => setIsGalleryHovered(true)}
+        onMouseLeave={() => setIsGalleryHovered(false)}
+      >
         {/* Option Selector at top right corner above the image */}
         <div className="mb-2 sm:mb-3 flex items-center justify-between">
           <span className="text-[11px] sm:text-xs font-medium sm:font-bold uppercase tracking-wider text-body">
@@ -271,7 +516,7 @@ export function ProductConfigurator({
             <button
               type="button"
               onClick={() => setApparelType("blank")}
-              className={`rounded-md px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium sm:font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
+              className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
                 apparelType === "blank"
                   ? "bg-ink text-white shadow-xs"
                   : "text-body hover:text-ink"
@@ -282,153 +527,115 @@ export function ProductConfigurator({
             <button
               type="button"
               onClick={() => setApparelType("custom")}
-              className={`rounded-md px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium sm:font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
+              className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
                 apparelType === "custom"
                   ? "bg-accent text-white shadow-xs"
                   : "text-body hover:text-ink"
               }`}
             >
-              Custom Tees
+              {customizedApparelName}
             </button>
           </div>
         </div>
 
         {(() => {
-          const viewImages = [
-            color.image,
-            color.backImage || color.image,
-            color.chestImage || color.image,
-            color.detailImage || color.image,
-            color.image4 || color.image,
-            color.image5 || color.image,
-          ];
-
-          const currentMainImage = apparelType === "custom" ? (viewImages[customViewIdx] || color.image) : color.image;
+          const currentMainImage = displayImages[activeImageIdx] || color.image;
           const isSvg = typeof currentMainImage === "string" && currentMainImage.toLowerCase().endsWith(".svg");
 
           return (
             <>
-              {/* Main Product Image Container - Natural 3:4 aspect ratio with centered position */}
-              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-line bg-surface">
+              {/* Main Product Image Container - Natural 3:4 aspect ratio with centered position & 3s auto-scroll */}
+              <div className="group relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-line bg-surface">
                 <Image
                   src={currentMainImage}
-                  alt={`${product.name} — ${color.name}`}
+                  alt={`${product.name} — ${color.name} (Angle ${activeImageIdx + 1})`}
                   fill
                   priority
                   sizes="(max-width: 640px) 100vw, 50vw"
-                  className={`transition-all duration-300 ${
-                    isSvg ? "object-contain p-4 sm:p-6" : "object-cover object-center"
+                  className={`transition-all duration-500 ease-in-out ${
+                    isSvg ? "object-contain p-4 sm:p-6" : "object-cover object-top"
                   }`}
                 />
+
+                {/* Left / Right chevron navigation on image */}
+                {displayImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIdx((prev) => (prev - 1 + displayImages.length) % displayImages.length);
+                      }}
+                      aria-label="Previous photo"
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIdx((prev) => (prev + 1) % displayImages.length);
+                      }}
+                      aria-label="Next photo"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+
+                    {/* Image index counter badge */}
+                    <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
+                      {activeImageIdx + 1} / {displayImages.length}
+                    </div>
+
+                    {/* Subtle auto-scroll indicator bar */}
+                    {!isGalleryHovered && (
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-black/10 overflow-hidden">
+                        <div
+                          key={activeImageIdx}
+                          className="h-full bg-accent animate-pulse"
+                          style={{ width: "100%", transition: "width 3000ms linear" }}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
-              {/* Thumbnail gallery below main image */}
-              {apparelType === "custom" ? (
-                /* For Custom Tees: 1 Main Image + 5 Reference Images (6 total thumbnails) for the active color */
+              {/* Thumbnail gallery below main image synchronized with 3s auto-scroll */}
+              {displayImages.length > 1 && (
                 <div className="mt-2.5 sm:mt-3 grid grid-cols-6 gap-1.5 sm:gap-2">
-                  {viewImages.map((imgSrc, idx) => {
+                  {displayImages.map((imgSrc, idx) => {
+                    const isActive = idx === activeImageIdx;
                     const thumbIsSvg = typeof imgSrc === "string" && imgSrc.toLowerCase().endsWith(".svg");
                     return (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setCustomViewIdx(idx)}
-                        aria-label={`View angle ${idx + 1}`}
+                        onClick={() => setActiveImageIdx(idx)}
+                        aria-label={`View photo ${idx + 1}`}
                         className={`group relative aspect-square overflow-hidden rounded-lg border-2 bg-surface transition-all ${
-                          idx === customViewIdx
-                            ? "border-accent ring-2 ring-accent/20 shadow-xs"
-                            : "border-line hover:border-ink/40"
+                          isActive
+                            ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.03]"
+                            : "border-line opacity-75 hover:opacity-100 hover:border-ink/40"
                         }`}
                       >
                         <Image
                           src={imgSrc}
-                          alt={`Reference View ${idx + 1}`}
+                          alt={`${product.name} view ${idx + 1}`}
                           fill
                           sizes="(max-width: 640px) 16vw, 100px"
-                          className={`h-full w-full ${
+                          className={`h-full w-full transition-transform group-hover:scale-105 ${
                             thumbIsSvg ? "object-contain p-1" : "object-cover object-top"
                           }`}
                         />
+                        {isActive && (
+                          <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
+                        )}
                       </button>
                     );
                   })}
                 </div>
-              ) : (
-                /* For Blank Apparel: Color image thumbnails with 6 visible by default & navigation arrows for 7+ colors */
-                (() => {
-                  const hasMoreColors = product.colors.length > 6;
-                  const maxIdx = Math.max(0, product.colors.length - 6);
-                  const visibleColors = hasMoreColors
-                    ? product.colors.slice(blankStartIdx, blankStartIdx + 6)
-                    : product.colors;
-
-                  return (
-                    <div className="mt-2.5 sm:mt-3">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        {hasMoreColors && (
-                          <button
-                            type="button"
-                            onClick={() => setBlankStartIdx((prev) => Math.max(0, prev - 1))}
-                            disabled={blankStartIdx === 0}
-                            aria-label="Previous colors"
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink shadow-sm transition hover:bg-neutral-100 disabled:opacity-25 disabled:cursor-not-allowed"
-                          >
-                            <ChevronLeft className="h-5 w-5" />
-                          </button>
-                        )}
-
-                        <div className="flex-1 overflow-hidden">
-                          <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
-                            {visibleColors.map((c, sliceIdx) => {
-                              const actualIdx = hasMoreColors ? blankStartIdx + sliceIdx : sliceIdx;
-                              const isSelected = actualIdx === colorIdx;
-                              const swatchIsSvg = typeof c.image === "string" && c.image.toLowerCase().endsWith(".svg");
-                              return (
-                                <button
-                                  key={c.name}
-                                  type="button"
-                                  onClick={() => {
-                                    setColorIdx(actualIdx);
-                                    setCustomViewIdx(0);
-                                  }}
-                                  aria-label={`View ${c.name}`}
-                                  title={c.name}
-                                  className={`group relative aspect-square overflow-hidden rounded-lg border-2 bg-surface transition-all ${
-                                    isSelected
-                                      ? "border-accent ring-2 ring-accent/20 shadow-xs"
-                                      : "border-line hover:border-ink/40"
-                                  }`}
-                                >
-                                  <Image
-                                    src={c.image}
-                                    alt={c.name}
-                                    fill
-                                    sizes="(max-width: 640px) 16vw, 100px"
-                                    className={`h-full w-full ${
-                                      swatchIsSvg ? "object-contain p-1" : "object-cover object-top"
-                                    }`}
-                                  />
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {hasMoreColors && (
-                          <button
-                            type="button"
-                            onClick={() => setBlankStartIdx((prev) => Math.min(maxIdx, prev + 1))}
-                            disabled={blankStartIdx >= maxIdx}
-                            aria-label="Next colors"
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink shadow-sm transition hover:bg-neutral-100 disabled:opacity-25 disabled:cursor-not-allowed"
-                          >
-                            <ChevronRight className="h-5 w-5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()
               )}
             </>
           );
@@ -521,57 +728,95 @@ export function ProductConfigurator({
           </div>
         </div>
 
-        {/* Design approval note (only for Custom Tees) */}
-        {apparelType === "custom" && (
-          <div className="mt-5 space-y-3.5 rounded-xl border-l-4 border-accent bg-accent-soft p-4 pl-4 sm:pl-5 min-w-0 max-w-full">
-            <p className="flex items-start gap-3 text-sm text-ink min-w-0">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm">
-                <BadgeCheck size={16} />
+        {/* Step 1: Choose Colors */}
+        <div className="mt-6 rounded-2xl border border-line bg-surface/30 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
+              <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
+                1
               </span>
-              <span className="pt-1 min-w-0 flex-1 break-words">
-                We send a <strong>digital mockup for your approval</strong> after
-                the order is confirmed — nothing goes to production before you
-                sign off.
-              </span>
-            </p>
-            <p className="flex items-start gap-3 text-sm text-ink min-w-0">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent shadow-sm">
-                <PenTool size={16} />
-              </span>
-              <span className="pt-1 min-w-0 flex-1 break-words">
-                Don&apos;t have a logo? No problem — order with text only and our
-                team will <strong>create a custom design for you, free</strong>.
+              Choose Colors
+              <span className="normal-case font-medium text-body">
+                — {colorMode === "single" ? color.name : `${selectedColorNames.length} color${selectedColorNames.length > 1 ? "s" : ""} selected`}
               </span>
             </p>
-          </div>
-        )}
 
-        {/* Step 1: Colors */}
-        <div className="mt-6">
-          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-            <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-              1
-            </span>
-            Color: <span className=" normal-case text-body">{color.name}</span>
-          </p>
-          <div className="mt-2.5 flex flex-wrap gap-2.5">
+            {/* Choose Colors Mode Option: Single Color vs Multiple Colors */}
+            {product.colors.length > 1 && (
+              <div className="inline-flex rounded-lg border border-line bg-surface p-0.5 sm:p-1 shadow-xs">
+                <button
+                  type="button"
+                  onClick={() => handleColorModeChange("single")}
+                  className={`rounded-md px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
+                    colorMode === "single"
+                      ? "bg-ink text-white shadow-xs"
+                      : "text-body hover:text-ink"
+                  }`}
+                >
+                  Single Color
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleColorModeChange("multiple")}
+                  className={`rounded-md px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
+                    colorMode === "multiple"
+                      ? "bg-accent text-white shadow-xs"
+                      : "text-body hover:text-ink"
+                  }`}
+                >
+                  Multiple Colors
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Contextual guidance */}
+          <div className="mt-2 text-xs text-body">
+            {colorMode === "single" ? (
+              <p>
+                Ordering in one color (<strong>{color.name}</strong>). Need more than one color for your order?{" "}
+                <button
+                  type="button"
+                  onClick={() => handleColorModeChange("multiple")}
+                  className="font-bold text-accent hover:underline inline-flex items-center gap-0.5"
+                >
+                  Switch to Multiple Colors →
+                </button>
+              </p>
+            ) : (
+              <p>
+                <strong>Mix &amp; Match Colors:</strong> Select all the colors you want to buy. Click swatches below to pick colors, then allocate sizes for each color in Step 2.
+              </p>
+            )}
+          </div>
+
+          {/* Color Swatches Grid */}
+          <div className="mt-3 flex flex-wrap gap-2.5">
             {product.colors.map((c, i) => {
+              const isSelected =
+                colorMode === "multiple" ? selectedColorNames.includes(c.name) : i === colorIdx;
+              const isCurrentlyActive = i === colorIdx;
               const count = colorTotals[c.name] ?? 0;
               return (
                 <button
                   key={c.name}
-                  onClick={() => {
-                    setColorIdx(i);
-                    setCustomViewIdx(0);
-                  }}
-                  title={c.name}
+                  onClick={() => handleSwatchClick(i)}
+                  title={`${c.name}${count > 0 ? ` (${count} pcs)` : ""}`}
                   aria-label={`Select ${c.name}${count > 0 ? ` (${count} pcs added)` : ""}`}
-                  className={`relative flex h-9 w-9 items-center justify-center rounded-full border transition-transform hover:scale-110 ${i === colorIdx ? "border-ink ring-2 ring-ink/20" : "border-ink/20"
-                    }`}
+                  className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full border transition-all hover:scale-110 ${
+                    isCurrentlyActive
+                      ? "border-ink ring-2 ring-ink ring-offset-2 shadow-sm"
+                      : isSelected
+                      ? "border-accent ring-2 ring-accent/40"
+                      : "border-ink/20 opacity-80 hover:opacity-100"
+                  }`}
                   style={{ backgroundColor: c.hex }}
                 >
-                  {i === colorIdx && (
-                    <Check size={15} className={LIGHT_HEXES.has(c.hex) ? "text-ink" : "text-white"} />
+                  {isSelected && (
+                    <Check
+                      size={15}
+                      className={`stroke-[2.5] ${LIGHT_HEXES.has(c.hex) ? "text-ink" : "text-white"}`}
+                    />
                   )}
                   {count > 0 && (
                     <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white shadow-sm">
@@ -582,10 +827,86 @@ export function ProductConfigurator({
               );
             })}
           </div>
-          <p className="mt-2 text-xs text-body">
-            Quantities are saved per color — pick a color, enter its sizes,
-            then switch swatches to add another color.
-          </p>
+
+          {/* Multiple Colors: Selected Colors Ribbon */}
+          {colorMode === "multiple" && (
+            <div className="mt-4 pt-3 border-t border-line/60">
+              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-body mb-2">
+                <span>Selected Colors ({selectedColorNames.length}):</span>
+                <span className="text-[10px] font-normal normal-case text-body">
+                  Tap to preview color &amp; edit sizes
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {selectedColorNames.map((cn) => {
+                  const cObj = product.colors.find((c) => c.name === cn);
+                  const count = colorTotals[cn] ?? 0;
+                  const isActive = cObj?.name === color.name;
+                  return (
+                    <div
+                      key={cn}
+                      className={`inline-flex items-center gap-2 rounded-lg border px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all ${
+                        isActive
+                          ? "border-ink bg-ink text-white shadow-xs"
+                          : "border-line bg-white text-ink hover:border-ink/40"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const idx = product.colors.findIndex((c) => c.name === cn);
+                          if (idx !== -1) {
+                            setColorIdx(idx);
+                            setActiveImageIdx(0);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 focus:outline-none text-left"
+                      >
+                        <span
+                          className="h-3 w-3 rounded-full border border-black/20 shrink-0"
+                          style={{ backgroundColor: cObj?.hex }}
+                        />
+                        <span>{cn}</span>
+                        {count > 0 ? (
+                          <span
+                            className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                              isActive
+                                ? "bg-white/20 text-white"
+                                : "bg-accent/10 text-accent"
+                            }`}
+                          >
+                            {count} pcs
+                          </span>
+                        ) : (
+                          <span
+                            className={`text-[10px] ${
+                              isActive ? "text-white/60" : "text-body/60"
+                            }`}
+                          >
+                            (add sizes)
+                          </span>
+                        )}
+                      </button>
+                      {selectedColorNames.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSelectedColor(cn)}
+                          aria-label={`Remove ${cn} color`}
+                          className={`rounded-full p-0.5 transition-colors ${
+                            isActive
+                              ? "text-white/60 hover:bg-white/20 hover:text-white"
+                              : "text-body hover:bg-black/5 hover:text-ink"
+                          }`}
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Size-quantity matrix */}
@@ -619,12 +940,12 @@ export function ProductConfigurator({
                   </p>
                   <table className="mt-2 w-full text-xs">
                     <tbody className="divide-y divide-line">
-                      {product.sizes
-                        .filter((s) => SIZE_GUIDE[s])
+                      {productSizes
+                        .filter((s) => sizeGuideMap[s])
                         .map((s) => (
                           <tr key={s}>
                             <td className="py-1.5 font-bold text-ink">{s}</td>
-                            <td className="py-1.5 text-right">{SIZE_GUIDE[s]}</td>
+                            <td className="py-1.5 text-right">{sizeGuideMap[s]}</td>
                           </tr>
                         ))}
                     </tbody>
@@ -633,7 +954,62 @@ export function ProductConfigurator({
               </details>
             ) : null}
           </div>
-          <p className="mt-1 text-xs text-body">
+
+          {/* Multi-Color Quick Switcher Tabs in Step 2 */}
+          {colorMode === "multiple" && selectedColorNames.length > 1 && (
+            <div className="mt-2.5 rounded-xl border border-line bg-surface/40 p-2 sm:p-2.5">
+              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-body mb-1.5 px-1">
+                <span>Select Color to Enter Sizes:</span>
+                <span className="text-accent font-bold">
+                  {colorTotals[color.name] ? `${colorTotals[color.name]} pcs for ${color.name}` : "0 pcs"}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                {selectedColorNames.map((cn) => {
+                  const cObj = product.colors.find((c) => c.name === cn);
+                  const count = colorTotals[cn] ?? 0;
+                  const isActive = cObj?.name === color.name;
+                  return (
+                    <button
+                      key={cn}
+                      type="button"
+                      onClick={() => {
+                        const idx = product.colors.findIndex((c) => c.name === cn);
+                        if (idx !== -1) {
+                          setColorIdx(idx);
+                          setActiveImageIdx(0);
+                        }
+                      }}
+                      className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all shrink-0 ${
+                        isActive
+                          ? "border-ink bg-ink text-white shadow-xs"
+                          : "border-line bg-white text-ink hover:border-ink/50"
+                      }`}
+                    >
+                      <span
+                        className="h-2.5 w-2.5 rounded-full border border-black/20 shrink-0"
+                        style={{ backgroundColor: cObj?.hex }}
+                      />
+                      <span>{cn}</span>
+                      <span
+                        className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : count > 0
+                            ? "bg-accent/10 text-accent font-bold"
+                            : "bg-surface text-body/60"
+                        }`}
+                      >
+                        {count > 0 ? `${count} pcs` : "0"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <p className="mt-2 text-xs text-body">
             Entering sizes for{" "}
             <span className="inline-flex items-center gap-1.5 font-bold text-ink">
               <span
@@ -642,22 +1018,27 @@ export function ProductConfigurator({
               />
               {color.name}
             </span>{" "}
-            — e.g. L×3, XL×10, XXL×15.
+            — e.g. L×3, XL×10, 2XL×15.
           </p>
           <div className="mt-3 space-y-2.5">
-            {product.sizes.map((s) => {
+            {productSizes.map((s) => {
               const value = colorQty[s] ?? 0;
-              const chest = SIZE_GUIDE[s]?.replace('"', "");
+              const chest = sizeGuideMap[s];
               return (
                 <div key={s} className="flex items-center justify-between">
                   <span
-                    className={`min-w-24 rounded-lg border px-4 py-2.5 text-center text-sm  transition-all ${value > 0
-                        ? "border-ink bg-ink text-white"
-                        : "border-line bg-white text-ink"
-                      }`}
+                    className={`min-w-28 rounded-lg border px-3 sm:px-4 py-2.5 text-center text-sm font-semibold transition-all ${
+                      value > 0
+                        ? "border-ink bg-ink text-white shadow-xs"
+                        : "border-line bg-white text-ink hover:border-ink/40"
+                    }`}
                   >
-                    {s}
-                    {chest ? ` (${chest})` : ""}
+                    <span>{s}</span>
+                    {chest && (
+                      <span className={`ml-1.5 text-xs font-normal ${value > 0 ? "text-white/80" : "text-body"}`}>
+                        ({chest})
+                      </span>
+                    )}
                   </span>
                   <div className="flex items-center gap-2.5">
                     <button
@@ -786,95 +1167,195 @@ export function ProductConfigurator({
           </div>
         )}
 
-        {/* Logo / branding (only for Custom Tees) */}
-        {apparelType === "custom" && (
-          <div className="mt-6">
+        {/* Step 3: Apparel Style & Customization (Directly above "Select sizes to add" button) */}
+        <div className="mt-6 rounded-2xl border border-line bg-surface/50 p-4 sm:p-5">
+          <div className="flex items-center justify-between">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
               <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
                 3
               </span>
-              Your Logo or Design
+              Apparel Type
             </p>
-            <div className="mt-2.5">
-              {logoPreview ? (
-                <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/50 p-3 pr-4">
-                  {/* next/image can't handle blob: URLs */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={logoPreview}
-                    alt="Your logo preview"
-                    className="h-14 w-14 rounded-lg border border-line bg-white object-contain p-1"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-ink">
-                      {logoName}
-                    </p>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-body">
-                      <BadgeCheck size={13} className="text-accent" />
-                      Ready — attach this file in the WhatsApp chat
-                    </p>
-                  </div>
-                  <button
-                    onClick={clearLogo}
-                    aria-label="Remove logo"
-                    className="rounded-full p-1.5 text-body transition-colors hover:bg-white hover:text-accent"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    onLogoChange(e.dataTransfer.files?.[0]);
-                  }}
-                  className="group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-ink/20 bg-surface/60 px-5 py-6 transition-colors hover:border-accent hover:bg-accent-soft/40"
-                >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-accent shadow-sm transition-transform group-hover:-translate-y-0.5">
-                    <CloudUpload size={20} />
-                  </span>
-                  <span className="text-sm font-bold text-ink">
-                    Drop your logo here or{" "}
-                    <span className="text-accent underline underline-offset-2">
-                      browse files
-                    </span>
-                  </span>
-                  <span className="text-xs text-body">
-                    PNG, JPG, SVG, PDF, AI, EPS — up to any size
-                  </span>
-                </button>
-              )}
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*,.pdf,.ai,.eps,.cdr"
-                className="hidden"
-                onChange={(e) => onLogoChange(e.target.files?.[0])}
-              />
-            </div>
-            <p className="mt-2 text-xs text-body">
-              {logoName
-                ? "We'll ask for this file in the WhatsApp chat — just attach it there."
-                : "Or tell us the text to print instead:"}
-            </p>
-            {!logoName && (
-              <input
-                value={printText}
-                onChange={(e) => setPrintText(e.target.value)}
-                placeholder='e.g. "Team Phoenix — Est. 2026"'
-                className="mt-2 w-full border border-line px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
-              />
-            )}
+            <span className="text-[11px] font-semibold text-body">
+              {apparelType === "blank" ? "Plain Garment" : "Custom Branded"}
+            </span>
           </div>
-        )}
 
-        {/* Step Review & Add */}
+          {/* Interactive Cards: Blank Apparel vs Dynamic Customized Option */}
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {/* Blank Apparel Option */}
+            <button
+              type="button"
+              onClick={() => setApparelType("blank")}
+              className={`group relative flex flex-col justify-between rounded-xl border-2 p-3.5 text-left transition-all ${
+                apparelType === "blank"
+                  ? "border-ink bg-white shadow-xs ring-2 ring-ink/10"
+                  : "border-line bg-white/60 hover:border-ink/40 hover:bg-white"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
+                      apparelType === "blank" ? "bg-ink text-white" : "bg-neutral-100 text-body"
+                    }`}
+                  >
+                    <Tag size={14} />
+                  </span>
+                  <span className="text-sm font-bold text-ink">Blank Apparel</span>
+                </div>
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                    apparelType === "blank" ? "border-ink bg-ink text-white" : "border-neutral-300"
+                  }`}
+                >
+                  {apparelType === "blank" && <Check size={10} strokeWidth={3} />}
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-body leading-relaxed">
+                Plain unprinted garments without any logo or embroidery. Fast dispatch.
+              </p>
+            </button>
+
+            {/* Customized Option with Dynamic Apparel Name */}
+            <button
+              type="button"
+              onClick={() => setApparelType("custom")}
+              className={`group relative flex flex-col justify-between rounded-xl border-2 p-3.5 text-left transition-all ${
+                apparelType === "custom"
+                  ? "border-accent bg-accent-soft/40 shadow-xs ring-2 ring-accent/20"
+                  : "border-line bg-white/60 hover:border-accent/40 hover:bg-white"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
+                      apparelType === "custom" ? "bg-accent text-white" : "bg-neutral-100 text-body"
+                    }`}
+                  >
+                    <Sparkles size={14} />
+                  </span>
+                  <span className="text-sm font-bold text-ink">{customizedApparelName}</span>
+                </div>
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                    apparelType === "custom" ? "border-accent bg-accent text-white" : "border-neutral-300"
+                  }`}
+                >
+                  {apparelType === "custom" && <Check size={10} strokeWidth={3} />}
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-body leading-relaxed">
+                Add your company logo, embroidery or custom print. Free digital mockup on WhatsApp.
+              </p>
+              {apparelType !== "custom" && (
+                <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-accent">
+                  + Add Logo / Customization →
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* When Customized is selected: Logo upload & Text input display right here */}
+          {apparelType === "custom" && (
+            <div className="mt-4 border-t border-line/80 pt-4 space-y-4">
+              {/* Approval assurance notice */}
+              <div className="flex items-start gap-2.5 rounded-lg bg-white p-3 text-xs text-ink border border-line">
+                <BadgeCheck size={16} className="text-accent shrink-0 mt-0.5" />
+                <span className="leading-relaxed">
+                  <strong>Digital Mockup Approval:</strong> We send a digital mockup on WhatsApp for your sign-off before printing.
+                </span>
+              </div>
+
+              {/* Upload Logo or Design */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
+                  Upload Logo or Artwork (Optional)
+                </label>
+                {logoPreview ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/50 p-3 pr-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logoPreview}
+                      alt="Your logo preview"
+                      className="h-14 w-14 rounded-lg border border-line bg-white object-contain p-1"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-ink">
+                        {logoName}
+                      </p>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-body">
+                        <BadgeCheck size={13} className="text-accent" />
+                        Ready — attach this file in the WhatsApp chat
+                      </p>
+                    </div>
+                    <button
+                      onClick={clearLogo}
+                      aria-label="Remove logo"
+                      className="rounded-full p-1.5 text-body transition-colors hover:bg-white hover:text-accent"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      onLogoChange(e.dataTransfer.files?.[0]);
+                    }}
+                    className="group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-ink/20 bg-white px-5 py-5 transition-colors hover:border-accent hover:bg-accent-soft/30"
+                  >
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-accent shadow-xs transition-transform group-hover:-translate-y-0.5">
+                      <CloudUpload size={18} />
+                    </span>
+                    <span className="text-sm font-bold text-ink">
+                      Drop your logo here or{" "}
+                      <span className="text-accent underline underline-offset-2">
+                        browse files
+                      </span>
+                    </span>
+                    <span className="text-[11px] text-body">
+                      PNG, JPG, SVG, PDF, AI, EPS — high resolution
+                    </span>
+                  </button>
+                )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*,.pdf,.ai,.eps,.cdr"
+                  className="hidden"
+                  onChange={(e) => onLogoChange(e.target.files?.[0])}
+                />
+              </div>
+
+              {/* Print text */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1">
+                  {logoName ? "Printing Instructions / Placement Notes" : "Or Custom Text to Print Instead"}
+                </label>
+                <input
+                  value={printText}
+                  onChange={(e) => setPrintText(e.target.value)}
+                  placeholder={
+                    logoName
+                      ? 'e.g. "Print logo on left chest, 3.5 inches wide"'
+                      : 'e.g. "Team Phoenix — Est. 2026"'
+                  }
+                  className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Step 4: Review & Add */}
         <div className="mt-7 flex flex-col gap-3">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
             <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-              {apparelType === "custom" ? "4" : "3"}
+              4
             </span>
             Review & Add
           </p>
@@ -1072,7 +1553,7 @@ export function ProductConfigurator({
       {/* Preload Size Chart WebP image in background so modal opens instantly */}
       {sizeChartImg && <link rel="preload" as="image" href={sizeChartImg} />}
 
-      {/* Size Chart Popup Modal (Desktop & Mobile with Blurred Background) */}
+      {/* Size Chart Popup Modal: Size Chart Image with Close Option Only */}
       {sizeChartOpen && sizeChartImg && (
         <div
           id="size-chart-modal"
@@ -1080,39 +1561,24 @@ export function ProductConfigurator({
           aria-modal="true"
           aria-label={`${product.name} Size Chart`}
           onClick={() => setSizeChartOpen(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative flex flex-col max-h-[90vh] w-full max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl border border-line animate-in zoom-in-95 duration-200"
+            className="relative flex items-center justify-center max-h-[94vh] max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200"
           >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-line px-4 sm:px-5 py-3 sm:py-3.5 bg-[#FAF8F5]">
-              <div className="flex items-center gap-2 sm:gap-2.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                  <Ruler size={16} />
-                </div>
-                <div>
-                  <h3 className="font-heading text-xs sm:text-sm font-bold uppercase tracking-wider text-ink">
-                    Size Chart &amp; Fit Guide
-                  </h3>
-                  <p className="text-[11px] text-body truncate max-w-[190px] sm:max-w-md">
-                    {product.name}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSizeChartOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-body hover:bg-black/5 hover:text-ink transition-colors"
-                aria-label="Close size chart modal"
-              >
-                <X size={20} />
-              </button>
-            </div>
+            {/* Close Option Only */}
+            <button
+              type="button"
+              onClick={() => setSizeChartOpen(false)}
+              className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 z-20 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-black/75 text-white backdrop-blur-sm shadow-lg transition hover:scale-110 hover:bg-black focus:outline-none"
+              aria-label="Close size chart"
+            >
+              <X size={20} />
+            </button>
 
-            {/* Modal Content - Centered Size Chart Picture */}
-            <div className="flex-1 overflow-y-auto overscroll-contain p-2 sm:p-6 flex items-center justify-center bg-[#FAF8F5]">
+            {/* Size Chart Image */}
+            <div className="overflow-auto max-h-[94vh] p-2 sm:p-3 flex items-center justify-center">
               <img
                 src={sizeChartImg}
                 alt={`${product.name} Size Chart`}
@@ -1128,20 +1594,8 @@ export function ProductConfigurator({
                     e.currentTarget.src = "/size-charts/mens-polo-size-chart.webp";
                   }
                 }}
-                className="max-h-[66vh] sm:max-h-[72vh] w-auto max-w-full object-contain rounded-lg shadow-sm mx-auto"
+                className="max-h-[90vh] w-auto max-w-full object-contain rounded-xl mx-auto"
               />
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-between border-t border-line px-4 sm:px-5 py-2.5 bg-white text-[11px] text-body">
-              <span className="truncate pr-2">Measurements in inches. Standard fit.</span>
-              <button
-                type="button"
-                onClick={() => setSizeChartOpen(false)}
-                className="font-bold text-accent hover:underline uppercase tracking-wider shrink-0"
-              >
-                Done
-              </button>
             </div>
           </div>
         </div>

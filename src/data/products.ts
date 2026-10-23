@@ -421,6 +421,15 @@ export const products: Product[] = [
     mrp: 499,
     price: 289,
     colors: [
+      {
+        name: "Black",
+        hex: "#1A1A1A",
+        image: "/products/womens-rn-black-front.webp",
+        backImage: "/products/womens-rn-black-back.webp",
+        chestImage: "/products/womens-rn-black-pose.webp",
+        detailImage: "/products/womens-rn-black-folded.webp",
+        image4: "/products/womens-rn-black-action.webp",
+      },
       { ...c.white, image: "/products/crew-white.svg" },
       { ...c.maroon, image: "/products/crew-maroon.svg" },
     ],

@@ -111,33 +111,24 @@ export function Header({
               <div className="invisible absolute inset-x-0 top-full z-50 translate-y-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:translate-y-0">
                 <div className="border-t-2 border-accent bg-white shadow-xl">
                   <div className="mx-auto flex max-w-[1320px] justify-start lg:justify-center gap-8 xl:gap-12 px-6 py-8">
-                    {/* Groups and Products */}
-                    {seg.groups.map((group) => (
-                      <div key={group.title} className="min-w-[190px] max-w-[280px]">
-                        <Link
-                          href={getCategoryHref(seg.slug, group.title)}
-                          className="mb-3 block text-xs font-bold uppercase tracking-wider text-accent transition-colors hover:text-ink whitespace-nowrap"
-                        >
-                          {group.title}
-                        </Link>
-                        <ul className="space-y-2">
-                          {group.collections.map((slug) => {
-                            const col = getCollection(slug);
-                            if (!col) return null;
-                            return (
-                              <li key={slug}>
-                                <Link
-                                  href={`/products/${slug}`}
-                                  className="block text-sm text-body transition-colors hover:text-accent leading-snug"
-                                >
-                                  {col.name}
-                                </Link>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    ))}
+                    {/* Category names in one by one order */}
+                    <div className="min-w-[190px] max-w-[280px]">
+                      <p className="mb-3 text-xs font-bold uppercase tracking-wider text-accent">
+                        Categories
+                      </p>
+                      <ul className="space-y-2">
+                        {seg.groups.map((group) => (
+                          <li key={group.title}>
+                            <Link
+                              href={getCategoryHref(seg.slug, group.title)}
+                              className="block text-sm text-body transition-colors hover:text-accent leading-snug"
+                            >
+                              {group.title}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
 
                     {/* By Use Case column */}
                     <div className="min-w-[160px] border-l border-line pl-8 xl:pl-12">
@@ -315,26 +306,17 @@ export function Header({
               </button>
               {openSegment === seg.slug && (
                 <div className="pb-4" onClick={() => setOpen(false)}>
-                  {seg.groups.map((group) => (
-                    <div key={group.title} className="mb-3">
-                      <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-body">
+                  <div className="mb-2 space-y-1 pt-1">
+                    {seg.groups.map((group) => (
+                      <Link
+                        key={group.title}
+                        href={getCategoryHref(seg.slug, group.title)}
+                        className="block py-2 pl-3 text-sm text-body transition-colors hover:text-accent font-medium"
+                      >
                         {group.title}
-                      </p>
-                      {group.collections.map((slug) => {
-                        const col = getCollection(slug);
-                        if (!col) return null;
-                        return (
-                          <Link
-                            key={slug}
-                            href={`/products/${slug}`}
-                            className="block py-1.5 pl-3 text-sm text-ink"
-                          >
-                            {col.name}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ))}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

@@ -9,14 +9,14 @@ const defaultFeature = {
   text: "Premium zip and non-zip hoodies — warm, durable and retail-grade.",
   href: "/collections/unisex-hoodie-zip-325",
   buttonText: "Shop Hoodies",
-  image: "/products/crew-white.svg",
+  image: "/shop-by-range/shop_by_range_hoodies.webp",
 };
 
 const defaultTiles = [
-  { title: "Men", href: "/collections/mens-rn-half-180", image: "/products/crew-black.svg", buttonText: "Shop now", sale: false },
-  { title: "Women", href: "/collections/womens-rn-half-180", image: "/products/crew-white.svg", buttonText: "Shop now", sale: false },
-  { title: "Kids", href: "/collections/kids-rn-half-180", image: "/products/jersey-red.svg", buttonText: "Shop now", sale: false },
-  { title: "Mega Sale", href: "/collections/mega-sale", image: "/products/tee-yellow.svg", buttonText: "Shop now", sale: true },
+  { title: "Men", href: "/collections/mens-rn-half-180", image: "/shop-by-range/shop_by_range_men.webp", buttonText: "Shop now", sale: false },
+  { title: "Women", href: "/collections/womens-rn-half-180", image: "/shop-by-range/shop_by_range_women.webp", buttonText: "Shop now", sale: false },
+  { title: "Kids", href: "/collections/kids-rn-half-180", image: "/shop-by-range/shop_by_range_kids.webp", buttonText: "Shop now", sale: false },
+  { title: "Mega Sale", href: "/collections/mega-sale", image: "/shop-by-range/shop_by_range_mega_sale.webp", buttonText: "Shop now", sale: true },
 ];
 
 export function ShopByRange({ content }: { content?: ShopByRangeContent }) {
@@ -44,7 +44,7 @@ export function ShopByRange({ content }: { content?: ShopByRangeContent }) {
                 width={640}
                 height={640}
                 unoptimized={feature.image.startsWith("http")}
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
               <div className="relative z-10 w-full bg-gradient-to-t from-ink/80 via-ink/30 to-transparent p-7 pt-20">
                 <h3 className="text-2xl font-bold uppercase tracking-wide text-white">
@@ -73,7 +73,7 @@ export function ShopByRange({ content }: { content?: ShopByRangeContent }) {
                     width={400}
                     height={400}
                     unoptimized={t.image.startsWith("http")}
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="relative z-10 w-full bg-gradient-to-t from-ink/75 to-transparent p-4 pt-12">
                     <h3
