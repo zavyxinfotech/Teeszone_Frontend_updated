@@ -11,9 +11,9 @@ import { Reveal } from "@/components/ui/Reveal";
 import { CountUp } from "@/components/ui/CountUp";
 import type { HeroContent } from "@/lib/types";
 
-import heroImg from "@/assets/images/Home_page_Hero_image.png";
-import heroBgDesktop from "@/assets/images/home_page_hero_section background_image.png";
-import heroBgMobile from "@/assets/images/Home_page_hero_section_Bg_mobile_view.png";
+import heroImg from "@/assets/images/Home_page_Hero_image.webp";
+import heroBgDesktop from "@/assets/images/home_page_hero_section_background_image.webp";
+import heroBgMobile from "@/assets/images/Home_page_hero_section_Bg_mobile_view.webp";
 
 const defaultStats = [
   { end: 100, suffix: "%", label: "In-House Production", icon: Factory },

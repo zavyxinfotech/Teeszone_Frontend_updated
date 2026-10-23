@@ -25,7 +25,7 @@ const featuredBySegment: Record<string, string> = {
   men: "/dropdown/mens_dropdown_img.webp",
   women: "/dropdown/womens_dropdown_img.webp",
   kids: "/dropdown/kids_dropdown_img.webp",
-  hoodies: "/products/crew-black.svg",
+  hoodies: "/dropdown/hoodies_dropdown_img.webp",
 };
 
 function getCategoryHref(segSlug: string, groupTitle: string): string {
@@ -90,7 +90,7 @@ export function Header({
 
         <Link href="/" aria-label="TeesZone home" className="shrink-0">
           <Image
-            src="/logo.png"
+            src="/logo.webp"
             alt="TeesZone — elevate your style with custom tees"
             width={168}
             height={33}
@@ -159,7 +159,7 @@ export function Header({
                         alt={`${seg.name} range`}
                         width={220}
                         height={220}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover/tile:scale-105"
+                        className="h-full w-full object-cover object-top transition-transform duration-300 group-hover/tile:scale-105"
                       />
                       <span className="absolute inset-x-0 bottom-0 bg-ink/80 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-white">
                         Shop {seg.name}

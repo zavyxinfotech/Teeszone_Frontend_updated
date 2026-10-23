@@ -17,7 +17,7 @@ export function Footer({ segments }: { segments: Segment[] }) {
     <footer className="border-t border-line bg-white">
       <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <Image src="/logo.png" alt="TeesZone" width={168} height={33} />
+          <Image src="/logo.webp" alt="TeesZone" width={168} height={33} />
           <p className="mt-4 max-w-sm text-sm leading-relaxed">
             {site.legalName} — direct manufacturer of blank and custom apparel
             from Tiruppur. Bulk orders, custom printing & embroidery,
