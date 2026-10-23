@@ -729,7 +729,7 @@ export function ProductConfigurator({
         </div>
 
         {/* Step 1: Choose Colors */}
-        <div className="mt-6 rounded-2xl border border-line bg-surface/30 p-4 sm:p-5">
+        <div className="mt-6">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
               <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
@@ -1167,198 +1167,155 @@ export function ProductConfigurator({
           </div>
         )}
 
-        {/* Step 3: Apparel Style & Customization (Directly above "Select sizes to add" button) */}
-        <div className="mt-6 rounded-2xl border border-line bg-surface/50 p-4 sm:p-5">
-          <div className="flex items-center justify-between">
+        {/* Customization section (only displayed when Customized is chosen) */}
+        {apparelType === "custom" && (
+          <div
+            id="customization-section"
+            className="mt-6 rounded-2xl border border-accent/40 bg-accent-soft/30 p-4 sm:p-5 space-y-4 animate-in fade-in duration-200"
+          >
+            <div className="flex items-center justify-between">
+              <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
+                <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
+                  3
+                </span>
+                Customization ({customizedApparelName})
+              </p>
+              <button
+                type="button"
+                onClick={() => setApparelType("blank")}
+                className="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1"
+              >
+                <span>Switch to Plain Apparel</span>
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Approval assurance notice */}
+            <div className="flex items-start gap-2.5 rounded-lg bg-white p-3 text-xs text-ink border border-line">
+              <BadgeCheck size={16} className="text-accent shrink-0 mt-0.5" />
+              <span className="leading-relaxed">
+                <strong>Digital Mockup Approval:</strong> We send a digital mockup on WhatsApp for your sign-off before printing.
+              </span>
+            </div>
+
+            {/* Upload Logo or Design */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
+                Upload Logo or Artwork (Optional)
+              </label>
+              {logoPreview ? (
+                <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/50 p-3 pr-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logoPreview}
+                    alt="Your logo preview"
+                    className="h-14 w-14 rounded-lg border border-line bg-white object-contain p-1"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-ink">
+                      {logoName}
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-body">
+                      <BadgeCheck size={13} className="text-accent" />
+                      Ready — attach this file in the WhatsApp chat
+                    </p>
+                  </div>
+                  <button
+                    onClick={clearLogo}
+                    aria-label="Remove logo"
+                    className="rounded-full p-1.5 text-body transition-colors hover:bg-white hover:text-accent"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    onLogoChange(e.dataTransfer.files?.[0]);
+                  }}
+                  className="group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-ink/20 bg-white px-5 py-5 transition-colors hover:border-accent hover:bg-accent-soft/30"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-accent shadow-xs transition-transform group-hover:-translate-y-0.5">
+                    <CloudUpload size={18} />
+                  </span>
+                  <span className="text-sm font-bold text-ink">
+                    Drop your logo here or{" "}
+                    <span className="text-accent underline underline-offset-2">
+                      browse files
+                    </span>
+                  </span>
+                  <span className="text-[11px] text-body">
+                    PNG, JPG, SVG, PDF, AI, EPS — high resolution
+                  </span>
+                </button>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*,.pdf,.ai,.eps,.cdr"
+                className="hidden"
+                onChange={(e) => onLogoChange(e.target.files?.[0])}
+              />
+            </div>
+
+            {/* Print text */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1">
+                {logoName ? "Printing Instructions / Placement Notes" : "Or Custom Text to Print Instead"}
+              </label>
+              <input
+                value={printText}
+                onChange={(e) => setPrintText(e.target.value)}
+                placeholder={
+                  logoName
+                    ? 'e.g. "Print logo on left chest, 3.5 inches wide"'
+                    : 'e.g. "Team Phoenix — Est. 2026"'
+                }
+                className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Step Review & Add */}
+        <div className="mt-7 flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
               <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-                3
+                {apparelType === "custom" ? "4" : "3"}
               </span>
-              Apparel Type
+              Review & Add
             </p>
-            <span className="text-[11px] font-semibold text-body">
-              {apparelType === "blank" ? "Plain Garment" : "Custom Branded"}
-            </span>
-          </div>
-
-          {/* Interactive Cards: Blank Apparel vs Dynamic Customized Option */}
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {/* Blank Apparel Option */}
+            {/* Add Customization navigation option above right top of Select sizes to add button */}
             <button
               type="button"
-              onClick={() => setApparelType("blank")}
-              className={`group relative flex flex-col justify-between rounded-xl border-2 p-3.5 text-left transition-all ${
-                apparelType === "blank"
-                  ? "border-ink bg-white shadow-xs ring-2 ring-ink/10"
-                  : "border-line bg-white/60 hover:border-ink/40 hover:bg-white"
-              }`}
+              id="add-customization-nav-btn"
+              onClick={() => {
+                const nextType = apparelType === "custom" ? "blank" : "custom";
+                setApparelType(nextType);
+                if (nextType === "custom") {
+                  setTimeout(() => {
+                    document
+                      .getElementById("customization-section")
+                      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }, 50);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-accent hover:text-accent-dark hover:underline transition-colors cursor-pointer"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
-                      apparelType === "blank" ? "bg-ink text-white" : "bg-neutral-100 text-body"
-                    }`}
-                  >
-                    <Tag size={14} />
-                  </span>
-                  <span className="text-sm font-bold text-ink">Blank Apparel</span>
-                </div>
-                <div
-                  className={`flex h-4 w-4 items-center justify-center rounded-full border ${
-                    apparelType === "blank" ? "border-ink bg-ink text-white" : "border-neutral-300"
-                  }`}
-                >
-                  {apparelType === "blank" && <Check size={10} strokeWidth={3} />}
-                </div>
-              </div>
-              <p className="mt-2 text-xs text-body leading-relaxed">
-                Plain unprinted garments without any logo or embroidery. Fast dispatch.
-              </p>
-            </button>
-
-            {/* Customized Option with Dynamic Apparel Name */}
-            <button
-              type="button"
-              onClick={() => setApparelType("custom")}
-              className={`group relative flex flex-col justify-between rounded-xl border-2 p-3.5 text-left transition-all ${
-                apparelType === "custom"
-                  ? "border-accent bg-accent-soft/40 shadow-xs ring-2 ring-accent/20"
-                  : "border-line bg-white/60 hover:border-accent/40 hover:bg-white"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
-                      apparelType === "custom" ? "bg-accent text-white" : "bg-neutral-100 text-body"
-                    }`}
-                  >
-                    <Sparkles size={14} />
-                  </span>
-                  <span className="text-sm font-bold text-ink">{customizedApparelName}</span>
-                </div>
-                <div
-                  className={`flex h-4 w-4 items-center justify-center rounded-full border ${
-                    apparelType === "custom" ? "border-accent bg-accent text-white" : "border-neutral-300"
-                  }`}
-                >
-                  {apparelType === "custom" && <Check size={10} strokeWidth={3} />}
-                </div>
-              </div>
-              <p className="mt-2 text-xs text-body leading-relaxed">
-                Add your company logo, embroidery or custom print. Free digital mockup on WhatsApp.
-              </p>
-              {apparelType !== "custom" && (
-                <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-accent">
-                  + Add Logo / Customization →
-                </span>
-              )}
+              <Sparkles size={14} className="text-accent shrink-0" />
+              <span>
+                {apparelType === "custom"
+                  ? "Customization Added (Switch to Plain)"
+                  : "+ Add Customization"}
+              </span>
+              <ArrowRight size={13} className="shrink-0" />
             </button>
           </div>
-
-          {/* When Customized is selected: Logo upload & Text input display right here */}
-          {apparelType === "custom" && (
-            <div className="mt-4 border-t border-line/80 pt-4 space-y-4">
-              {/* Approval assurance notice */}
-              <div className="flex items-start gap-2.5 rounded-lg bg-white p-3 text-xs text-ink border border-line">
-                <BadgeCheck size={16} className="text-accent shrink-0 mt-0.5" />
-                <span className="leading-relaxed">
-                  <strong>Digital Mockup Approval:</strong> We send a digital mockup on WhatsApp for your sign-off before printing.
-                </span>
-              </div>
-
-              {/* Upload Logo or Design */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
-                  Upload Logo or Artwork (Optional)
-                </label>
-                {logoPreview ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/50 p-3 pr-4">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={logoPreview}
-                      alt="Your logo preview"
-                      className="h-14 w-14 rounded-lg border border-line bg-white object-contain p-1"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-ink">
-                        {logoName}
-                      </p>
-                      <p className="mt-0.5 flex items-center gap-1 text-xs text-body">
-                        <BadgeCheck size={13} className="text-accent" />
-                        Ready — attach this file in the WhatsApp chat
-                      </p>
-                    </div>
-                    <button
-                      onClick={clearLogo}
-                      aria-label="Remove logo"
-                      className="rounded-full p-1.5 text-body transition-colors hover:bg-white hover:text-accent"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => fileRef.current?.click()}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      onLogoChange(e.dataTransfer.files?.[0]);
-                    }}
-                    className="group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-ink/20 bg-white px-5 py-5 transition-colors hover:border-accent hover:bg-accent-soft/30"
-                  >
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-accent shadow-xs transition-transform group-hover:-translate-y-0.5">
-                      <CloudUpload size={18} />
-                    </span>
-                    <span className="text-sm font-bold text-ink">
-                      Drop your logo here or{" "}
-                      <span className="text-accent underline underline-offset-2">
-                        browse files
-                      </span>
-                    </span>
-                    <span className="text-[11px] text-body">
-                      PNG, JPG, SVG, PDF, AI, EPS — high resolution
-                    </span>
-                  </button>
-                )}
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/*,.pdf,.ai,.eps,.cdr"
-                  className="hidden"
-                  onChange={(e) => onLogoChange(e.target.files?.[0])}
-                />
-              </div>
-
-              {/* Print text */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1">
-                  {logoName ? "Printing Instructions / Placement Notes" : "Or Custom Text to Print Instead"}
-                </label>
-                <input
-                  value={printText}
-                  onChange={(e) => setPrintText(e.target.value)}
-                  placeholder={
-                    logoName
-                      ? 'e.g. "Print logo on left chest, 3.5 inches wide"'
-                      : 'e.g. "Team Phoenix — Est. 2026"'
-                  }
-                  className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Step 4: Review & Add */}
-        <div className="mt-7 flex flex-col gap-3">
-          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-            <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-              4
-            </span>
-            Review & Add
-          </p>
           <button
             onClick={handleAddToCart}
             disabled={totalQty === 0}

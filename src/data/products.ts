@@ -460,6 +460,15 @@ export const products: Product[] = [
     mrp: 349,
     price: 199,
     colors: [
+      {
+        name: "White",
+        hex: "#F1F2F4",
+        image: "/products/kids-rn-white-front.webp",
+        backImage: "/products/kids-rn-white-back.webp",
+        chestImage: "/products/kids-rn-white-pose.webp",
+        detailImage: "/products/kids-rn-white-detail.webp",
+        image4: "/products/kids-rn-white-action.webp",
+      },
       { ...c.mustard, image: "/products/tee-yellow.svg" },
       { ...c.grey, image: "/products/tee-grey.svg" },
     ],
