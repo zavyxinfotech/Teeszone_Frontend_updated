@@ -186,17 +186,9 @@ export function ProductConfigurator({
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [isGalleryHovered, setIsGalleryHovered] = useState(false);
   const [blankStartIdx, setBlankStartIdx] = useState(0);
-  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
-  // Keep active thumbnail in view when auto-scrolling
-  useEffect(() => {
-    const el = thumbnailRefs.current[activeImageIdx];
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
-    }
-  }, [activeImageIdx]);
   const color = product.colors[colorIdx];
   const colorQty = qty[color.name] ?? {};
+  const thumbnailItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Compute all available images for auto-scrolling
   const displayImages = useMemo(() => {
@@ -239,6 +231,17 @@ export function ProductConfigurator({
 
     return () => clearInterval(timer);
   }, [displayImages.length, isGalleryHovered]);
+
+  // Keep active thumbnail scrolled into view when auto-sliding or clicking
+  useEffect(() => {
+    if (thumbnailItemRefs.current[activeImageIdx]) {
+      thumbnailItemRefs.current[activeImageIdx]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
+      });
+    }
+  }, [activeImageIdx]);
 
   // Auto-scroll blank apparel carousel when a color is selected
   useEffect(() => {
@@ -512,7 +515,7 @@ export function ProductConfigurator({
     <div className="grid gap-8 lg:gap-10 lg:grid-cols-2 min-w-0 w-full max-w-full">
       {/* Gallery - Sticky on desktop view */}
       <div
-        className="min-w-0 w-full lg:max-w-[500px] lg:sticky lg:top-20 self-start"
+        className="min-w-0 w-full lg:sticky lg:top-20 self-start"
         onMouseEnter={() => setIsGalleryHovered(true)}
         onMouseLeave={() => setIsGalleryHovered(false)}
       >
@@ -552,15 +555,15 @@ export function ProductConfigurator({
           const isSvg = typeof currentMainImage === "string" && currentMainImage.toLowerCase().endsWith(".svg");
 
           return (
-            <div className="flex flex-row items-start gap-2.5 sm:gap-3.5">
-              {/* Main Product Image Container - Decreased width & height with 3s auto-scroll */}
-              <div className="group relative flex-1 min-w-0 aspect-[3/4] max-h-[380px] sm:max-h-[480px] lg:max-h-[520px] overflow-hidden rounded-xl border border-line bg-surface">
+            <div className="flex items-start gap-2 sm:gap-3 lg:gap-3.5 w-full">
+              {/* Main Product Image Container - Reduced width & height (4:5 ratio) */}
+              <div className="group relative flex-1 aspect-[4/5] min-w-0 overflow-hidden rounded-xl border border-line bg-surface">
                 <Image
                   src={currentMainImage}
                   alt={`${product.name} — ${color.name} (Angle ${activeImageIdx + 1})`}
                   fill
                   priority
-                  sizes="(max-width: 640px) 75vw, (max-width: 1024px) 50vw, 420px"
+                  sizes="(max-width: 640px) 75vw, 42vw"
                   className={`transition-all duration-500 ease-in-out ${
                     isSvg ? "object-contain p-4 sm:p-6" : "object-cover object-top"
                   }`}
@@ -576,9 +579,9 @@ export function ProductConfigurator({
                         setActiveImageIdx((prev) => (prev - 1 + displayImages.length) % displayImages.length);
                       }}
                       aria-label="Previous photo"
-                      className="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
                     >
-                      <ChevronLeft size={18} />
+                      <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
                     </button>
                     <button
                       type="button"
@@ -587,9 +590,9 @@ export function ProductConfigurator({
                         setActiveImageIdx((prev) => (prev + 1) % displayImages.length);
                       }}
                       aria-label="Next photo"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
                     >
-                      <ChevronRight size={18} />
+                      <ChevronRight size={18} className="sm:w-5 sm:h-5" />
                     </button>
 
                     {/* Image index counter badge */}
@@ -611,11 +614,9 @@ export function ProductConfigurator({
                 )}
               </div>
 
-              {/* Reference thumbnails column on the RIGHT side in a single column */}
+              {/* Reference / Thumbnail images aligned to the right side of main image in a single column */}
               {displayImages.length > 1 && (
-                <div
-                  className="flex flex-col gap-1.5 sm:gap-2 shrink-0 w-14 sm:w-16 md:w-[72px] lg:w-[76px] max-h-[380px] sm:max-h-[480px] lg:max-h-[520px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5"
-                >
+                <div className="flex flex-col gap-1.5 sm:gap-2 shrink-0 w-[54px] sm:w-[68px] md:w-[74px] lg:w-[80px] max-h-[360px] sm:max-h-[460px] lg:max-h-[530px] overflow-y-auto rail scrollbar-none py-0.5">
                   {displayImages.map((imgSrc, idx) => {
                     const isActive = idx === activeImageIdx;
                     const thumbIsSvg = typeof imgSrc === "string" && imgSrc.toLowerCase().endsWith(".svg");
@@ -623,14 +624,14 @@ export function ProductConfigurator({
                       <button
                         key={idx}
                         ref={(el) => {
-                          thumbnailRefs.current[idx] = el;
+                          thumbnailItemRefs.current[idx] = el;
                         }}
                         type="button"
                         onClick={() => setActiveImageIdx(idx)}
                         aria-label={`View photo ${idx + 1}`}
-                        className={`group relative aspect-square w-full overflow-hidden rounded-lg border-2 bg-surface transition-all shrink-0 ${
+                        className={`group relative aspect-square w-full shrink-0 overflow-hidden rounded-lg border-2 bg-surface transition-all ${
                           isActive
-                            ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.03]"
+                            ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.02]"
                             : "border-line opacity-75 hover:opacity-100 hover:border-ink/40"
                         }`}
                       >
@@ -638,7 +639,7 @@ export function ProductConfigurator({
                           src={imgSrc}
                           alt={`${product.name} view ${idx + 1}`}
                           fill
-                          sizes="(max-width: 640px) 56px, 80px"
+                          sizes="80px"
                           className={`h-full w-full transition-transform group-hover:scale-105 ${
                             thumbIsSvg ? "object-contain p-1" : "object-cover object-top"
                           }`}
