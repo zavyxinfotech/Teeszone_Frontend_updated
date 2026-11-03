@@ -661,7 +661,7 @@ export function ProductConfigurator({
       <div className="min-w-0 w-full max-w-full">
         <p className="text-[11px] uppercase tracking-wider text-body">TeesZone</p>
         <div className="mt-1 flex items-start justify-between gap-3 sm:gap-4">
-          <h1 className="line-clamp-4 text-base sm:text-2xl lg:text-3xl font-medium sm:font-bold leading-snug text-ink">
+          <h1 className="line-clamp-3 text-base sm:text-lg lg:text-xl font-medium sm:font-semibold leading-snug text-ink">
             {product.name}
           </h1>
           <button
@@ -786,24 +786,13 @@ export function ProductConfigurator({
           </div>
 
           {/* Contextual guidance */}
-          <div className="mt-2 text-xs text-body">
-            {colorMode === "single" ? (
-              <p>
-                Ordering in one color (<strong>{color.name}</strong>). Need more than one color for your order?{" "}
-                <button
-                  type="button"
-                  onClick={() => handleColorModeChange("multiple")}
-                  className="font-bold text-accent hover:underline inline-flex items-center gap-0.5"
-                >
-                  Switch to Multiple Colors →
-                </button>
-              </p>
-            ) : (
+          {colorMode === "multiple" && (
+            <div className="mt-2 text-xs text-body">
               <p>
                 <strong>Mix &amp; Match Colors:</strong> Select all the colors you want to buy. Click swatches below to pick colors, then allocate sizes for each color in Step 2.
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Color Swatches Grid */}
           <div className="mt-3 flex flex-wrap gap-2.5">
@@ -1035,34 +1024,36 @@ export function ProductConfigurator({
             </span>{" "}
             — e.g. L×3, XL×10, 2XL×15.
           </p>
-          <div className="mt-3 space-y-2.5">
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
             {productSizes.map((s) => {
               const value = colorQty[s] ?? 0;
               const chest = sizeGuideMap[s];
               return (
-                <div key={s} className="flex items-center justify-between">
-                  <span
-                    className={`min-w-28 rounded-lg border px-3 sm:px-4 py-2.5 text-center text-sm font-semibold transition-all ${
-                      value > 0
-                        ? "border-ink bg-ink text-white shadow-xs"
-                        : "border-line bg-white text-ink hover:border-ink/40"
-                    }`}
-                  >
-                    <span>{s}</span>
+                <div
+                  key={s}
+                  className={`rounded-xl sm:rounded-2xl border bg-white p-2.5 sm:p-3 flex flex-col items-center justify-between gap-2.5 sm:gap-3 transition-all ${
+                    value > 0
+                      ? "border-ink ring-1 ring-ink/20 shadow-xs"
+                      : "border-line hover:border-ink/40"
+                  }`}
+                >
+                  <div className="text-center">
+                    <span className="text-sm font-bold text-ink">{s}</span>
                     {chest && (
-                      <span className={`ml-1.5 text-xs font-normal ${value > 0 ? "text-white/80" : "text-body"}`}>
-                        ({chest})
+                      <span className="ml-1 text-xs text-body font-normal">
+                        ({chest.replace(/"/g, "")})
                       </span>
                     )}
-                  </span>
-                  <div className="flex items-center gap-2.5">
+                  </div>
+                  <div className="flex items-center justify-between w-full px-0.5">
                     <button
+                      type="button"
                       aria-label={`Decrease ${s} quantity`}
                       onClick={() => setSizeQty(s, value - 1)}
                       disabled={value === 0}
-                      className="flex h-8 w-8 items-center justify-center rounded-md border border-line text-ink transition-colors hover:border-ink disabled:opacity-30 disabled:hover:border-line"
+                      className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-surface text-ink transition-colors hover:bg-line disabled:opacity-30 disabled:hover:bg-surface cursor-pointer disabled:cursor-not-allowed"
                     >
-                      <Minus size={14} />
+                      <Minus size={14} className="stroke-[2.5]" />
                     </button>
                     <input
                       type="number"
@@ -1072,14 +1063,15 @@ export function ProductConfigurator({
                       placeholder="0"
                       onChange={(e) => setSizeQty(s, Number(e.target.value) || 0)}
                       aria-label={`${s} quantity`}
-                      className="w-10 border-0 text-center text-base font-bold text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="w-8 border-0 bg-transparent text-center text-sm sm:text-base font-bold text-ink placeholder:text-ink placeholder:font-bold outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                     <button
+                      type="button"
                       aria-label={`Increase ${s} quantity`}
                       onClick={() => setSizeQty(s, value + 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-md border border-line text-ink transition-colors hover:border-ink"
+                      className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-surface text-ink transition-colors hover:bg-line cursor-pointer"
                     >
-                      <Plus size={14} />
+                      <Plus size={14} className="stroke-[2.5]" />
                     </button>
                   </div>
                 </div>
@@ -1107,28 +1099,29 @@ export function ProductConfigurator({
 
         {/* Live order summary */}
         {totalQty > 0 && (
-          <div className="mt-4 overflow-hidden rounded-xl bg-ink text-white">
+          <div className="mt-4 overflow-hidden rounded-xl border border-line bg-surface/50 text-ink shadow-none">
             <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4">
               <div className="min-w-0">
-                <p className="text-sm ">{totalQty} pcs total</p>
+                <p className="text-sm font-bold text-ink">{totalQty} pcs total</p>
                 {/* per-color breakdown */}
                 <ul className="mt-2 space-y-1.5">
                   {colorsWithQty.map((cn) => {
                     const swatch = product.colors.find((c) => c.name === cn);
                     return (
-                      <li key={cn} className="flex items-center gap-2 text-xs">
+                      <li key={cn} className="flex items-center gap-2 text-xs text-ink">
                         <span
-                          className="h-3 w-3 shrink-0 rounded-full border border-white/30"
+                          className="h-3 w-3 shrink-0 rounded-full border border-black/20"
                           style={{ backgroundColor: swatch?.hex }}
                         />
-                        <span className="">{cn}</span>
-                        <span className="text-white/60">
+                        <span className="font-semibold text-ink">{cn}</span>
+                        <span className="text-body">
                           {splitFor(cn)} · {colorTotals[cn]} pcs
                         </span>
                         <button
+                          type="button"
                           onClick={() => removeColorSplit(cn)}
                           aria-label={`Remove ${cn} from order`}
-                          className="ml-1 rounded-full p-0.5 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
+                          className="ml-1 rounded-full p-0.5 text-body hover:bg-black/5 hover:text-ink transition-colors cursor-pointer"
                         >
                           <X size={12} />
                         </button>
@@ -1136,40 +1129,28 @@ export function ProductConfigurator({
                     );
                   })}
                 </ul>
-                <p className="mt-2 text-xs text-white/60">
-                  {tier && tier.offPct > 0 ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <BadgeCheck size={13} className="text-whatsapp" />
-                      {tier.minQty}+ tier applied on total — extra {tier.offPct}
-                      % off
-                    </span>
-                  ) : (
-                    "Add more pieces to unlock bulk tiers"
-                  )}
-                </p>
               </div>
               <div className="text-right">
-                <p className="text-xl ">
+                <p className="text-xl font-bold text-ink">
                   ₹ {(unitPrice * totalQty).toLocaleString("en-IN")}
                 </p>
-                <p className="text-xs text-white/60">est. @ ₹{unitPrice}/pc</p>
               </div>
             </div>
             {nextTier && (
-              <div className="border-t border-white/10 px-5 py-3">
+              <div className="border-t border-line px-5 py-3">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-white/70">
+                  <span className="text-body">
                     Add{" "}
-                    <strong className="text-white">
+                    <strong className="font-bold text-ink">
                       {nextTier.minQty - totalQty} more pcs
                     </strong>{" "}
                     for extra {nextTier.offPct}% off
                   </span>
-                  <span className=" text-gold">
+                  <span className="font-bold text-gold">
                     {totalQty}/{nextTier.minQty}
                   </span>
                 </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15">
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-line">
                   <div
                     className="h-full rounded-full bg-gold transition-all duration-300"
                     style={{
@@ -1186,7 +1167,7 @@ export function ProductConfigurator({
         {apparelType === "custom" && (
           <div
             id="customization-section"
-            className="mt-6 rounded-2xl border border-accent/40 bg-accent-soft/30 p-4 sm:p-5 space-y-4 animate-in fade-in duration-200"
+            className="mt-6 rounded-2xl bg-accent-soft/30 p-4 sm:p-5 space-y-4 animate-in fade-in duration-200"
           >
             <div className="flex items-center justify-between">
               <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">

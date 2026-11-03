@@ -65,23 +65,11 @@ export default async function ProductPage({
   };
 
   return (
-    <div className="mx-auto max-w-[1320px] px-3 sm:px-6 py-6 sm:py-10 md:py-14 min-w-0 w-full">
+    <div className="mx-auto max-w-[1320px] px-3 sm:px-6 pt-3 sm:pt-5 pb-8 sm:pb-12 md:pb-14 min-w-0 w-full">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      
-      {/* Breadcrumb */}
-      <p className="mb-4 sm:mb-6 text-[11px] sm:text-xs font-normal uppercase tracking-wider text-body leading-relaxed">
-        <Link href="/" className="hover:text-accent">
-          Home
-        </Link>{" "}
-        /{" "}
-        <Link href="/products" className="hover:text-accent">
-          Products
-        </Link>{" "}
-        / <span className="line-clamp-2 inline sm:inline">{product.name}</span>
-      </p>
 
       {/* Main Product Configurator & Details */}
       <ProductConfigurator product={product} initialReviews={reviews} />
