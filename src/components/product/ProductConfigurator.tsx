@@ -185,8 +185,16 @@ export function ProductConfigurator({
   const [apparelType, setApparelType] = useState<"blank" | "custom">("blank");
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [isGalleryHovered, setIsGalleryHovered] = useState(false);
-  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [blankStartIdx, setBlankStartIdx] = useState(0);
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Keep active thumbnail in view when auto-scrolling
+  useEffect(() => {
+    const el = thumbnailRefs.current[activeImageIdx];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+    }
+  }, [activeImageIdx]);
   const color = product.colors[colorIdx];
   const colorQty = qty[color.name] ?? {};
 
@@ -231,14 +239,6 @@ export function ProductConfigurator({
 
     return () => clearInterval(timer);
   }, [displayImages.length, isGalleryHovered]);
-
-  // Auto-scroll active thumbnail into view in the vertical rail
-  useEffect(() => {
-    thumbnailRefs.current[activeImageIdx]?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
-  }, [activeImageIdx]);
 
   // Auto-scroll blank apparel carousel when a color is selected
   useEffect(() => {
@@ -512,7 +512,7 @@ export function ProductConfigurator({
     <div className="grid gap-8 lg:gap-10 lg:grid-cols-2 min-w-0 w-full max-w-full">
       {/* Gallery - Sticky on desktop view */}
       <div
-        className="min-w-0 w-full lg:sticky lg:top-20 self-start"
+        className="min-w-0 w-full lg:max-w-[500px] lg:sticky lg:top-20 self-start"
         onMouseEnter={() => setIsGalleryHovered(true)}
         onMouseLeave={() => setIsGalleryHovered(false)}
       >
@@ -552,15 +552,15 @@ export function ProductConfigurator({
           const isSvg = typeof currentMainImage === "string" && currentMainImage.toLowerCase().endsWith(".svg");
 
           return (
-            <div className="flex flex-row items-start gap-2.5 sm:gap-3 w-full">
-              {/* Main Product Image Container - Decreased height with balanced proportion & 3s auto-scroll */}
-              <div className="group relative flex-1 min-w-0 h-[340px] sm:h-[420px] md:h-[460px] lg:h-[490px] overflow-hidden rounded-xl border border-line bg-surface">
+            <div className="flex flex-row items-start gap-2.5 sm:gap-3.5">
+              {/* Main Product Image Container - Decreased width & height with 3s auto-scroll */}
+              <div className="group relative flex-1 min-w-0 aspect-[3/4] max-h-[380px] sm:max-h-[480px] lg:max-h-[520px] overflow-hidden rounded-xl border border-line bg-surface">
                 <Image
                   src={currentMainImage}
                   alt={`${product.name} — ${color.name} (Angle ${activeImageIdx + 1})`}
                   fill
                   priority
-                  sizes="(max-width: 640px) 78vw, 42vw"
+                  sizes="(max-width: 640px) 75vw, (max-width: 1024px) 50vw, 420px"
                   className={`transition-all duration-500 ease-in-out ${
                     isSvg ? "object-contain p-4 sm:p-6" : "object-cover object-top"
                   }`}
@@ -576,9 +576,9 @@ export function ProductConfigurator({
                         setActiveImageIdx((prev) => (prev - 1 + displayImages.length) % displayImages.length);
                       }}
                       aria-label="Previous photo"
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
                     >
-                      <ChevronLeft size={19} />
+                      <ChevronLeft size={18} />
                     </button>
                     <button
                       type="button"
@@ -587,13 +587,13 @@ export function ProductConfigurator({
                         setActiveImageIdx((prev) => (prev + 1) % displayImages.length);
                       }}
                       aria-label="Next photo"
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
                     >
-                      <ChevronRight size={19} />
+                      <ChevronRight size={18} />
                     </button>
 
                     {/* Image index counter badge */}
-                    <div className="absolute bottom-2.5 right-2.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
+                    <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 rounded-full bg-black/60 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-semibold text-white backdrop-blur-xs">
                       {activeImageIdx + 1} / {displayImages.length}
                     </div>
 
@@ -611,9 +611,11 @@ export function ProductConfigurator({
                 )}
               </div>
 
-              {/* Single column thumbnail gallery aligned on the RIGHT side of the main image */}
+              {/* Reference thumbnails column on the RIGHT side in a single column */}
               {displayImages.length > 1 && (
-                <div className="flex flex-col gap-1.5 sm:gap-2 w-12 sm:w-16 md:w-[68px] lg:w-[72px] shrink-0 h-[340px] sm:h-[420px] md:h-[460px] lg:h-[490px] overflow-y-auto rail [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-0.5">
+                <div
+                  className="flex flex-col gap-1.5 sm:gap-2 shrink-0 w-14 sm:w-16 md:w-[72px] lg:w-[76px] max-h-[380px] sm:max-h-[480px] lg:max-h-[520px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5"
+                >
                   {displayImages.map((imgSrc, idx) => {
                     const isActive = idx === activeImageIdx;
                     const thumbIsSvg = typeof imgSrc === "string" && imgSrc.toLowerCase().endsWith(".svg");
@@ -626,9 +628,9 @@ export function ProductConfigurator({
                         type="button"
                         onClick={() => setActiveImageIdx(idx)}
                         aria-label={`View photo ${idx + 1}`}
-                        className={`group relative aspect-square w-full shrink-0 overflow-hidden rounded-lg border-2 bg-surface transition-all ${
+                        className={`group relative aspect-square w-full overflow-hidden rounded-lg border-2 bg-surface transition-all shrink-0 ${
                           isActive
-                            ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.02]"
+                            ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.03]"
                             : "border-line opacity-75 hover:opacity-100 hover:border-ink/40"
                         }`}
                       >
@@ -636,7 +638,7 @@ export function ProductConfigurator({
                           src={imgSrc}
                           alt={`${product.name} view ${idx + 1}`}
                           fill
-                          sizes="(max-width: 640px) 48px, 80px"
+                          sizes="(max-width: 640px) 56px, 80px"
                           className={`h-full w-full transition-transform group-hover:scale-105 ${
                             thumbIsSvg ? "object-contain p-1" : "object-cover object-top"
                           }`}
