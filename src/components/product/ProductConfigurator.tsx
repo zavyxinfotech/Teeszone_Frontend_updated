@@ -185,6 +185,7 @@ export function ProductConfigurator({
   const [apparelType, setApparelType] = useState<"blank" | "custom">("blank");
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [isGalleryHovered, setIsGalleryHovered] = useState(false);
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [blankStartIdx, setBlankStartIdx] = useState(0);
   const color = product.colors[colorIdx];
   const colorQty = qty[color.name] ?? {};
@@ -230,6 +231,14 @@ export function ProductConfigurator({
 
     return () => clearInterval(timer);
   }, [displayImages.length, isGalleryHovered]);
+
+  // Auto-scroll active thumbnail into view in the vertical rail
+  useEffect(() => {
+    thumbnailRefs.current[activeImageIdx]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [activeImageIdx]);
 
   // Auto-scroll blank apparel carousel when a color is selected
   useEffect(() => {
@@ -543,15 +552,15 @@ export function ProductConfigurator({
           const isSvg = typeof currentMainImage === "string" && currentMainImage.toLowerCase().endsWith(".svg");
 
           return (
-            <>
-              {/* Main Product Image Container - Natural 3:4 aspect ratio with centered position & 3s auto-scroll */}
-              <div className="group relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-line bg-surface">
+            <div className="flex flex-row items-start gap-2.5 sm:gap-3 w-full">
+              {/* Main Product Image Container - Decreased height with balanced proportion & 3s auto-scroll */}
+              <div className="group relative flex-1 min-w-0 h-[340px] sm:h-[420px] md:h-[460px] lg:h-[490px] overflow-hidden rounded-xl border border-line bg-surface">
                 <Image
                   src={currentMainImage}
                   alt={`${product.name} — ${color.name} (Angle ${activeImageIdx + 1})`}
                   fill
                   priority
-                  sizes="(max-width: 640px) 100vw, 50vw"
+                  sizes="(max-width: 640px) 78vw, 42vw"
                   className={`transition-all duration-500 ease-in-out ${
                     isSvg ? "object-contain p-4 sm:p-6" : "object-cover object-top"
                   }`}
@@ -567,9 +576,9 @@ export function ProductConfigurator({
                         setActiveImageIdx((prev) => (prev - 1 + displayImages.length) % displayImages.length);
                       }}
                       aria-label="Previous photo"
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
                     >
-                      <ChevronLeft size={20} />
+                      <ChevronLeft size={19} />
                     </button>
                     <button
                       type="button"
@@ -578,13 +587,13 @@ export function ProductConfigurator({
                         setActiveImageIdx((prev) => (prev + 1) % displayImages.length);
                       }}
                       aria-label="Next photo"
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-xs transition hover:bg-white hover:scale-105 opacity-0 group-hover:opacity-100 sm:opacity-75 focus:opacity-100"
                     >
-                      <ChevronRight size={20} />
+                      <ChevronRight size={19} />
                     </button>
 
                     {/* Image index counter badge */}
-                    <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
+                    <div className="absolute bottom-2.5 right-2.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
                       {activeImageIdx + 1} / {displayImages.length}
                     </div>
 
@@ -602,21 +611,24 @@ export function ProductConfigurator({
                 )}
               </div>
 
-              {/* Thumbnail gallery below main image synchronized with 3s auto-scroll */}
+              {/* Single column thumbnail gallery aligned on the RIGHT side of the main image */}
               {displayImages.length > 1 && (
-                <div className="mt-2.5 sm:mt-3 grid grid-cols-6 gap-1.5 sm:gap-2">
+                <div className="flex flex-col gap-1.5 sm:gap-2 w-12 sm:w-16 md:w-[68px] lg:w-[72px] shrink-0 h-[340px] sm:h-[420px] md:h-[460px] lg:h-[490px] overflow-y-auto rail [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-0.5">
                   {displayImages.map((imgSrc, idx) => {
                     const isActive = idx === activeImageIdx;
                     const thumbIsSvg = typeof imgSrc === "string" && imgSrc.toLowerCase().endsWith(".svg");
                     return (
                       <button
                         key={idx}
+                        ref={(el) => {
+                          thumbnailRefs.current[idx] = el;
+                        }}
                         type="button"
                         onClick={() => setActiveImageIdx(idx)}
                         aria-label={`View photo ${idx + 1}`}
-                        className={`group relative aspect-square overflow-hidden rounded-lg border-2 bg-surface transition-all ${
+                        className={`group relative aspect-square w-full shrink-0 overflow-hidden rounded-lg border-2 bg-surface transition-all ${
                           isActive
-                            ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.03]"
+                            ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.02]"
                             : "border-line opacity-75 hover:opacity-100 hover:border-ink/40"
                         }`}
                       >
@@ -624,7 +636,7 @@ export function ProductConfigurator({
                           src={imgSrc}
                           alt={`${product.name} view ${idx + 1}`}
                           fill
-                          sizes="(max-width: 640px) 16vw, 100px"
+                          sizes="(max-width: 640px) 48px, 80px"
                           className={`h-full w-full transition-transform group-hover:scale-105 ${
                             thumbIsSvg ? "object-contain p-1" : "object-cover object-top"
                           }`}
@@ -637,7 +649,7 @@ export function ProductConfigurator({
                   })}
                 </div>
               )}
-            </>
+            </div>
           );
         })()}
       </div>
