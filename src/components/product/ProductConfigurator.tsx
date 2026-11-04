@@ -165,6 +165,11 @@ export function ProductConfigurator({
   );
   const [colorIdx, setColorIdx] = useState(0);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
+  const [logoModalOpen, setLogoModalOpen] = useState(false);
+  const [flyingParticles, setFlyingParticles] = useState<
+    Array<{ id: number; startX: number; startY: number; dx: number; dy: number }>
+  >([]);
+  const [pulsingColor, setPulsingColor] = useState<string | null>(null);
   // size split per color: color -> size -> qty
   const [qty, setQty] = useState<Record<string, Record<string, number>>>({});
   const [printText, setPrintText] = useState("");
@@ -261,8 +266,6 @@ export function ProductConfigurator({
     return totals;
   }, [qty]);
 
-  // Color Mode Option: "single" color or "multiple" colors (Mix & Match)
-  const [colorMode, setColorMode] = useState<"single" | "multiple">("single");
   const [selectedColorNames, setSelectedColorNames] = useState<string[]>(() => [
     product.colors[0]?.name || "",
   ]);
@@ -271,16 +274,18 @@ export function ProductConfigurator({
   useEffect(() => {
     if (product.colors[0]?.name) {
       setSelectedColorNames([product.colors[0].name]);
-      setColorMode("single");
     }
   }, [product.id, product.slug]);
 
-  // If user enters pieces for multiple colors, auto-reflect in selectedColorNames & colorMode
+  // If user enters pieces for multiple colors, auto-reflect in selectedColorNames
   useEffect(() => {
-    const activeColorsWithQty = Object.keys(colorTotals);
-    if (activeColorsWithQty.length > 1) {
-      setColorMode("multiple");
-      setSelectedColorNames((prev) => Array.from(new Set([...prev, ...activeColorsWithQty])));
+    const activeColorsWithQty = Object.keys(colorTotals).filter(
+      (cn) => (colorTotals[cn] ?? 0) > 0,
+    );
+    if (activeColorsWithQty.length > 0) {
+      setSelectedColorNames((prev) =>
+        Array.from(new Set([...prev, ...activeColorsWithQty])),
+      );
     }
   }, [colorTotals]);
 
@@ -317,30 +322,62 @@ export function ProductConfigurator({
       },
     }));
 
-  const handleColorModeChange = (mode: "single" | "multiple") => {
-    setColorMode(mode);
-    if (mode === "single") {
-      // In single mode, ensure the active color is the selected single color
-      setSelectedColorNames([color.name]);
+  const triggerSwatchPulse = (colorName: string) => {
+    setPulsingColor(colorName);
+    setTimeout(() => {
+      setPulsingColor((curr) => (curr === colorName ? null : curr));
+    }, 450);
+  };
+
+  const handleIncreaseQty = (
+    s: string,
+    currentValue: number,
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setSizeQty(s, currentValue + 1);
+
+    const safeColorId = `color-swatch-${color.name.replace(/\s+/g, "-")}`;
+    const targetEl = document.getElementById(safeColorId);
+    if (targetEl) {
+      const targetRect = targetEl.getBoundingClientRect();
+      const btnRect = e.currentTarget.getBoundingClientRect();
+      const startX = btnRect.left + btnRect.width / 2;
+      const startY = btnRect.top + btnRect.height / 2;
+      const dx = targetRect.left + targetRect.width / 2 - startX;
+      const dy = targetRect.top + targetRect.height / 2 - startY;
+
+      const particleId = Date.now() + Math.random();
+      setFlyingParticles((prev) => [
+        ...prev,
+        { id: particleId, startX, startY, dx, dy },
+      ]);
+
+      setTimeout(() => {
+        triggerSwatchPulse(color.name);
+        setFlyingParticles((prev) => prev.filter((p) => p.id !== particleId));
+      }, 500);
     } else {
-      // In multiple mode, ensure active color is in the list
-      if (!selectedColorNames.includes(color.name)) {
-        setSelectedColorNames((prev) => [...prev, color.name]);
-      }
+      triggerSwatchPulse(color.name);
     }
   };
 
   const handleSwatchClick = (idx: number) => {
     const target = product.colors[idx];
     if (!target) return;
-    setColorIdx(idx);
-    setActiveImageIdx(0);
-    if (colorMode === "single") {
-      setSelectedColorNames([target.name]);
-    } else {
-      if (!selectedColorNames.includes(target.name)) {
-        setSelectedColorNames((prev) => [...prev, target.name]);
+
+    if (selectedColorNames.includes(target.name)) {
+      // If user clicks the currently active color and multiple colors are selected, toggle it off
+      if (color.name === target.name && selectedColorNames.length > 1) {
+        handleRemoveSelectedColor(target.name);
+        return;
       }
+      setColorIdx(idx);
+      setActiveImageIdx(0);
+    } else {
+      // Add this color to selection so user can choose more than one color
+      setSelectedColorNames((prev) => [...prev, target.name]);
+      setColorIdx(idx);
+      setActiveImageIdx(0);
     }
   };
 
@@ -369,7 +406,7 @@ export function ProductConfigurator({
       delete next[colorName];
       return next;
     });
-    if (colorMode === "multiple" && selectedColorNames.length > 1) {
+    if (selectedColorNames.length > 1) {
       const remaining = selectedColorNames.filter((cn) => cn !== colorName);
       setSelectedColorNames(remaining);
       if (color.name === colorName) {
@@ -528,22 +565,20 @@ export function ProductConfigurator({
             <button
               type="button"
               onClick={() => setApparelType("blank")}
-              className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
-                apparelType === "blank"
+              className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${apparelType === "blank"
                   ? "bg-ink text-white shadow-xs"
                   : "text-body hover:text-ink"
-              }`}
+                }`}
             >
               Blank Apparel
             </button>
             <button
               type="button"
               onClick={() => setApparelType("custom")}
-              className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
-                apparelType === "custom"
+              className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${apparelType === "custom"
                   ? "bg-accent text-white shadow-xs"
                   : "text-body hover:text-ink"
-              }`}
+                }`}
             >
               {customizedApparelName}
             </button>
@@ -564,9 +599,8 @@ export function ProductConfigurator({
                   fill
                   priority
                   sizes="(max-width: 640px) 75vw, 42vw"
-                  className={`transition-all duration-500 ease-in-out ${
-                    isSvg ? "object-contain p-4 sm:p-6" : "object-cover object-top"
-                  }`}
+                  className={`transition-all duration-500 ease-in-out ${isSvg ? "object-contain p-4 sm:p-6" : "object-cover object-top"
+                    }`}
                 />
 
                 {/* Left / Right chevron navigation on image */}
@@ -629,20 +663,18 @@ export function ProductConfigurator({
                         type="button"
                         onClick={() => setActiveImageIdx(idx)}
                         aria-label={`View photo ${idx + 1}`}
-                        className={`group relative aspect-square w-full shrink-0 overflow-hidden rounded-lg border-2 bg-surface transition-all ${
-                          isActive
+                        className={`group relative aspect-square w-full shrink-0 overflow-hidden rounded-lg border-2 bg-surface transition-all ${isActive
                             ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.02]"
                             : "border-line opacity-75 hover:opacity-100 hover:border-ink/40"
-                        }`}
+                          }`}
                       >
                         <Image
                           src={imgSrc}
                           alt={`${product.name} view ${idx + 1}`}
                           fill
                           sizes="80px"
-                          className={`h-full w-full transition-transform group-hover:scale-105 ${
-                            thumbIsSvg ? "object-contain p-1" : "object-cover object-top"
-                          }`}
+                          className={`h-full w-full transition-transform group-hover:scale-105 ${thumbIsSvg ? "object-contain p-1" : "object-cover object-top"
+                            }`}
                         />
                         {isActive && (
                           <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
@@ -669,8 +701,8 @@ export function ProductConfigurator({
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={saved}
             className={`mt-0.5 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border bg-transparent transition-all hover:scale-110 ${saved
-                ? "border-accent text-accent"
-                : "border-line text-body hover:border-accent hover:text-accent"
+              ? "border-accent text-accent"
+              : "border-line text-body hover:border-accent hover:text-accent"
               }`}
           >
             <Heart size={18} fill={saved ? "currentColor" : "none"} />
@@ -722,14 +754,14 @@ export function ProductConfigurator({
                 <div
                   key={t.minQty}
                   className={`rounded-lg border px-5 py-3 transition-all ${active
-                      ? "border-ink bg-ink text-white shadow-md"
-                      : "border-line bg-white"
+                    ? "border-ink bg-ink text-white shadow-md"
+                    : "border-line bg-white"
                     }`}
                 >
                   <p
                     className={`text-sm  ${active ? "text-white" : "text-ink"}`}
                   >
-                    {t.minQty > 1 ? `${t.minQty}+ Pcs` : "Sample / Few Pcs"}
+                    {t.minQty > 1 ? `${t.minQty}+ Pcs` : "2 pcs"}
                   </p>
                   <p
                     className={`mt-0.5 text-xs  ${active ? "text-white/70" : "text-body"
@@ -747,73 +779,33 @@ export function ProductConfigurator({
         <div className="mt-6">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-              <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-                1
-              </span>
               Choose Colors
               <span className="normal-case font-medium text-body">
-                — {colorMode === "single" ? color.name : `${selectedColorNames.length} color${selectedColorNames.length > 1 ? "s" : ""} selected`}
+                — {selectedColorNames.length > 1 ? `${selectedColorNames.length} colors selected` : color.name}
               </span>
             </p>
-
-            {/* Choose Colors Mode Option: Single Color vs Multiple Colors */}
-            {product.colors.length > 1 && (
-              <div className="inline-flex rounded-lg border border-line bg-surface p-0.5 sm:p-1 shadow-xs">
-                <button
-                  type="button"
-                  onClick={() => handleColorModeChange("single")}
-                  className={`rounded-md px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
-                    colorMode === "single"
-                      ? "bg-ink text-white shadow-xs"
-                      : "text-body hover:text-ink"
-                  }`}
-                >
-                  Single Color
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleColorModeChange("multiple")}
-                  className={`rounded-md px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${
-                    colorMode === "multiple"
-                      ? "bg-accent text-white shadow-xs"
-                      : "text-body hover:text-ink"
-                  }`}
-                >
-                  Multiple Colors
-                </button>
-              </div>
-            )}
           </div>
-
-          {/* Contextual guidance */}
-          {colorMode === "multiple" && (
-            <div className="mt-2 text-xs text-body">
-              <p>
-                <strong>Mix &amp; Match Colors:</strong> Select all the colors you want to buy. Click swatches below to pick colors, then allocate sizes for each color in Step 2.
-              </p>
-            </div>
-          )}
 
           {/* Color Swatches Grid */}
           <div className="mt-3 flex flex-wrap gap-2.5">
             {product.colors.map((c, i) => {
-              const isSelected =
-                colorMode === "multiple" ? selectedColorNames.includes(c.name) : i === colorIdx;
+              const isSelected = selectedColorNames.includes(c.name);
               const isCurrentlyActive = i === colorIdx;
               const count = colorTotals[c.name] ?? 0;
+              const isPulsing = pulsingColor === c.name;
               return (
                 <button
                   key={c.name}
+                  id={`color-swatch-${c.name.replace(/\s+/g, "-")}`}
                   onClick={() => handleSwatchClick(i)}
                   title={`${c.name}${count > 0 ? ` (${count} pcs)` : ""}`}
                   aria-label={`Select ${c.name}${count > 0 ? ` (${count} pcs added)` : ""}`}
-                  className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full border transition-all hover:scale-110 ${
-                    isCurrentlyActive
+                  className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full border transition-all duration-300 hover:scale-110 ${isCurrentlyActive
                       ? "border-ink ring-2 ring-ink ring-offset-2 shadow-sm"
                       : isSelected
-                      ? "border-accent ring-2 ring-accent/40"
-                      : "border-ink/20 opacity-80 hover:opacity-100"
-                  }`}
+                        ? "border-accent ring-2 ring-accent/40"
+                        : "border-ink/20 opacity-80 hover:opacity-100"
+                    } ${isPulsing ? "scale-115 ring-4 ring-accent/50" : ""}`}
                   style={{ backgroundColor: c.hex }}
                 >
                   {isSelected && (
@@ -823,7 +815,10 @@ export function ProductConfigurator({
                     />
                   )}
                   {count > 0 && (
-                    <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white shadow-sm">
+                    <span
+                      className={`absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white shadow-sm transition-transform duration-300 ${isPulsing ? "scale-135 bg-[#6e0019] ring-2 ring-white" : "scale-100"
+                        }`}
+                    >
                       {count}
                     </span>
                   )}
@@ -831,97 +826,21 @@ export function ProductConfigurator({
               );
             })}
           </div>
-
-          {/* Multiple Colors: Selected Colors Ribbon */}
-          {colorMode === "multiple" && (
-            <div className="mt-4 pt-3 border-t border-line/60">
-              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-body mb-2">
-                <span>Selected Colors ({selectedColorNames.length}):</span>
-                <span className="text-[10px] font-normal normal-case text-body">
-                  Tap to preview color &amp; edit sizes
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {selectedColorNames.map((cn) => {
-                  const cObj = product.colors.find((c) => c.name === cn);
-                  const count = colorTotals[cn] ?? 0;
-                  const isActive = cObj?.name === color.name;
-                  return (
-                    <div
-                      key={cn}
-                      className={`inline-flex items-center gap-2 rounded-lg border px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all ${
-                        isActive
-                          ? "border-ink bg-ink text-white shadow-xs"
-                          : "border-line bg-white text-ink hover:border-ink/40"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const idx = product.colors.findIndex((c) => c.name === cn);
-                          if (idx !== -1) {
-                            setColorIdx(idx);
-                            setActiveImageIdx(0);
-                          }
-                        }}
-                        className="inline-flex items-center gap-1.5 focus:outline-none text-left"
-                      >
-                        <span
-                          className="h-3 w-3 rounded-full border border-black/20 shrink-0"
-                          style={{ backgroundColor: cObj?.hex }}
-                        />
-                        <span>{cn}</span>
-                        {count > 0 ? (
-                          <span
-                            className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                              isActive
-                                ? "bg-white/20 text-white"
-                                : "bg-accent/10 text-accent"
-                            }`}
-                          >
-                            {count} pcs
-                          </span>
-                        ) : (
-                          <span
-                            className={`text-[10px] ${
-                              isActive ? "text-white/60" : "text-body/60"
-                            }`}
-                          >
-                            (add sizes)
-                          </span>
-                        )}
-                      </button>
-                      {selectedColorNames.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSelectedColor(cn)}
-                          aria-label={`Remove ${cn} color`}
-                          className={`rounded-full p-0.5 transition-colors ${
-                            isActive
-                              ? "text-white/60 hover:bg-white/20 hover:text-white"
-                              : "text-body hover:bg-black/5 hover:text-ink"
-                          }`}
-                        >
-                          <X size={13} />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Size-quantity matrix */}
         <div className="mt-6 min-w-0 max-w-full">
           <div className="flex items-center justify-between gap-2 min-w-0">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink shrink-0">
-              <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-                2
-              </span>
-              Sizes & Quantities
-            </p>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <p className="text-xs font-bold uppercase tracking-wider text-ink shrink-0">
+                Sizes &amp; Quantities
+              </p>
+              {totalQty > 0 && (
+                <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-bold text-accent normal-case tracking-normal">
+                  {totalQty} pcs total
+                </span>
+              )}
+            </div>
             {sizeChartImg ? (
               <button
                 id="size-chart-btn"
@@ -959,23 +878,22 @@ export function ProductConfigurator({
             ) : null}
           </div>
 
-          {/* Multi-Color Quick Switcher Tabs in Step 2 */}
-          {colorMode === "multiple" && selectedColorNames.length > 1 && (
-            <div className="mt-2.5 rounded-xl border border-line bg-surface/40 p-2 sm:p-2.5">
-              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-body mb-1.5 px-1">
-                <span>Select Color to Enter Sizes:</span>
-                <span className="text-accent font-bold">
-                  {colorTotals[color.name] ? `${colorTotals[color.name]} pcs for ${color.name}` : "0 pcs"}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                {selectedColorNames.map((cn) => {
-                  const cObj = product.colors.find((c) => c.name === cn);
-                  const count = colorTotals[cn] ?? 0;
-                  const isActive = cObj?.name === color.name;
-                  return (
+          {/* Unified Multi-Color Switcher in Step 2 */}
+          {selectedColorNames.length > 1 && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {selectedColorNames.map((cn) => {
+                const cObj = product.colors.find((c) => c.name === cn);
+                const count = colorTotals[cn] ?? 0;
+                const isActive = cObj?.name === color.name;
+                return (
+                  <div
+                    key={cn}
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all shrink-0 ${isActive
+                        ? "border-ink bg-ink text-white shadow-xs"
+                        : "border-line bg-white text-ink hover:border-ink/50"
+                      }`}
+                  >
                     <button
-                      key={cn}
                       type="button"
                       onClick={() => {
                         const idx = product.colors.findIndex((c) => c.name === cn);
@@ -984,46 +902,63 @@ export function ProductConfigurator({
                           setActiveImageIdx(0);
                         }
                       }}
-                      className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all shrink-0 ${
-                        isActive
-                          ? "border-ink bg-ink text-white shadow-xs"
-                          : "border-line bg-white text-ink hover:border-ink/50"
-                      }`}
+                      className="inline-flex items-center gap-2 focus:outline-none cursor-pointer"
                     >
                       <span
-                        className="h-2.5 w-2.5 rounded-full border border-black/20 shrink-0"
+                        className="h-3 w-3 rounded-full border border-black/20 shrink-0"
                         style={{ backgroundColor: cObj?.hex }}
                       />
                       <span>{cn}</span>
                       <span
-                        className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                          isActive
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${isActive
                             ? "bg-white/20 text-white"
                             : count > 0
-                            ? "bg-accent/10 text-accent font-bold"
-                            : "bg-surface text-body/60"
-                        }`}
+                              ? "bg-accent/15 text-accent"
+                              : "bg-surface text-body/60"
+                          }`}
                       >
                         {count > 0 ? `${count} pcs` : "0"}
                       </span>
                     </button>
-                  );
-                })}
-              </div>
+                    {selectedColorNames.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveSelectedColor(cn);
+                        }}
+                        aria-label={`Remove ${cn} color`}
+                        className={`rounded-full p-0.5 transition-colors cursor-pointer ${isActive
+                            ? "text-white/60 hover:bg-white/20 hover:text-white"
+                            : "text-body hover:bg-black/5 hover:text-ink"
+                          }`}
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
-          <p className="mt-2 text-xs text-body">
-            Entering sizes for{" "}
-            <span className="inline-flex items-center gap-1.5 font-bold text-ink">
-              <span
-                className="inline-block h-3 w-3 rounded-full border border-ink/20"
-                style={{ backgroundColor: color.hex }}
-              />
-              {color.name}
-            </span>{" "}
-            — e.g. L×3, XL×10, 2XL×15.
-          </p>
+          <div className="mt-2 flex items-center justify-between text-xs text-body flex-wrap gap-1">
+            <p>
+              Entering sizes for{" "}
+              <span className="inline-flex items-center gap-1.5 font-bold text-ink">
+                <span
+                  className="inline-block h-3 w-3 rounded-full border border-ink/20"
+                  style={{ backgroundColor: color.hex }}
+                />
+                {color.name}
+              </span>
+            </p>
+            {(colorTotals[color.name] ?? 0) > 0 && (
+              <span className="font-semibold text-accent shrink-0">
+                {colorTotals[color.name]} pcs for {color.name}
+              </span>
+            )}
+          </div>
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
             {productSizes.map((s) => {
               const value = colorQty[s] ?? 0;
@@ -1031,16 +966,15 @@ export function ProductConfigurator({
               return (
                 <div
                   key={s}
-                  className={`rounded-xl sm:rounded-2xl border bg-white p-2.5 sm:p-3 flex flex-col items-center justify-between gap-2.5 sm:gap-3 transition-all ${
-                    value > 0
+                  className={`rounded-xl sm:rounded-2xl border bg-white p-2.5 sm:p-3 flex flex-col items-center justify-between gap-2.5 sm:gap-3 transition-all ${value > 0
                       ? "border-ink ring-1 ring-ink/20 shadow-xs"
                       : "border-line hover:border-ink/40"
-                  }`}
+                    }`}
                 >
                   <div className="text-center">
-                    <span className="text-sm font-bold text-ink">{s}</span>
+                    <span className="text-base sm:text-lg font-bold text-[#6e0019]">{s}</span>
                     {chest && (
-                      <span className="ml-1 text-xs text-body font-normal">
+                      <span className="ml-1 text-sm sm:text-base text-body font-normal">
                         ({chest.replace(/"/g, "")})
                       </span>
                     )}
@@ -1061,15 +995,19 @@ export function ProductConfigurator({
                       inputMode="numeric"
                       value={value === 0 ? "" : value}
                       placeholder="0"
-                      onChange={(e) => setSizeQty(s, Number(e.target.value) || 0)}
+                      onChange={(e) => {
+                        const next = Number(e.target.value) || 0;
+                        if (next > value) triggerSwatchPulse(color.name);
+                        setSizeQty(s, next);
+                      }}
                       aria-label={`${s} quantity`}
                       className="w-8 border-0 bg-transparent text-center text-sm sm:text-base font-bold text-ink placeholder:text-ink placeholder:font-bold outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                     <button
                       type="button"
                       aria-label={`Increase ${s} quantity`}
-                      onClick={() => setSizeQty(s, value + 1)}
-                      className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-surface text-ink transition-colors hover:bg-line cursor-pointer"
+                      onClick={(e) => handleIncreaseQty(s, value, e)}
+                      className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-surface text-ink transition-colors hover:bg-line cursor-pointer active:scale-95"
                     >
                       <Plus size={14} className="stroke-[2.5]" />
                     </button>
@@ -1163,63 +1101,58 @@ export function ProductConfigurator({
           </div>
         )}
 
-        {/* Customization section (only displayed when Customized is chosen) */}
+        {/* Customization section */}
         {apparelType === "custom" && (
           <div
             id="customization-section"
-            className="mt-6 rounded-2xl bg-accent-soft/30 p-4 sm:p-5 space-y-4 animate-in fade-in duration-200"
+            className="mt-6 rounded-2xl bg-accent-soft/30 p-4 sm:p-5 space-y-3.5 animate-in fade-in duration-200"
           >
             <div className="flex items-center justify-between">
               <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-                <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-                  3
-                </span>
                 Customization ({customizedApparelName})
               </p>
               <button
                 type="button"
                 onClick={() => setApparelType("blank")}
-                className="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1"
+                className="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>Switch to Plain Apparel</span>
                 <X size={14} />
               </button>
             </div>
 
-            {/* Approval assurance notice */}
-            <div className="flex items-start gap-2.5 rounded-lg bg-white p-3 text-xs text-ink border border-line">
-              <BadgeCheck size={16} className="text-accent shrink-0 mt-0.5" />
-              <span className="leading-relaxed">
-                <strong>Digital Mockup Approval:</strong> We send a digital mockup on WhatsApp for your sign-off before printing.
-              </span>
-            </div>
-
-            {/* Upload Logo or Design */}
+            {/* Option 1: Customization button (popup for upload logo) */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
-                Upload Logo or Artwork (Optional)
-              </label>
-              {logoPreview ? (
-                <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/50 p-3 pr-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={logoPreview}
-                    alt="Your logo preview"
-                    className="h-14 w-14 rounded-lg border border-line bg-white object-contain p-1"
-                  />
+              {logoName ? (
+                <div className="flex items-center gap-3 rounded-xl border border-accent bg-white p-2.5 sm:p-3 shadow-xs">
+                  {logoPreview && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={logoPreview}
+                      alt="Logo preview"
+                      className="h-10 w-10 rounded-lg border border-line bg-surface object-contain p-0.5 shrink-0"
+                    />
+                  )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-ink">
+                    <p className="truncate text-xs sm:text-sm font-bold text-ink">
                       {logoName}
                     </p>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-body">
-                      <BadgeCheck size={13} className="text-accent" />
-                      Ready — attach this file in the WhatsApp chat
+                    <p className="text-[11px] text-accent font-medium">
+                      Logo attached · WhatsApp mockup will be shared
                     </p>
                   </div>
                   <button
+                    type="button"
+                    onClick={() => setLogoModalOpen(true)}
+                    className="text-xs font-bold text-accent hover:underline shrink-0 cursor-pointer px-1"
+                  >
+                    Change
+                  </button>
+                  <button
+                    type="button"
                     onClick={clearLogo}
                     aria-label="Remove logo"
-                    className="rounded-full p-1.5 text-body transition-colors hover:bg-white hover:text-accent"
+                    className="rounded-full p-1 text-body hover:text-accent shrink-0 cursor-pointer"
                   >
                     <X size={16} />
                   </button>
@@ -1227,26 +1160,11 @@ export function ProductConfigurator({
               ) : (
                 <button
                   type="button"
-                  onClick={() => fileRef.current?.click()}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    onLogoChange(e.dataTransfer.files?.[0]);
-                  }}
-                  className="group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-ink/20 bg-white px-5 py-5 transition-colors hover:border-accent hover:bg-accent-soft/30"
+                  onClick={() => setLogoModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#6e0019] px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-[#540013] transition-all shadow-sm cursor-pointer"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-accent shadow-xs transition-transform group-hover:-translate-y-0.5">
-                    <CloudUpload size={18} />
-                  </span>
-                  <span className="text-sm font-bold text-ink">
-                    Drop your logo here or{" "}
-                    <span className="text-accent underline underline-offset-2">
-                      browse files
-                    </span>
-                  </span>
-                  <span className="text-[11px] text-body">
-                    PNG, JPG, SVG, PDF, AI, EPS — high resolution
-                  </span>
+                  <CloudUpload size={18} />
+                  <span>Upload Logo or Artwork</span>
                 </button>
               )}
               <input
@@ -1258,9 +1176,9 @@ export function ProductConfigurator({
               />
             </div>
 
-            {/* Print text */}
+            {/* Option 2: Custom Text to Print Instead */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
                 {logoName ? "Printing Instructions / Placement Notes" : "Or Custom Text to Print Instead"}
               </label>
               <input
@@ -1281,9 +1199,6 @@ export function ProductConfigurator({
         <div className="mt-7 flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-              <span className="flex h-5 w-5 items-center justify-center bg-accent text-[11px] font-bold text-white">
-                {apparelType === "custom" ? "4" : "3"}
-              </span>
               Review & Add
             </p>
             {/* Add Customization navigation option above right top of Select sizes to add button */}
@@ -1553,6 +1468,128 @@ export function ProductConfigurator({
           </div>
         </div>
       )}
+
+      {/* Upload Logo Popup Modal */}
+      {logoModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Upload Logo or Artwork"
+          onClick={() => setLogoModalOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg rounded-2xl bg-white p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200"
+          >
+            <div className="flex items-center justify-between border-b border-line pb-3.5">
+              <h3 className="text-sm sm:text-base font-bold text-ink flex items-center gap-2">
+                <CloudUpload size={20} className="text-accent" />
+                <span>Upload Logo or Artwork</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setLogoModalOpen(false)}
+                className="rounded-full p-1.5 text-body hover:bg-surface hover:text-ink transition-colors cursor-pointer"
+                aria-label="Close upload popup"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-4">
+              {logoPreview ? (
+                <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/40 p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logoPreview}
+                    alt="Your logo preview"
+                    className="h-16 w-16 rounded-lg border border-line bg-white object-contain p-1 shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-ink">{logoName}</p>
+                    <p className="mt-0.5 text-xs text-emerald-700 font-semibold">
+                      Logo attached successfully
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearLogo}
+                    aria-label="Remove logo"
+                    className="rounded-full p-1.5 text-body hover:bg-white hover:text-accent transition-colors cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    onLogoChange(e.dataTransfer.files?.[0]);
+                  }}
+                  className="group flex w-full flex-col items-center gap-2.5 rounded-xl border-2 border-dashed border-ink/20 bg-surface/50 px-5 py-8 transition-colors hover:border-accent hover:bg-accent-soft/30 cursor-pointer"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-accent shadow-xs transition-transform group-hover:-translate-y-0.5">
+                    <CloudUpload size={22} />
+                  </span>
+                  <span className="text-sm font-bold text-ink">
+                    Drop your logo here or{" "}
+                    <span className="text-accent underline underline-offset-2">
+                      browse files
+                    </span>
+                  </span>
+                  <span className="text-[11px] text-body">
+                    PNG, JPG, SVG, PDF, AI, EPS — high resolution
+                  </span>
+                </button>
+              )}
+            </div>
+
+            <div className="mt-5 flex items-center justify-end gap-2.5 border-t border-line pt-3.5">
+              {logoPreview && (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="rounded-lg border border-line px-4 py-2 text-xs font-bold text-ink hover:bg-surface cursor-pointer"
+                >
+                  Choose Another File
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setLogoModalOpen(false)}
+                className="rounded-lg bg-ink px-5 py-2 text-xs font-bold text-white hover:bg-accent transition-colors cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Minimal flying +1 particle overlay */}
+      {flyingParticles.map((p) => (
+        <div
+          key={p.id}
+          style={
+            {
+              position: "fixed",
+              left: `${p.startX}px`,
+              top: `${p.startY}px`,
+              "--fly-x": `${p.dx}px`,
+              "--fly-y": `${p.dy}px`,
+              pointerEvents: "none",
+              zIndex: 9999,
+            } as React.CSSProperties
+          }
+          className="fly-to-swatch pointer-events-none flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent text-[11px] font-extrabold text-white shadow-lg"
+        >
+          +1
+        </div>
+      ))}
     </div>
   );
 }
