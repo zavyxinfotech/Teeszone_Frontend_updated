@@ -202,7 +202,7 @@ export function ProductConfigurator({
   const [logoModalOpen, setLogoModalOpen] = useState(false);
   const customizedApparelName = useMemo(() => getCustomizedApparelName(product), [product]);
   const [apparelType, setApparelType] = useState<"blank" | "custom">("blank");
-  const [tourStep, setTourStep] = useState<number>(-1);
+  const [tourStep, setTourStep] = useState<number>(0);
   const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
   const [flyingParticles, setFlyingParticles] = useState<
     Array<{ id: number; startX: number; startY: number; dx: number; dy: number }>
@@ -224,17 +224,12 @@ export function ProductConfigurator({
   const pathname = usePathname();
   const saved = hasWishlist(product.slug);
 
-  // Check if first-time user to automatically show intro tour
+  // Start intro tour on product details page
   useEffect(() => {
-    try {
-      const seen = localStorage.getItem("teeszone_product_intro_tour_seen");
-      if (!seen) {
-        const timer = setTimeout(() => {
-          setTourStep(0);
-        }, 700);
-        return () => clearTimeout(timer);
-      }
-    } catch {}
+    const timer = setTimeout(() => {
+      setTourStep(0);
+    }, 450);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleCloseTourStep = () => {
@@ -242,17 +237,11 @@ export function ProductConfigurator({
       setTourStep((prev) => prev + 1);
     } else {
       setTourStep(-1);
-      try {
-        localStorage.setItem("teeszone_product_intro_tour_seen", "true");
-      } catch {}
     }
   };
 
   const handleSkipTour = () => {
     setTourStep(-1);
-    try {
-      localStorage.setItem("teeszone_product_intro_tour_seen", "true");
-    } catch {}
   };
 
   // Position and scroll intro popup tooltip to active element without background overlay
@@ -269,12 +258,21 @@ export function ProductConfigurator({
         : step.targetId;
 
     const el = document.getElementById(targetId);
-    if (!el) return;
-
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
 
     const updatePos = () => {
-      const rect = el.getBoundingClientRect();
+      const target = document.getElementById(targetId);
+      if (!target) {
+        setTooltipPos({
+          top: window.scrollY + 200,
+          left: Math.max(16, (window.innerWidth - 330) / 2),
+        });
+        return;
+      }
+
+      const rect = target.getBoundingClientRect();
       const tooltipWidth = Math.min(320, window.innerWidth - 32);
 
       let left = rect.left + window.scrollX;
@@ -291,7 +289,8 @@ export function ProductConfigurator({
       setTooltipPos({ top, left });
     };
 
-    const timer = setTimeout(updatePos, 220);
+    updatePos();
+    const timer = setTimeout(updatePos, 250);
     window.addEventListener("resize", updatePos);
     window.addEventListener("scroll", updatePos, { passive: true });
 
@@ -1003,86 +1002,48 @@ export function ProductConfigurator({
             ) : null}
           </div>
 
-          {/* Unified Multi-Color Switcher in Step 2 */}
-          {selectedColorNames.length > 1 && (
-            <div className="mt-2.5 flex flex-wrap items-center gap-2">
-              {selectedColorNames.map((cn) => {
-                const cObj = product.colors.find((c) => c.name === cn);
-                const count = colorTotals[cn] ?? 0;
-                const isActive = cObj?.name === color.name;
-                return (
-                  <div
-                    key={cn}
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all shrink-0 ${isActive
-                        ? "border-ink bg-ink text-white shadow-xs"
-                        : "border-line bg-white text-ink hover:border-ink/50"
-                      }`}
+          {/* Color icons with count — minimal & user friendly (no repetitive borders, no color names, no verbose text) */}
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            {selectedColorNames.map((cn) => {
+              const cObj = product.colors.find((c) => c.name === cn);
+              const count = colorTotals[cn] ?? 0;
+              const isActive = cObj?.name === color.name;
+              return (
+                <button
+                  key={cn}
+                  type="button"
+                  onClick={() => {
+                    const idx = product.colors.findIndex((c) => c.name === cn);
+                    if (idx !== -1) {
+                      setColorIdx(idx);
+                      setActiveImageIdx(0);
+                    }
+                  }}
+                  title={`${cn}: ${count} pcs`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-ink text-white shadow-xs ring-2 ring-ink ring-offset-1"
+                      : "bg-surface hover:bg-black/5 text-ink"
+                  }`}
+                >
+                  <span
+                    className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
+                    style={{ backgroundColor: cObj?.hex }}
+                  />
+                  <span
+                    className={`text-xs font-bold ${
+                      isActive
+                        ? "text-white"
+                        : count > 0
+                        ? "text-[#6e0019]"
+                        : "text-body/70"
+                    }`}
                   >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const idx = product.colors.findIndex((c) => c.name === cn);
-                        if (idx !== -1) {
-                          setColorIdx(idx);
-                          setActiveImageIdx(0);
-                        }
-                      }}
-                      className="inline-flex items-center gap-2 focus:outline-none cursor-pointer"
-                    >
-                      <span
-                        className="h-3 w-3 rounded-full border border-black/20 shrink-0"
-                        style={{ backgroundColor: cObj?.hex }}
-                      />
-                      <span>{cn}</span>
-                      <span
-                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${isActive
-                            ? "bg-white/20 text-white"
-                            : count > 0
-                              ? "bg-accent/15 text-accent"
-                              : "bg-surface text-body/60"
-                          }`}
-                      >
-                        {count > 0 ? `${count} pcs` : "0"}
-                      </span>
-                    </button>
-                    {selectedColorNames.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveSelectedColor(cn);
-                        }}
-                        aria-label={`Remove ${cn} color`}
-                        className={`rounded-full p-0.5 transition-colors cursor-pointer ${isActive
-                            ? "text-white/60 hover:bg-white/20 hover:text-white"
-                            : "text-body hover:bg-black/5 hover:text-ink"
-                          }`}
-                      >
-                        <X size={13} />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="mt-2 flex items-center justify-between text-xs text-body flex-wrap gap-1">
-            <p>
-              Entering sizes for{" "}
-              <span className="inline-flex items-center gap-1.5 font-bold text-ink">
-                <span
-                  className="inline-block h-3 w-3 rounded-full border border-ink/20"
-                  style={{ backgroundColor: color.hex }}
-                />
-                {color.name}
-              </span>
-            </p>
-            {(colorTotals[color.name] ?? 0) > 0 && (
-              <span className="font-semibold text-accent shrink-0">
-                {colorTotals[color.name]} pcs for {color.name}
-              </span>
-            )}
+                    {count > 0 ? `${count} pcs` : "0"}
+                  </span>
+                </button>
+              );
+            })}
           </div>
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
             {productSizes.map((s) => {
@@ -1717,18 +1678,29 @@ export function ProductConfigurator({
       ))}
 
       {/* Intro Tour Tooltip Popups (Glassmorphism minimal style without border line) */}
-      {tourStep >= 0 && tourStep < TOUR_STEPS.length && tooltipPos && (
+      {tourStep >= 0 && tourStep < TOUR_STEPS.length && (
         <div
-          style={{
-            position: "absolute",
-            top: `${tooltipPos.top}px`,
-            left: `${tooltipPos.left}px`,
-            zIndex: 40,
-          }}
-          className="w-[300px] sm:w-[325px] rounded-2xl bg-white/85 backdrop-blur-xl p-4 text-ink shadow-[0_12px_40px_rgba(0,0,0,0.14)] ring-1 ring-white/60 transition-all duration-300 animate-in fade-in zoom-in-95 pointer-events-auto"
+          style={
+            tooltipPos
+              ? {
+                  position: "absolute",
+                  top: `${tooltipPos.top}px`,
+                  left: `${tooltipPos.left}px`,
+                  zIndex: 50,
+                }
+              : {
+                  position: "fixed",
+                  bottom: "24px",
+                  right: "24px",
+                  zIndex: 50,
+                }
+          }
+          className="w-[300px] sm:w-[325px] rounded-2xl bg-white/90 backdrop-blur-xl p-4 text-ink shadow-[0_12px_40px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300 animate-in fade-in zoom-in-95 pointer-events-auto border-0"
         >
           {/* Subtle pointer notch */}
-          <div className="absolute -top-1.5 left-7 h-3 w-3 rotate-45 bg-white/85 backdrop-blur-xl ring-1 ring-white/60" />
+          {tooltipPos && (
+            <div className="absolute -top-1.5 left-7 h-3 w-3 rotate-45 bg-white/90 backdrop-blur-xl ring-1 ring-black/5" />
+          )}
 
           <div className="flex items-center justify-between">
             <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-bold text-accent uppercase tracking-wider">
