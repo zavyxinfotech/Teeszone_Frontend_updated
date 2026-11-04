@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertCircle,
   ArrowRight,
   BadgeCheck,
   Building2,
@@ -151,6 +152,26 @@ export function getProductSizeConfig(product: Product): {
 }
 
 
+export interface QtyTier {
+  label: string;
+  minQty: number;
+  maxQty: number;
+  offPct: number;
+  tag: string;
+}
+
+export const QUANTITY_TIERS: QtyTier[] = [
+  { label: "2 pcs", minQty: 2, maxQty: 2, offPct: 0, tag: "Base" },
+  { label: "3–5 pcs", minQty: 3, maxQty: 5, offPct: 12, tag: "12% less" },
+  { label: "6–10 pcs", minQty: 6, maxQty: 10, offPct: 24, tag: "24% less" },
+  { label: "11–14 pcs", minQty: 11, maxQty: 14, offPct: 27, tag: "27% less" },
+  { label: "15–19 pcs", minQty: 15, maxQty: 19, offPct: 28, tag: "28% less" },
+  { label: "20–29 pcs", minQty: 20, maxQty: 29, offPct: 32, tag: "32% less" },
+  { label: "30–49 pcs", minQty: 30, maxQty: 49, offPct: 35, tag: "35% less" },
+  { label: "50–75 pcs", minQty: 50, maxQty: 75, offPct: 39, tag: "39% less" },
+  { label: "76–100 pcs", minQty: 76, maxQty: 100, offPct: 43, tag: "43% less" },
+];
+
 export function ProductConfigurator({
   product,
   initialReviews,
@@ -291,29 +312,63 @@ export function ProductConfigurator({
     }
   }, [colorTotals]);
 
-  // tiers apply on the total across all colors
-  const totalQty = useMemo(
+  const [chosenQty, setChosenQty] = useState<number>(6);
+
+  // Base price (2 pcs base)
+  const basePrice = useMemo(() => {
+    if (product.mrp && product.mrp > 0) return product.mrp;
+    return Math.round(product.price * 1.35);
+  }, [product.mrp, product.price]);
+
+  // Active tier for current chosenQty
+  const activeTier = useMemo(() => {
+    return (
+      QUANTITY_TIERS.find((t) => chosenQty >= t.minQty && chosenQty <= t.maxQty) ||
+      (chosenQty > 100 ? QUANTITY_TIERS[QUANTITY_TIERS.length - 1] : QUANTITY_TIERS[0])
+    );
+  }, [chosenQty]);
+
+  // Current unit price per piece based on chosen quantity tier
+  const currentUnitPrice = useMemo(() => {
+    if (activeTier.offPct === 0) return basePrice;
+    return Math.round(basePrice * (1 - activeTier.offPct / 100));
+  }, [activeTier, basePrice]);
+
+  const totalPrice = Math.round(currentUnitPrice * chosenQty);
+
+  // Next tier details for upsell banner
+  const activeTierIdx = QUANTITY_TIERS.findIndex((t) => t.label === activeTier.label);
+  const nextTier =
+    activeTierIdx >= 0 && activeTierIdx < QUANTITY_TIERS.length - 1
+      ? QUANTITY_TIERS[activeTierIdx + 1]
+      : null;
+  const morePcsNeeded = nextTier ? nextTier.minQty - chosenQty : 0;
+  const nextTierUnitPrice = nextTier ? Math.round(basePrice * (1 - nextTier.offPct / 100)) : 0;
+  const savingsPerPiece = Math.max(0, currentUnitPrice - nextTierUnitPrice);
+
+  // Total allocated sizes across all colors
+  const totalAllocatedQty = useMemo(
     () => Object.values(colorTotals).reduce((a, b) => a + b, 0),
-    [colorTotals],
+    [colorTotals]
   );
+  const isSizeMatched = totalAllocatedQty === chosenQty;
+  const sizeDifference = chosenQty - totalAllocatedQty;
 
-  // highest tier the current total qualifies for
-  const tier = useMemo(() => {
-    const sorted = [...product.qtyDiscounts].sort((a, b) => b.minQty - a.minQty);
-    return sorted.find((t) => totalQty >= t.minQty) ?? null;
-  }, [product.qtyDiscounts, totalQty]);
+  // Auto-distribute sizes to match chosenQty
+  const autoDistributeSizes = () => {
+    if (chosenQty <= 0) return;
+    const targetSizes = productSizes.slice(0, Math.min(3, productSizes.length));
+    const baseEach = Math.floor(chosenQty / targetSizes.length);
+    const remainder = chosenQty % targetSizes.length;
+    const newSplit: Record<string, number> = {};
+    targetSizes.forEach((s, idx) => {
+      newSplit[s] = baseEach + (idx < remainder ? 1 : 0);
+    });
+    setQty({ [color.name]: newSplit });
+  };
 
-  const unitPrice = tier
-    ? Math.round(product.price * (1 - tier.offPct / 100))
-    : product.price;
-
-  // next tier not reached yet (for the progress bar)
-  const nextTier = useMemo(() => {
-    const sorted = [...product.qtyDiscounts]
-      .filter((t) => t.offPct > 0)
-      .sort((a, b) => a.minQty - b.minQty);
-    return sorted.find((t) => totalQty < t.minQty) ?? null;
-  }, [product.qtyDiscounts, totalQty]);
+  const totalQty = totalAllocatedQty;
+  const unitPrice = currentUnitPrice;
 
   const setSizeQty = (size: string, value: number) =>
     setQty((q) => ({
@@ -469,6 +524,10 @@ export function ProductConfigurator({
       router.push(`/login?next=${encodeURIComponent(pathname || `/products/${product.slug}`)}`);
       return;
     }
+    if (!isSizeMatched) {
+      document.getElementById("sizes-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     const lines: Parameters<typeof addItems>[0] = [];
     for (const cn of colorsWithQty) {
       const swatch = product.colors.find((c) => c.name === cn);
@@ -568,8 +627,8 @@ export function ProductConfigurator({
               type="button"
               onClick={() => setApparelType("blank")}
               className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${apparelType === "blank"
-                  ? "bg-ink text-white shadow-xs"
-                  : "text-body hover:text-ink"
+                ? "bg-ink text-white shadow-xs"
+                : "text-body hover:text-ink"
                 }`}
             >
               Blank Apparel
@@ -578,8 +637,8 @@ export function ProductConfigurator({
               type="button"
               onClick={() => setApparelType("custom")}
               className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${apparelType === "custom"
-                  ? "bg-accent text-white shadow-xs"
-                  : "text-body hover:text-ink"
+                ? "bg-accent text-white shadow-xs"
+                : "text-body hover:text-ink"
                 }`}
             >
               {customizedApparelName}
@@ -666,8 +725,8 @@ export function ProductConfigurator({
                         onClick={() => setActiveImageIdx(idx)}
                         aria-label={`View photo ${idx + 1}`}
                         className={`group relative aspect-square w-full shrink-0 overflow-hidden rounded-lg border-2 bg-surface transition-all ${isActive
-                            ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.02]"
-                            : "border-line opacity-75 hover:opacity-100 hover:border-ink/40"
+                          ? "border-accent ring-2 ring-accent/30 shadow-xs scale-[1.02]"
+                          : "border-line opacity-75 hover:opacity-100 hover:border-ink/40"
                           }`}
                       >
                         <Image
@@ -733,54 +792,8 @@ export function ProductConfigurator({
           </div>
         </div>
 
-        {/* Price row */}
-        <div className="mt-4 flex flex-wrap items-baseline gap-x-3">
-          <span className="text-sm text-body line-through">
-            ₹ {product.mrp.toFixed(2)}
-          </span>
-          <span className="text-sm font-bold text-accent">
-            ({offPct(product)}% OFF)
-          </span>
-          <span className="text-2xl font-bold text-ink">₹ {product.price}</span>
-          <span className="text-xs text-body">per piece</span>
-        </div>
-
-        {/* Quantity discount ladder */}
-        <div id="tour-qty-discounts" className="mt-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-ink">
-            Quantity <span className="text-accent">*</span>
-          </p>
-          <div className="mt-2.5 flex flex-wrap gap-2.5">
-            {product.qtyDiscounts.map((t) => {
-              const active = tier?.minQty === t.minQty;
-              const tierUnit = Math.round(product.price * (1 - t.offPct / 100));
-              return (
-                <div
-                  key={t.minQty}
-                  className={`rounded-lg border px-5 py-3 transition-all ${active
-                    ? "border-ink bg-ink text-white shadow-md"
-                    : "border-line bg-white"
-                    }`}
-                >
-                  <p
-                    className={`text-sm  ${active ? "text-white" : "text-ink"}`}
-                  >
-                    {t.minQty > 1 ? `${t.minQty}+ Pcs` : "2 pcs"}
-                  </p>
-                  <p
-                    className={`mt-0.5 text-xs  ${active ? "text-white/70" : "text-body"
-                      }`}
-                  >
-                    ₹ {tierUnit}/pc
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Step 1: Choose Colors */}
-        <div id="tour-choose-colors" className="mt-6">
+        {/* 1. COLOR */}
+        <div id="tour-choose-colors" className="mt-5">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
               Choose Colors
@@ -804,12 +817,13 @@ export function ProductConfigurator({
                   onClick={() => handleSwatchClick(i)}
                   title={`${c.name}${count > 0 ? ` (${count} pcs)` : ""}`}
                   aria-label={`Select ${c.name}${count > 0 ? ` (${count} pcs added)` : ""}`}
-                  className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full border transition-all duration-300 hover:scale-110 ${isCurrentlyActive
+                  className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full border transition-all duration-300 hover:scale-110 ${
+                    isCurrentlyActive
                       ? "border-ink ring-2 ring-ink ring-offset-2 shadow-sm"
                       : isSelected
-                        ? "border-accent ring-2 ring-accent/40"
-                        : "border-ink/20 opacity-80 hover:opacity-100"
-                    } ${isPulsing ? "scale-115 ring-4 ring-accent/50" : ""}`}
+                      ? "border-accent ring-2 ring-accent/40"
+                      : "border-ink/20 opacity-80 hover:opacity-100"
+                  } ${isPulsing ? "scale-115 ring-4 ring-accent/50" : ""}`}
                   style={{ backgroundColor: c.hex }}
                 >
                   {isSelected && (
@@ -820,8 +834,9 @@ export function ProductConfigurator({
                   )}
                   {count > 0 && (
                     <span
-                      className={`absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white shadow-sm transition-transform duration-300 ${isPulsing ? "scale-135 bg-[#6e0019] ring-2 ring-white" : "scale-100"
-                        }`}
+                      className={`absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white shadow-sm transition-transform duration-300 ${
+                        isPulsing ? "scale-135 bg-[#6e0019] ring-2 ring-white" : "scale-100"
+                      }`}
                     >
                       {count}
                     </span>
@@ -832,18 +847,229 @@ export function ProductConfigurator({
           </div>
         </div>
 
-        {/* Size-quantity matrix */}
-        <div id="tour-sizes-qty" className="mt-6 min-w-0 max-w-full">
+        {/* 2. QUANTITY WITH PRICE (Matches attached image) */}
+        <div id="tour-qty-discounts" className="mt-6 rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs">
+          {/* Header row */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-base sm:text-lg font-bold text-ink">Quantity</h3>
+            <span className="rounded-md bg-[#f05a28] px-2.5 py-1 text-xs font-bold text-white shadow-xs">
+              {chosenQty} pcs
+            </span>
+          </div>
+
+          {/* Stepper + Price row */}
+          <div className="mt-3.5 flex flex-wrap items-center gap-4">
+            <div className="flex items-center rounded-xl bg-gray-200/70 p-1">
+              <button
+                type="button"
+                onClick={() => setChosenQty((prev) => Math.max(2, prev - 1))}
+                disabled={chosenQty <= 2}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-lg font-bold text-ink hover:bg-gray-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                aria-label="Decrease quantity"
+              >
+                <Minus size={16} className="stroke-[2.5]" />
+              </button>
+              <input
+                type="number"
+                min={2}
+                value={chosenQty}
+                onChange={(e) => setChosenQty(Math.max(1, Number(e.target.value) || 1))}
+                className="h-9 w-12 bg-white rounded-lg text-center text-base sm:text-lg font-bold text-ink shadow-xs outline-none border-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+              <button
+                type="button"
+                onClick={() => setChosenQty((prev) => prev + 1)}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-lg font-bold text-ink hover:bg-gray-300 transition-colors cursor-pointer"
+                aria-label="Increase quantity"
+              >
+                <Plus size={16} className="stroke-[2.5]" />
+              </button>
+            </div>
+
+            <div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl sm:text-2xl font-extrabold text-ink">
+                  ₹{Math.round(currentUnitPrice).toLocaleString("en-IN")}
+                </span>
+                <span className="text-xs sm:text-sm text-gray-500 font-medium">per piece</span>
+              </div>
+              <div className="text-xs sm:text-sm font-bold text-ink">
+                ₹{totalPrice.toLocaleString("en-IN")} total
+              </div>
+            </div>
+          </div>
+
+          {/* Subtitle: QUANTITY-WISE PRICE LIST */}
+          <div className="mt-5">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              Quantity-wise Price List
+            </p>
+            <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-2.5">
+              {QUANTITY_TIERS.map((t) => {
+                const isSelected = activeTier.label === t.label;
+                const tPrice =
+                  t.offPct === 0
+                    ? basePrice
+                    : Math.round(basePrice * (1 - t.offPct / 100));
+                return (
+                  <button
+                    key={t.label}
+                    type="button"
+                    onClick={() => setChosenQty(t.minQty)}
+                    className={`flex flex-col items-center justify-center rounded-xl p-2.5 text-center transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-2 border-[#f05a28] bg-orange-50/50 shadow-xs ring-1 ring-[#f05a28]/20"
+                        : "border border-line bg-white hover:border-gray-300 hover:shadow-xs"
+                    }`}
+                  >
+                    <span className="text-xs font-bold text-ink">{t.label}</span>
+                    <span className="mt-0.5 text-sm sm:text-base font-extrabold text-ink">
+                      ₹{typeof tPrice === "number" && tPrice % 1 !== 0 ? tPrice.toFixed(2) : Math.round(tPrice).toLocaleString("en-IN")}
+                    </span>
+                    <span
+                      className={`mt-0.5 text-[11px] font-bold ${
+                        t.offPct > 0 ? "text-emerald-600" : "text-gray-400 font-medium"
+                      }`}
+                    >
+                      {t.tag}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Upsell Banner */}
+          {nextTier && (
+            <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-[#f0fdf4] p-3 sm:p-3.5">
+              <p className="text-xs sm:text-sm text-ink leading-relaxed">
+                Add <strong className="font-extrabold text-emerald-800">{morePcsNeeded} more</strong> pcs → pay{" "}
+                <strong className="font-bold text-ink">₹{nextTierUnitPrice}/pc</strong> and save{" "}
+                <strong className="font-bold text-emerald-800">₹{savingsPerPiece}</strong> on every piece.
+              </p>
+              <button
+                type="button"
+                onClick={() => setChosenQty(nextTier.minQty)}
+                className="inline-flex items-center justify-center rounded-xl bg-[#287d55] px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-[#206644] transition-colors shadow-xs cursor-pointer shrink-0"
+              >
+                Make it {nextTier.minQty}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 3. LOGO (CUSTOMIZATION) */}
+        <div id="customization-section" className="mt-6 rounded-2xl border border-line bg-surface/30 p-4 sm:p-5 space-y-3.5">
+          <div className="flex items-center justify-between">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
+              Customization ({customizedApparelName})
+            </p>
+            <button
+              type="button"
+              onClick={() => setApparelType((prev) => (prev === "custom" ? "blank" : "custom"))}
+              className="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>{apparelType === "custom" ? "Switch to Plain Apparel" : "+ Add Customization"}</span>
+              {apparelType === "custom" ? <X size={14} /> : <Sparkles size={14} />}
+            </button>
+          </div>
+
+          {apparelType === "custom" ? (
+            <>
+              {/* Option 1: Customization button (popup for upload logo) */}
+              <div>
+                {logoName ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-accent bg-white p-2.5 sm:p-3 shadow-xs">
+                    {logoPreview && (
+                      <img
+                        src={logoPreview}
+                        alt="Logo preview"
+                        className="h-10 w-10 rounded-lg border border-line bg-surface object-contain p-0.5 shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs sm:text-sm font-bold text-ink">
+                        {logoName}
+                      </p>
+                      <p className="text-[11px] text-accent font-medium">
+                        Logo attached · WhatsApp mockup will be shared
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setLogoModalOpen(true)}
+                      className="text-xs font-bold text-accent hover:underline shrink-0 cursor-pointer px-1"
+                    >
+                      Change
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearLogo}
+                      aria-label="Remove logo"
+                      className="rounded-full p-1 text-body hover:text-accent shrink-0 cursor-pointer"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setLogoModalOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#6e0019] px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-[#540013] transition-all shadow-sm cursor-pointer"
+                  >
+                    <CloudUpload size={18} />
+                    <span>Upload Logo or Artwork</span>
+                  </button>
+                )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*,.pdf,.ai,.eps,.cdr"
+                  className="hidden"
+                  onChange={(e) => onLogoChange(e.target.files?.[0])}
+                />
+              </div>
+
+              {/* Option 2: Custom Text to Print Instead */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
+                  {logoName ? "Printing Instructions / Placement Notes" : "Or Custom Text to Print Instead"}
+                </label>
+                <input
+                  value={printText}
+                  onChange={(e) => setPrintText(e.target.value)}
+                  placeholder={
+                    logoName
+                      ? 'e.g. "Print logo on left chest, 3.5 inches wide"'
+                      : 'e.g. "Team Phoenix — Est. 2026"'
+                  }
+                  className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
+                />
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-body leading-relaxed">
+              Plain apparel selected without custom logo or text print. Click &ldquo;+ Add Customization&rdquo; above to print your brand logo or custom text.
+            </p>
+          )}
+        </div>
+
+        {/* 4. SIZE (SIZES & QUANTITIES with exact quantity matching validation) */}
+        <div id="sizes-section" className="mt-6 min-w-0 max-w-full">
           <div className="flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <p className="text-xs font-bold uppercase tracking-wider text-ink shrink-0">
                 Sizes &amp; Quantities
               </p>
-              {totalQty > 0 && (
-                <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-bold text-accent normal-case tracking-normal">
-                  {totalQty} pcs total
-                </span>
-              )}
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold tracking-normal ${
+                  isSizeMatched
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-accent/10 text-accent"
+                }`}
+              >
+                {totalAllocatedQty} of {chosenQty} pcs allocated
+              </span>
             </div>
             {sizeChartImg ? (
               <button
@@ -882,87 +1108,106 @@ export function ProductConfigurator({
             ) : null}
           </div>
 
-          {/* Unified Multi-Color Switcher in Step 2 */}
-          {selectedColorNames.length > 1 && (
-            <div className="mt-2.5 flex flex-wrap items-center gap-2">
-              {selectedColorNames.map((cn) => {
-                const cObj = product.colors.find((c) => c.name === cn);
-                const count = colorTotals[cn] ?? 0;
-                const isActive = cObj?.name === color.name;
-                return (
-                  <div
-                    key={cn}
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all shrink-0 ${isActive
-                        ? "border-ink bg-ink text-white shadow-xs"
-                        : "border-line bg-white text-ink hover:border-ink/50"
-                      }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const idx = product.colors.findIndex((c) => c.name === cn);
-                        if (idx !== -1) {
-                          setColorIdx(idx);
-                          setActiveImageIdx(0);
-                        }
-                      }}
-                      className="inline-flex items-center gap-2 focus:outline-none cursor-pointer"
-                    >
-                      <span
-                        className="h-3 w-3 rounded-full border border-black/20 shrink-0"
-                        style={{ backgroundColor: cObj?.hex }}
-                      />
-                      <span>{cn}</span>
-                      <span
-                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${isActive
-                            ? "bg-white/20 text-white"
-                            : count > 0
-                              ? "bg-accent/15 text-accent"
-                              : "bg-surface text-body/60"
-                          }`}
-                      >
-                        {count > 0 ? `${count} pcs` : "0"}
-                      </span>
-                    </button>
-                    {selectedColorNames.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveSelectedColor(cn);
-                        }}
-                        aria-label={`Remove ${cn} color`}
-                        className={`rounded-full p-0.5 transition-colors cursor-pointer ${isActive
-                            ? "text-white/60 hover:bg-white/20 hover:text-white"
-                            : "text-body hover:bg-black/5 hover:text-ink"
-                          }`}
-                      >
-                        <X size={13} />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="mt-2 flex items-center justify-between text-xs text-body flex-wrap gap-1">
-            <p>
-              Entering sizes for{" "}
-              <span className="inline-flex items-center gap-1.5 font-bold text-ink">
-                <span
-                  className="inline-block h-3 w-3 rounded-full border border-ink/20"
-                  style={{ backgroundColor: color.hex }}
-                />
-                {color.name}
-              </span>
-            </p>
-            {(colorTotals[color.name] ?? 0) > 0 && (
-              <span className="font-semibold text-accent shrink-0">
-                {colorTotals[color.name]} pcs for {color.name}
-              </span>
+          {/* Validation Error / Success Banner */}
+          <div className="mt-3">
+            {totalAllocatedQty === 0 ? (
+              <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50/90 p-3 text-xs text-amber-900 font-medium">
+                <div className="flex items-center gap-2">
+                  <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                  <span>
+                    Please allocate sizes for your chosen <strong>{chosenQty} pcs</strong> below.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={autoDistributeSizes}
+                  className="shrink-0 rounded-lg bg-amber-200/90 hover:bg-amber-300 px-2.5 py-1 text-[11px] font-bold text-amber-950 transition-colors cursor-pointer"
+                >
+                  Quick-fill {chosenQty} pcs
+                </button>
+              </div>
+            ) : isSizeMatched ? (
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 font-medium">
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                <span>
+                  <strong>Perfect!</strong> All <strong>{chosenQty} pcs</strong> allocated across sizes.
+                </span>
+              </div>
+            ) : sizeDifference > 0 ? (
+              <div className="flex items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 font-medium">
+                <div className="flex items-center gap-2">
+                  <AlertCircle size={16} className="text-red-600 shrink-0" />
+                  <span>
+                    <strong>Size mismatch:</strong> You chose <strong>{chosenQty} pcs</strong>, but only{" "}
+                    <strong>{totalAllocatedQty} pcs</strong> are allocated. Please add{" "}
+                    <strong>{sizeDifference} more pcs</strong> in sizes below.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={autoDistributeSizes}
+                  className="shrink-0 rounded-lg bg-red-200/80 hover:bg-red-200 px-2.5 py-1 text-[11px] font-bold text-red-950 transition-colors cursor-pointer"
+                >
+                  Auto-fill to {chosenQty}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 font-medium">
+                <AlertCircle size={16} className="text-red-600 shrink-0" />
+                <span>
+                  <strong>Size exceeded:</strong> Allocated sizes (<strong>{totalAllocatedQty} pcs</strong>) exceed
+                  your chosen quantity (<strong>{chosenQty} pcs</strong>) by{" "}
+                  <strong>{Math.abs(sizeDifference)} pcs</strong>. Please decrease size counts.
+                </span>
+              </div>
             )}
           </div>
+
+          {/* Color icons with count — minimal & user friendly */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {selectedColorNames.map((cn) => {
+              const cObj = product.colors.find((c) => c.name === cn);
+              const count = colorTotals[cn] ?? 0;
+              const isActive = cObj?.name === color.name;
+              return (
+                <button
+                  key={cn}
+                  type="button"
+                  onClick={() => {
+                    const idx = product.colors.findIndex((c) => c.name === cn);
+                    if (idx !== -1) {
+                      setColorIdx(idx);
+                      setActiveImageIdx(0);
+                    }
+                  }}
+                  title={`${cn}: ${count} pcs`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-ink text-white shadow-xs ring-2 ring-ink ring-offset-1"
+                      : "bg-surface hover:bg-black/5 text-ink"
+                  }`}
+                >
+                  <span
+                    className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
+                    style={{ backgroundColor: cObj?.hex }}
+                  />
+                  <span
+                    className={`text-xs font-bold ${
+                      isActive
+                        ? "text-white"
+                        : count > 0
+                        ? "text-[#6e0019]"
+                        : "text-body/70"
+                    }`}
+                  >
+                    {count > 0 ? `${count} pcs` : "0"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Size boxes grid */}
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
             {productSizes.map((s) => {
               const value = colorQty[s] ?? 0;
@@ -970,10 +1215,11 @@ export function ProductConfigurator({
               return (
                 <div
                   key={s}
-                  className={`rounded-xl sm:rounded-2xl border bg-white p-2.5 sm:p-3 flex flex-col items-center justify-between gap-2.5 sm:gap-3 transition-all ${value > 0
+                  className={`rounded-xl sm:rounded-2xl border bg-white p-2.5 sm:p-3 flex flex-col items-center justify-between gap-2.5 sm:gap-3 transition-all ${
+                    value > 0
                       ? "border-ink ring-1 ring-ink/20 shadow-xs"
                       : "border-line hover:border-ink/40"
-                    }`}
+                  }`}
                 >
                   <div className="text-center">
                     <span className="text-base sm:text-lg font-bold text-[#6e0019]">{s}</span>
@@ -1028,11 +1274,11 @@ export function ProductConfigurator({
               onChange={(e) => setPasteText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && applyPaste()}
               placeholder='In a hurry? Paste a list — e.g. "S-4 M-3 XL-10"'
-              className="w-full border border-line px-3 py-2.5 text-xs text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
+              className="w-full border border-line px-3 py-2.5 text-xs text-ink placeholder:text-body/50 focus:border-ink focus:outline-none rounded-lg"
             />
             <button
               onClick={applyPaste}
-              className="shrink-0 border border-ink px-4 text-[11px] font-bold uppercase tracking-wider text-ink transition-colors hover:bg-ink hover:text-white"
+              className="shrink-0 border border-ink px-4 text-[11px] font-bold uppercase tracking-wider text-ink transition-colors hover:bg-ink hover:text-white rounded-lg cursor-pointer"
             >
               Fill
             </button>
@@ -1040,11 +1286,11 @@ export function ProductConfigurator({
         </div>
 
         {/* Live order summary */}
-        {totalQty > 0 && (
-          <div className="mt-4 overflow-hidden rounded-xl border border-line bg-surface/50 text-ink shadow-none">
+        {totalAllocatedQty > 0 && (
+          <div className="mt-5 overflow-hidden rounded-xl border border-line bg-surface/50 text-ink shadow-none">
             <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4">
               <div className="min-w-0">
-                <p className="text-sm font-bold text-ink">{totalQty} pcs total</p>
+                <p className="text-sm font-bold text-ink">{totalAllocatedQty} pcs total</p>
                 {/* per-color breakdown */}
                 <ul className="mt-2 space-y-1.5">
                   {colorsWithQty.map((cn) => {
@@ -1074,174 +1320,37 @@ export function ProductConfigurator({
               </div>
               <div className="text-right">
                 <p className="text-xl font-bold text-ink">
-                  ₹ {(unitPrice * totalQty).toLocaleString("en-IN")}
+                  ₹ {(currentUnitPrice * totalAllocatedQty).toLocaleString("en-IN")}
+                </p>
+                <p className="text-[11px] text-body">
+                  ₹{Math.round(currentUnitPrice)}/pc
                 </p>
               </div>
-            </div>
-            {nextTier && (
-              <div className="border-t border-line px-5 py-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-body">
-                    Add{" "}
-                    <strong className="font-bold text-ink">
-                      {nextTier.minQty - totalQty} more pcs
-                    </strong>{" "}
-                    for extra {nextTier.offPct}% off
-                  </span>
-                  <span className="font-bold text-gold">
-                    {totalQty}/{nextTier.minQty}
-                  </span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-line">
-                  <div
-                    className="h-full rounded-full bg-gold transition-all duration-300"
-                    style={{
-                      width: `${Math.min(100, (totalQty / nextTier.minQty) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Customization section */}
-        {apparelType === "custom" && (
-          <div
-            id="customization-section"
-            className="mt-6 rounded-2xl bg-accent-soft/30 p-4 sm:p-5 space-y-3.5 animate-in fade-in duration-200"
-          >
-            <div className="flex items-center justify-between">
-              <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-                Customization ({customizedApparelName})
-              </p>
-              <button
-                type="button"
-                onClick={() => setApparelType("blank")}
-                className="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1 cursor-pointer"
-              >
-                <span>Switch to Plain Apparel</span>
-                <X size={14} />
-              </button>
-            </div>
-
-            {/* Option 1: Customization button (popup for upload logo) */}
-            <div>
-              {logoName ? (
-                <div className="flex items-center gap-3 rounded-xl border border-accent bg-white p-2.5 sm:p-3 shadow-xs">
-                  {logoPreview && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={logoPreview}
-                      alt="Logo preview"
-                      className="h-10 w-10 rounded-lg border border-line bg-surface object-contain p-0.5 shrink-0"
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs sm:text-sm font-bold text-ink">
-                      {logoName}
-                    </p>
-                    <p className="text-[11px] text-accent font-medium">
-                      Logo attached · WhatsApp mockup will be shared
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setLogoModalOpen(true)}
-                    className="text-xs font-bold text-accent hover:underline shrink-0 cursor-pointer px-1"
-                  >
-                    Change
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clearLogo}
-                    aria-label="Remove logo"
-                    className="rounded-full p-1 text-body hover:text-accent shrink-0 cursor-pointer"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setLogoModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#6e0019] px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-[#540013] transition-all shadow-sm cursor-pointer"
-                >
-                  <CloudUpload size={18} />
-                  <span>Upload Logo or Artwork</span>
-                </button>
-              )}
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*,.pdf,.ai,.eps,.cdr"
-                className="hidden"
-                onChange={(e) => onLogoChange(e.target.files?.[0])}
-              />
-            </div>
-
-            {/* Option 2: Custom Text to Print Instead */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
-                {logoName ? "Printing Instructions / Placement Notes" : "Or Custom Text to Print Instead"}
-              </label>
-              <input
-                value={printText}
-                onChange={(e) => setPrintText(e.target.value)}
-                placeholder={
-                  logoName
-                    ? 'e.g. "Print logo on left chest, 3.5 inches wide"'
-                    : 'e.g. "Team Phoenix — Est. 2026"'
-                }
-                className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
-              />
             </div>
           </div>
         )}
 
         {/* Step Review & Add */}
-        <div className="mt-7 flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-2">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-              Review & Add
-            </p>
-            {/* Add Customization navigation option above right top of Select sizes to add button */}
-            <button
-              type="button"
-              id="add-customization-nav-btn"
-              onClick={() => {
-                const nextType = apparelType === "custom" ? "blank" : "custom";
-                setApparelType(nextType);
-                if (nextType === "custom") {
-                  setTimeout(() => {
-                    document
-                      .getElementById("customization-section")
-                      ?.scrollIntoView({ behavior: "smooth", block: "center" });
-                  }, 50);
-                }
-              }}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-accent hover:text-accent-dark hover:underline transition-colors cursor-pointer"
-            >
-              <Sparkles size={14} className="text-accent shrink-0" />
-              <span>
-                {apparelType === "custom"
-                  ? "Customization Added (Switch to Plain)"
-                  : "+ Add Customization"}
-              </span>
-              <ArrowRight size={13} className="shrink-0" />
-            </button>
-          </div>
+        <div className="mt-6 flex flex-col gap-3">
           <button
             onClick={handleAddToCart}
-            disabled={totalQty === 0}
+            disabled={!isSizeMatched}
             className="group flex items-center justify-center gap-2.5 rounded-xl bg-ink px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-md transition-all enabled:hover:-translate-y-0.5 enabled:hover:bg-accent enabled:hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ShoppingBag size={17} />
-            {totalQty > 0 ? `Add ${totalQty} pcs to Cart` : "Select sizes to add"}
-            <ArrowRight
-              size={16}
-              className="transition-transform group-enabled:group-hover:translate-x-1"
-            />
+            {isSizeMatched
+              ? `Add ${chosenQty} pcs to Cart`
+              : totalAllocatedQty === 0
+              ? `Allocate ${chosenQty} pcs in sizes to add`
+              : sizeDifference > 0
+              ? `Allocate ${sizeDifference} more pcs in sizes`
+              : `Reduce ${Math.abs(sizeDifference)} pcs in sizes`}
+            {isSizeMatched && (
+              <ArrowRight
+                size={16}
+                className="transition-transform group-enabled:group-hover:translate-x-1"
+              />
+            )}
           </button>
           {justAdded && (
             <Link
@@ -1249,12 +1358,13 @@ export function ProductConfigurator({
               className="flex items-center justify-center gap-2 rounded-xl border border-whatsapp bg-whatsapp/10 px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-whatsapp-dark transition-colors hover:bg-whatsapp hover:text-white"
             >
               <BadgeCheck size={17} />
-              Added — View Cart & Checkout
+              <span>Added — View Cart &amp; Checkout</span>
+              <ArrowRight size={14} />
             </Link>
           )}
           <p className="flex items-center justify-center gap-1.5 text-center text-xs text-body">
             <Sparkles size={13} className="text-accent" />
-            Free design support · Mockup before production · Pan-India delivery
+            <span>Free design support · Mockup before production · Pan-India delivery</span>
           </p>
         </div>
 

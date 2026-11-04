@@ -3,11 +3,16 @@ import type { Product } from "../lib/types";
 const ADULT = ["S", "M", "L", "XL", "XXL"];
 const KIDS = ["2-3Y", "4-5Y", "6-7Y", "8-9Y", "10-11Y", "12-13Y"];
 
-const QTY = [
-  { minQty: 1, offPct: 0 },
-  { minQty: 25, offPct: 10 },
-  { minQty: 50, offPct: 18 },
-  { minQty: 100, offPct: 25 },
+export const QTY = [
+  { minQty: 2, offPct: 0 },
+  { minQty: 3, offPct: 12 },
+  { minQty: 6, offPct: 24 },
+  { minQty: 11, offPct: 27 },
+  { minQty: 15, offPct: 28 },
+  { minQty: 20, offPct: 32 },
+  { minQty: 30, offPct: 35 },
+  { minQty: 50, offPct: 39 },
+  { minQty: 76, offPct: 43 },
 ];
 
 const c = {
