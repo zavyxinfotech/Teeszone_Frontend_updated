@@ -150,38 +150,6 @@ export function getProductSizeConfig(product: Product): {
   };
 }
 
-const TOUR_STEPS = [
-  {
-    targetId: "tour-apparel-type",
-    title: "Blank or Customized",
-    description: "Choose Blank Apparel for plain clothing, or Customized to add your logo or print text.",
-    badge: "Option 1",
-  },
-  {
-    targetId: "tour-qty-discounts",
-    title: "Volume Tier Pricing",
-    description: "Automatic discounts apply as your total quantity across all colors and sizes increases.",
-    badge: "Option 2",
-  },
-  {
-    targetId: "tour-choose-colors",
-    title: "Choose Colors",
-    description: "Tap any swatch to select it. You can pick a single color or mix & match multiple colors.",
-    badge: "Option 3",
-  },
-  {
-    targetId: "tour-sizes-qty",
-    title: "Sizes & Quantities",
-    description: "Allocate piece counts for each size using + / - buttons. Real-time count updates instantly.",
-    badge: "Option 4",
-  },
-  {
-    targetId: "tour-customization-target",
-    title: "Upload Logo or Artwork",
-    description: "Upload your company logo or custom text. We share a WhatsApp digital mockup before printing.",
-    badge: "Option 5",
-  },
-];
 
 export function ProductConfigurator({
   product,
@@ -202,8 +170,6 @@ export function ProductConfigurator({
   const [logoModalOpen, setLogoModalOpen] = useState(false);
   const customizedApparelName = useMemo(() => getCustomizedApparelName(product), [product]);
   const [apparelType, setApparelType] = useState<"blank" | "custom">("blank");
-  const [tourStep, setTourStep] = useState<number>(0);
-  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
   const [flyingParticles, setFlyingParticles] = useState<
     Array<{ id: number; startX: number; startY: number; dx: number; dy: number }>
   >([]);
@@ -223,83 +189,6 @@ export function ProductConfigurator({
   const router = useRouter();
   const pathname = usePathname();
   const saved = hasWishlist(product.slug);
-
-  // Start intro tour on product details page
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setTourStep(0);
-    }, 450);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleCloseTourStep = () => {
-    if (tourStep < TOUR_STEPS.length - 1) {
-      setTourStep((prev) => prev + 1);
-    } else {
-      setTourStep(-1);
-    }
-  };
-
-  const handleSkipTour = () => {
-    setTourStep(-1);
-  };
-
-  // Position and scroll intro popup tooltip to active element without background overlay
-  useEffect(() => {
-    if (tourStep < 0 || tourStep >= TOUR_STEPS.length) {
-      setTooltipPos(null);
-      return;
-    }
-
-    const step = TOUR_STEPS[tourStep];
-    const targetId =
-      step.targetId === "tour-customization-target"
-        ? (apparelType === "custom" ? "customization-section" : "add-customization-nav-btn")
-        : step.targetId;
-
-    const el = document.getElementById(targetId);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-
-    const updatePos = () => {
-      const target = document.getElementById(targetId);
-      if (!target) {
-        setTooltipPos({
-          top: window.scrollY + 200,
-          left: Math.max(16, (window.innerWidth - 330) / 2),
-        });
-        return;
-      }
-
-      const rect = target.getBoundingClientRect();
-      const tooltipWidth = Math.min(320, window.innerWidth - 32);
-
-      let left = rect.left + window.scrollX;
-      if (left + tooltipWidth > window.innerWidth - 16) {
-        left = window.innerWidth - tooltipWidth - 16;
-      }
-      if (left < 16) left = 16;
-
-      let top = rect.bottom + window.scrollY + 8;
-      if (rect.bottom + 170 > window.innerHeight && rect.top > 170) {
-        top = Math.max(10, rect.top + window.scrollY - 160);
-      }
-
-      setTooltipPos({ top, left });
-    };
-
-    updatePos();
-    const timer = setTimeout(updatePos, 250);
-    window.addEventListener("resize", updatePos);
-    window.addEventListener("scroll", updatePos, { passive: true });
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", updatePos);
-      window.removeEventListener("scroll", updatePos);
-    };
-  }, [tourStep, apparelType]);
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [isGalleryHovered, setIsGalleryHovered] = useState(false);
@@ -841,15 +730,6 @@ export function ProductConfigurator({
               <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
               <span>{deliveredOrdersCount.toLocaleString("en-IN")}+ orders delivered</span>
             </p>
-            <button
-              type="button"
-              onClick={() => setTourStep(0)}
-              className="inline-flex items-center gap-1 rounded-full border border-line bg-surface/70 px-2.5 py-0.5 text-[11px] font-semibold text-body hover:border-accent hover:text-accent transition-colors cursor-pointer"
-              title="Show guide to configurator options"
-            >
-              <HelpCircle size={13} className="text-accent" />
-              <span>How it works</span>
-            </button>
           </div>
         </div>
 
@@ -1002,48 +882,86 @@ export function ProductConfigurator({
             ) : null}
           </div>
 
-          {/* Color icons with count — minimal & user friendly (no repetitive borders, no color names, no verbose text) */}
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
-            {selectedColorNames.map((cn) => {
-              const cObj = product.colors.find((c) => c.name === cn);
-              const count = colorTotals[cn] ?? 0;
-              const isActive = cObj?.name === color.name;
-              return (
-                <button
-                  key={cn}
-                  type="button"
-                  onClick={() => {
-                    const idx = product.colors.findIndex((c) => c.name === cn);
-                    if (idx !== -1) {
-                      setColorIdx(idx);
-                      setActiveImageIdx(0);
-                    }
-                  }}
-                  title={`${cn}: ${count} pcs`}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
-                    isActive
-                      ? "bg-ink text-white shadow-xs ring-2 ring-ink ring-offset-1"
-                      : "bg-surface hover:bg-black/5 text-ink"
-                  }`}
-                >
-                  <span
-                    className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
-                    style={{ backgroundColor: cObj?.hex }}
-                  />
-                  <span
-                    className={`text-xs font-bold ${
-                      isActive
-                        ? "text-white"
-                        : count > 0
-                        ? "text-[#6e0019]"
-                        : "text-body/70"
-                    }`}
+          {/* Unified Multi-Color Switcher in Step 2 */}
+          {selectedColorNames.length > 1 && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {selectedColorNames.map((cn) => {
+                const cObj = product.colors.find((c) => c.name === cn);
+                const count = colorTotals[cn] ?? 0;
+                const isActive = cObj?.name === color.name;
+                return (
+                  <div
+                    key={cn}
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all shrink-0 ${isActive
+                        ? "border-ink bg-ink text-white shadow-xs"
+                        : "border-line bg-white text-ink hover:border-ink/50"
+                      }`}
                   >
-                    {count > 0 ? `${count} pcs` : "0"}
-                  </span>
-                </button>
-              );
-            })}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const idx = product.colors.findIndex((c) => c.name === cn);
+                        if (idx !== -1) {
+                          setColorIdx(idx);
+                          setActiveImageIdx(0);
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 focus:outline-none cursor-pointer"
+                    >
+                      <span
+                        className="h-3 w-3 rounded-full border border-black/20 shrink-0"
+                        style={{ backgroundColor: cObj?.hex }}
+                      />
+                      <span>{cn}</span>
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${isActive
+                            ? "bg-white/20 text-white"
+                            : count > 0
+                              ? "bg-accent/15 text-accent"
+                              : "bg-surface text-body/60"
+                          }`}
+                      >
+                        {count > 0 ? `${count} pcs` : "0"}
+                      </span>
+                    </button>
+                    {selectedColorNames.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveSelectedColor(cn);
+                        }}
+                        aria-label={`Remove ${cn} color`}
+                        className={`rounded-full p-0.5 transition-colors cursor-pointer ${isActive
+                            ? "text-white/60 hover:bg-white/20 hover:text-white"
+                            : "text-body hover:bg-black/5 hover:text-ink"
+                          }`}
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-2 flex items-center justify-between text-xs text-body flex-wrap gap-1">
+            <p>
+              Entering sizes for{" "}
+              <span className="inline-flex items-center gap-1.5 font-bold text-ink">
+                <span
+                  className="inline-block h-3 w-3 rounded-full border border-ink/20"
+                  style={{ backgroundColor: color.hex }}
+                />
+                {color.name}
+              </span>
+            </p>
+            {(colorTotals[color.name] ?? 0) > 0 && (
+              <span className="font-semibold text-accent shrink-0">
+                {colorTotals[color.name]} pcs for {color.name}
+              </span>
+            )}
           </div>
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
             {productSizes.map((s) => {
@@ -1676,73 +1594,6 @@ export function ProductConfigurator({
           +1
         </div>
       ))}
-
-      {/* Intro Tour Tooltip Popups (Glassmorphism minimal style without border line) */}
-      {tourStep >= 0 && tourStep < TOUR_STEPS.length && (
-        <div
-          style={
-            tooltipPos
-              ? {
-                  position: "absolute",
-                  top: `${tooltipPos.top}px`,
-                  left: `${tooltipPos.left}px`,
-                  zIndex: 50,
-                }
-              : {
-                  position: "fixed",
-                  bottom: "24px",
-                  right: "24px",
-                  zIndex: 50,
-                }
-          }
-          className="w-[300px] sm:w-[325px] rounded-2xl bg-white/90 backdrop-blur-xl p-4 text-ink shadow-[0_12px_40px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300 animate-in fade-in zoom-in-95 pointer-events-auto border-0"
-        >
-          {/* Subtle pointer notch */}
-          {tooltipPos && (
-            <div className="absolute -top-1.5 left-7 h-3 w-3 rotate-45 bg-white/90 backdrop-blur-xl ring-1 ring-black/5" />
-          )}
-
-          <div className="flex items-center justify-between">
-            <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-bold text-accent uppercase tracking-wider">
-              {TOUR_STEPS[tourStep].badge} · {tourStep + 1} of {TOUR_STEPS.length}
-            </span>
-            <button
-              type="button"
-              onClick={handleCloseTourStep}
-              className="rounded-full p-1 text-body/70 hover:bg-black/5 hover:text-ink transition-colors cursor-pointer"
-              aria-label="Close intro tip"
-              title="Close this tip"
-            >
-              <X size={15} />
-            </button>
-          </div>
-
-          <h4 className="mt-2 text-sm font-bold text-ink flex items-center gap-1.5">
-            <span>{TOUR_STEPS[tourStep].title}</span>
-          </h4>
-          <p className="mt-1 text-xs text-body leading-relaxed">
-            {TOUR_STEPS[tourStep].description}
-          </p>
-
-          <div className="mt-3.5 flex items-center justify-between pt-2.5 border-t border-black/5">
-            <button
-              type="button"
-              onClick={handleSkipTour}
-              className="text-[11px] font-medium text-body/70 hover:text-ink hover:underline cursor-pointer"
-            >
-              Skip tour
-            </button>
-            <button
-              type="button"
-              onClick={handleCloseTourStep}
-              className="inline-flex items-center gap-1 rounded-lg bg-ink px-3 py-1.5 text-xs font-bold text-white hover:bg-accent transition-colors cursor-pointer shadow-xs"
-            >
-              <span>{tourStep === TOUR_STEPS.length - 1 ? "Got it!" : "Next"}</span>
-              {tourStep < TOUR_STEPS.length - 1 && <ArrowRight size={12} />}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
