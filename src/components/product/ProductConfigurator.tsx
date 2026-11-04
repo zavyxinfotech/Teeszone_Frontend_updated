@@ -14,6 +14,7 @@ import {
   ChevronRight,
   CloudUpload,
   Heart,
+  HelpCircle,
   Minus,
   PenTool,
   Plus,
@@ -149,6 +150,39 @@ export function getProductSizeConfig(product: Product): {
   };
 }
 
+const TOUR_STEPS = [
+  {
+    targetId: "tour-apparel-type",
+    title: "Blank or Customized",
+    description: "Choose Blank Apparel for plain clothing, or Customized to add your logo or print text.",
+    badge: "Option 1",
+  },
+  {
+    targetId: "tour-qty-discounts",
+    title: "Volume Tier Pricing",
+    description: "Automatic discounts apply as your total quantity across all colors and sizes increases.",
+    badge: "Option 2",
+  },
+  {
+    targetId: "tour-choose-colors",
+    title: "Choose Colors",
+    description: "Tap any swatch to select it. You can pick a single color or mix & match multiple colors.",
+    badge: "Option 3",
+  },
+  {
+    targetId: "tour-sizes-qty",
+    title: "Sizes & Quantities",
+    description: "Allocate piece counts for each size using + / - buttons. Real-time count updates instantly.",
+    badge: "Option 4",
+  },
+  {
+    targetId: "tour-customization-target",
+    title: "Upload Logo or Artwork",
+    description: "Upload your company logo or custom text. We share a WhatsApp digital mockup before printing.",
+    badge: "Option 5",
+  },
+];
+
 export function ProductConfigurator({
   product,
   initialReviews,
@@ -166,6 +200,10 @@ export function ProductConfigurator({
   const [colorIdx, setColorIdx] = useState(0);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const [logoModalOpen, setLogoModalOpen] = useState(false);
+  const customizedApparelName = useMemo(() => getCustomizedApparelName(product), [product]);
+  const [apparelType, setApparelType] = useState<"blank" | "custom">("blank");
+  const [tourStep, setTourStep] = useState<number>(-1);
+  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
   const [flyingParticles, setFlyingParticles] = useState<
     Array<{ id: number; startX: number; startY: number; dx: number; dy: number }>
   >([]);
@@ -186,8 +224,84 @@ export function ProductConfigurator({
   const pathname = usePathname();
   const saved = hasWishlist(product.slug);
 
-  const customizedApparelName = useMemo(() => getCustomizedApparelName(product), [product]);
-  const [apparelType, setApparelType] = useState<"blank" | "custom">("blank");
+  // Check if first-time user to automatically show intro tour
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem("teeszone_product_intro_tour_seen");
+      if (!seen) {
+        const timer = setTimeout(() => {
+          setTourStep(0);
+        }, 700);
+        return () => clearTimeout(timer);
+      }
+    } catch {}
+  }, []);
+
+  const handleCloseTourStep = () => {
+    if (tourStep < TOUR_STEPS.length - 1) {
+      setTourStep((prev) => prev + 1);
+    } else {
+      setTourStep(-1);
+      try {
+        localStorage.setItem("teeszone_product_intro_tour_seen", "true");
+      } catch {}
+    }
+  };
+
+  const handleSkipTour = () => {
+    setTourStep(-1);
+    try {
+      localStorage.setItem("teeszone_product_intro_tour_seen", "true");
+    } catch {}
+  };
+
+  // Position and scroll intro popup tooltip to active element without background overlay
+  useEffect(() => {
+    if (tourStep < 0 || tourStep >= TOUR_STEPS.length) {
+      setTooltipPos(null);
+      return;
+    }
+
+    const step = TOUR_STEPS[tourStep];
+    const targetId =
+      step.targetId === "tour-customization-target"
+        ? (apparelType === "custom" ? "customization-section" : "add-customization-nav-btn")
+        : step.targetId;
+
+    const el = document.getElementById(targetId);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    const updatePos = () => {
+      const rect = el.getBoundingClientRect();
+      const tooltipWidth = Math.min(320, window.innerWidth - 32);
+
+      let left = rect.left + window.scrollX;
+      if (left + tooltipWidth > window.innerWidth - 16) {
+        left = window.innerWidth - tooltipWidth - 16;
+      }
+      if (left < 16) left = 16;
+
+      let top = rect.bottom + window.scrollY + 8;
+      if (rect.bottom + 170 > window.innerHeight && rect.top > 170) {
+        top = Math.max(10, rect.top + window.scrollY - 160);
+      }
+
+      setTooltipPos({ top, left });
+    };
+
+    const timer = setTimeout(updatePos, 220);
+    window.addEventListener("resize", updatePos);
+    window.addEventListener("scroll", updatePos, { passive: true });
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updatePos);
+      window.removeEventListener("scroll", updatePos);
+    };
+  }, [tourStep, apparelType]);
+
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [isGalleryHovered, setIsGalleryHovered] = useState(false);
   const [blankStartIdx, setBlankStartIdx] = useState(0);
@@ -549,7 +663,7 @@ export function ProductConfigurator({
   }, [sizeChartOpen]);
 
   return (
-    <div className="grid gap-8 lg:gap-10 lg:grid-cols-2 min-w-0 w-full max-w-full">
+    <div className="relative grid gap-8 lg:gap-10 lg:grid-cols-2 min-w-0 w-full max-w-full">
       {/* Gallery - Sticky on desktop view */}
       <div
         className="min-w-0 w-full lg:sticky lg:top-20 self-start"
@@ -557,7 +671,7 @@ export function ProductConfigurator({
         onMouseLeave={() => setIsGalleryHovered(false)}
       >
         {/* Option Selector at top right corner above the image */}
-        <div className="mb-2 sm:mb-3 flex items-center justify-between">
+        <div id="tour-apparel-type" className="mb-2 sm:mb-3 flex items-center justify-between">
           <span className="text-[11px] sm:text-xs font-medium sm:font-bold uppercase tracking-wider text-body">
             Apparel Type
           </span>
@@ -723,10 +837,21 @@ export function ProductConfigurator({
             </span>
           </div>
 
-          <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
-            <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-            <span>{deliveredOrdersCount.toLocaleString("en-IN")}+ orders delivered</span>
-          </p>
+          <div className="mt-1 flex items-center justify-between gap-2 flex-wrap">
+            <p className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
+              <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+              <span>{deliveredOrdersCount.toLocaleString("en-IN")}+ orders delivered</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setTourStep(0)}
+              className="inline-flex items-center gap-1 rounded-full border border-line bg-surface/70 px-2.5 py-0.5 text-[11px] font-semibold text-body hover:border-accent hover:text-accent transition-colors cursor-pointer"
+              title="Show guide to configurator options"
+            >
+              <HelpCircle size={13} className="text-accent" />
+              <span>How it works</span>
+            </button>
+          </div>
         </div>
 
         {/* Price row */}
@@ -742,7 +867,7 @@ export function ProductConfigurator({
         </div>
 
         {/* Quantity discount ladder */}
-        <div className="mt-4">
+        <div id="tour-qty-discounts" className="mt-4">
           <p className="text-xs font-bold uppercase tracking-wider text-ink">
             Quantity <span className="text-accent">*</span>
           </p>
@@ -776,7 +901,7 @@ export function ProductConfigurator({
         </div>
 
         {/* Step 1: Choose Colors */}
-        <div className="mt-6">
+        <div id="tour-choose-colors" className="mt-6">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
               Choose Colors
@@ -829,7 +954,7 @@ export function ProductConfigurator({
         </div>
 
         {/* Size-quantity matrix */}
-        <div className="mt-6 min-w-0 max-w-full">
+        <div id="tour-sizes-qty" className="mt-6 min-w-0 max-w-full">
           <div className="flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <p className="text-xs font-bold uppercase tracking-wider text-ink shrink-0">
@@ -1590,6 +1715,62 @@ export function ProductConfigurator({
           +1
         </div>
       ))}
+
+      {/* Intro Tour Tooltip Popups (Without background color overlay, one-by-one walkthrough) */}
+      {tourStep >= 0 && tourStep < TOUR_STEPS.length && tooltipPos && (
+        <div
+          style={{
+            position: "absolute",
+            top: `${tooltipPos.top}px`,
+            left: `${tooltipPos.left}px`,
+            zIndex: 40,
+          }}
+          className="w-[300px] sm:w-[325px] rounded-2xl border-2 border-accent bg-white p-4 text-ink shadow-2xl transition-all duration-300 animate-in fade-in zoom-in-95 pointer-events-auto"
+        >
+          {/* Subtle pointer notch */}
+          <div className="absolute -top-1.5 left-7 h-3 w-3 rotate-45 border-l-2 border-t-2 border-accent bg-white" />
+
+          <div className="flex items-center justify-between">
+            <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-bold text-accent uppercase tracking-wider">
+              {TOUR_STEPS[tourStep].badge} · {tourStep + 1} of {TOUR_STEPS.length}
+            </span>
+            <button
+              type="button"
+              onClick={handleCloseTourStep}
+              className="rounded-full p-1 text-body hover:bg-surface hover:text-ink transition-colors cursor-pointer"
+              aria-label="Close intro tip"
+              title="Close this tip"
+            >
+              <X size={15} />
+            </button>
+          </div>
+
+          <h4 className="mt-2 text-sm font-bold text-ink flex items-center gap-1.5">
+            <span>{TOUR_STEPS[tourStep].title}</span>
+          </h4>
+          <p className="mt-1 text-xs text-body leading-relaxed">
+            {TOUR_STEPS[tourStep].description}
+          </p>
+
+          <div className="mt-3.5 flex items-center justify-between pt-2.5 border-t border-line/70">
+            <button
+              type="button"
+              onClick={handleSkipTour}
+              className="text-[11px] font-medium text-body hover:text-ink hover:underline cursor-pointer"
+            >
+              Skip tour
+            </button>
+            <button
+              type="button"
+              onClick={handleCloseTourStep}
+              className="inline-flex items-center gap-1 rounded-lg bg-ink px-3 py-1.5 text-xs font-bold text-white hover:bg-accent transition-colors cursor-pointer shadow-xs"
+            >
+              <span>{tourStep === TOUR_STEPS.length - 1 ? "Got it!" : "Next"}</span>
+              {tourStep < TOUR_STEPS.length - 1 && <ArrowRight size={12} />}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
