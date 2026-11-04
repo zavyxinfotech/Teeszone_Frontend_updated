@@ -1716,7 +1716,7 @@ export function ProductConfigurator({
         </div>
       ))}
 
-      {/* Intro Tour Tooltip Popups (Without background color overlay, one-by-one walkthrough) */}
+      {/* Intro Tour Tooltip Popups (Glassmorphism minimal style without border line) */}
       {tourStep >= 0 && tourStep < TOUR_STEPS.length && tooltipPos && (
         <div
           style={{
@@ -1725,10 +1725,10 @@ export function ProductConfigurator({
             left: `${tooltipPos.left}px`,
             zIndex: 40,
           }}
-          className="w-[300px] sm:w-[325px] rounded-2xl border-2 border-accent bg-white p-4 text-ink shadow-2xl transition-all duration-300 animate-in fade-in zoom-in-95 pointer-events-auto"
+          className="w-[300px] sm:w-[325px] rounded-2xl bg-white/85 backdrop-blur-xl p-4 text-ink shadow-[0_12px_40px_rgba(0,0,0,0.14)] ring-1 ring-white/60 transition-all duration-300 animate-in fade-in zoom-in-95 pointer-events-auto"
         >
           {/* Subtle pointer notch */}
-          <div className="absolute -top-1.5 left-7 h-3 w-3 rotate-45 border-l-2 border-t-2 border-accent bg-white" />
+          <div className="absolute -top-1.5 left-7 h-3 w-3 rotate-45 bg-white/85 backdrop-blur-xl ring-1 ring-white/60" />
 
           <div className="flex items-center justify-between">
             <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-bold text-accent uppercase tracking-wider">
@@ -1737,7 +1737,7 @@ export function ProductConfigurator({
             <button
               type="button"
               onClick={handleCloseTourStep}
-              className="rounded-full p-1 text-body hover:bg-surface hover:text-ink transition-colors cursor-pointer"
+              className="rounded-full p-1 text-body/70 hover:bg-black/5 hover:text-ink transition-colors cursor-pointer"
               aria-label="Close intro tip"
               title="Close this tip"
             >
@@ -1752,11 +1752,11 @@ export function ProductConfigurator({
             {TOUR_STEPS[tourStep].description}
           </p>
 
-          <div className="mt-3.5 flex items-center justify-between pt-2.5 border-t border-line/70">
+          <div className="mt-3.5 flex items-center justify-between pt-2.5 border-t border-black/5">
             <button
               type="button"
               onClick={handleSkipTour}
-              className="text-[11px] font-medium text-body hover:text-ink hover:underline cursor-pointer"
+              className="text-[11px] font-medium text-body/70 hover:text-ink hover:underline cursor-pointer"
             >
               Skip tour
             </button>
