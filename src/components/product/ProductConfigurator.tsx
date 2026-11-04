@@ -549,7 +549,7 @@ export function ProductConfigurator({
           : printText
             ? `${customizedApparelName} — Print text: "${printText}"`
             : `${customizedApparelName}`
-        : "Blank Apparel (No customization)";
+        : undefined;
     addItems(lines, note || undefined);
     setQty({});
     setJustAdded(true);
@@ -964,17 +964,17 @@ export function ProductConfigurator({
         </div>
 
         {/* ======================================================== */}
-        {/* 3. LOGO / CUSTOMIZATION                                 */}
+        {/* 3. LOGO / CUSTOMIZATION (ONLY FOR CUSTOMIZED APPAREL)     */}
         {/* ======================================================== */}
-        <div
-          id="customization-section"
-          className="mt-6 rounded-2xl bg-accent-soft/30 p-4 sm:p-5 space-y-3.5"
-        >
-          <div className="flex items-center justify-between">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-              {apparelType === "custom" ? `Customization (${customizedApparelName})` : "Customization (Optional)"}
-            </p>
-            {apparelType === "custom" ? (
+        {apparelType === "custom" && (
+          <div
+            id="customization-section"
+            className="mt-6 rounded-2xl bg-accent-soft/30 p-4 sm:p-5 space-y-3.5 animate-in fade-in duration-200"
+          >
+            <div className="flex items-center justify-between">
+              <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
+                Customization ({customizedApparelName})
+              </p>
               <button
                 type="button"
                 onClick={() => setApparelType("blank")}
@@ -983,95 +983,81 @@ export function ProductConfigurator({
                 <span>Switch to Plain Apparel</span>
                 <X size={14} />
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setApparelType("custom")}
-                className="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1 cursor-pointer"
-              >
-                <span>+ Add Custom Logo/Print</span>
-              </button>
-            )}
-          </div>
+            </div>
 
-          {/* Option 1: Customization button (popup for upload logo) */}
-          <div>
-            {logoName ? (
-              <div className="flex items-center gap-3 rounded-xl border border-accent bg-white p-2.5 sm:p-3 shadow-xs">
-                {logoPreview && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={logoPreview}
-                    alt="Logo preview"
-                    className="h-10 w-10 rounded-lg border border-line bg-surface object-contain p-0.5 shrink-0"
-                  />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs sm:text-sm font-bold text-ink">
-                    {logoName}
-                  </p>
-                  <p className="text-[11px] text-accent font-medium">
-                    Logo attached · WhatsApp mockup will be shared
-                  </p>
+            {/* Option 1: Customization button (popup for upload logo) */}
+            <div>
+              {logoName ? (
+                <div className="flex items-center gap-3 rounded-xl border border-accent bg-white p-2.5 sm:p-3 shadow-xs">
+                  {logoPreview && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={logoPreview}
+                      alt="Logo preview"
+                      className="h-10 w-10 rounded-lg border border-line bg-surface object-contain p-0.5 shrink-0"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs sm:text-sm font-bold text-ink">
+                      {logoName}
+                    </p>
+                    <p className="text-[11px] text-accent font-medium">
+                      Logo attached · WhatsApp mockup will be shared
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLogoModalOpen(true)}
+                    className="text-xs font-bold text-accent hover:underline shrink-0 cursor-pointer px-1"
+                  >
+                    Change
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearLogo}
+                    aria-label="Remove logo"
+                    className="rounded-full p-1 text-body hover:text-accent shrink-0 cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
+              ) : (
                 <button
                   type="button"
                   onClick={() => setLogoModalOpen(true)}
-                  className="text-xs font-bold text-accent hover:underline shrink-0 cursor-pointer px-1"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#6e0019] px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-[#540013] transition-all shadow-sm cursor-pointer"
                 >
-                  Change
+                  <CloudUpload size={18} />
+                  <span>Upload Logo or Artwork</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={clearLogo}
-                  aria-label="Remove logo"
-                  className="rounded-full p-1 text-body hover:text-accent shrink-0 cursor-pointer"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setApparelType("custom");
-                  setLogoModalOpen(true);
-                }}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#6e0019] px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-[#540013] transition-all shadow-sm cursor-pointer"
-              >
-                <CloudUpload size={18} />
-                <span>Upload Logo or Artwork</span>
-              </button>
-            )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*,.pdf,.ai,.eps,.cdr"
-              className="hidden"
-              onChange={(e) => onLogoChange(e.target.files?.[0])}
-            />
-          </div>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*,.pdf,.ai,.eps,.cdr"
+                className="hidden"
+                onChange={(e) => onLogoChange(e.target.files?.[0])}
+              />
+            </div>
 
-          {/* Option 2: Custom Text to Print Instead */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
-              {logoName ? "Printing Instructions / Placement Notes" : "Or Custom Text to Print Instead"}
-            </label>
-            <input
-              value={printText}
-              onChange={(e) => {
-                setPrintText(e.target.value);
-                if (e.target.value && apparelType !== "custom") setApparelType("custom");
-              }}
-              placeholder={
-                logoName
-                  ? 'e.g. "Print logo on left chest, 3.5 inches wide"'
-                  : 'e.g. "Team Phoenix — Est. 2026"'
-              }
-              className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
-            />
+            {/* Option 2: Custom Text to Print Instead */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
+                {logoName ? "Printing Instructions / Placement Notes" : "Or Custom Text to Print Instead"}
+              </label>
+              <input
+                value={printText}
+                onChange={(e) => setPrintText(e.target.value)}
+                placeholder={
+                  logoName
+                    ? 'e.g. "Print logo on left chest, 3.5 inches wide"'
+                    : 'e.g. "Team Phoenix — Est. 2026"'
+                }
+                className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ======================================================== */}
         {/* 4. SIZE SECTION (STRICT ALLOCATION VALIDATION)           */}
