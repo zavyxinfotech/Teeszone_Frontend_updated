@@ -40,27 +40,6 @@ export const PRODUCT_RATINGS: Record<string, ProductRatingInfo> = {
 
   "p-kids-rn-half-180": { rating: 4.8, reviews: 1120, deliveredCompanies: 1300 },
   "kids-rn-half-180": { rating: 4.8, reviews: 1120, deliveredCompanies: 1300 },
-
-  "p-ecoblend-rn-180": { rating: 4.4, reviews: 340, deliveredCompanies: 520 },
-  "ecoblend-rn-180": { rating: 4.4, reviews: 340, deliveredCompanies: 520 },
-
-  "p-biowash-rn-180": { rating: 4.6, reviews: 780, deliveredCompanies: 960 },
-  "biowash-rn-180": { rating: 4.6, reviews: 780, deliveredCompanies: 960 },
-
-  "p-primoknit-polo-200": { rating: 4.5, reviews: 290, deliveredCompanies: 410 },
-  "primoknit-polo-200": { rating: 4.5, reviews: 290, deliveredCompanies: 410 },
-
-  "p-ecoblend-polo-240": { rating: 4.3, reviews: 310, deliveredCompanies: 450 },
-  "ecoblend-polo-240": { rating: 4.3, reviews: 310, deliveredCompanies: 450 },
-
-  "p-aeropiq-polo-210": { rating: 4.5, reviews: 260, deliveredCompanies: 380 },
-  "aeropiq-polo-210": { rating: 4.5, reviews: 260, deliveredCompanies: 380 },
-
-  "p-organic-polo-270": { rating: 4.9, reviews: 540, deliveredCompanies: 760 },
-  "organic-polo-270": { rating: 4.9, reviews: 540, deliveredCompanies: 760 },
-
-  "p-organic-polo-plain-270": { rating: 4.7, reviews: 430, deliveredCompanies: 610 },
-  "organic-polo-plain-270": { rating: 4.7, reviews: 430, deliveredCompanies: 610 },
 };
 
 export function getProductRating(idOrSlug: string): ProductRatingInfo {

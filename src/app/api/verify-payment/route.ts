@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
       const data = await res.json();
       return NextResponse.json(data, { status: res.status });
-    } catch (backendError: any) {
+    } catch {
       // Fallback local verification
       const keySecret = process.env.RAZORPAY_KEY_SECRET;
       if (!keySecret) {
@@ -67,9 +67,10 @@ export async function POST(req: Request) {
         payment_id: razorpay_payment_id,
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to verify payment";
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to verify payment" },
+      { success: false, error: message },
       { status: 500 }
     );
   }

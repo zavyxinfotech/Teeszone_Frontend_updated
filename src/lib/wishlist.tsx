@@ -41,6 +41,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       if (raw) {
         const parsed = JSON.parse(raw) as unknown;
         if (Array.isArray(parsed)) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setSlugs(parsed.filter((s) => typeof s === "string"));
         } else {
           setSlugs([]);

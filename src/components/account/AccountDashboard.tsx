@@ -13,10 +13,9 @@ import {
 } from "lucide-react";
 import { AccountShell } from "@/components/account/AccountShell";
 import { useAuth } from "@/lib/auth";
-import { waLink } from "@/lib/site";
 
 interface DashboardCard {
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   title: string;
   text: string;
   href: string;

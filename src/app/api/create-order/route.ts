@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
       const data = await res.json();
       return NextResponse.json(data, { status: res.status });
-    } catch (backendError: any) {
+    } catch {
       // Fallback directly to Razorpay API if backend service is unreachable
       const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
       const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -68,9 +68,10 @@ export async function POST(req: Request) {
         key_id: keyId,
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to create order";
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to create order" },
+      { success: false, error: message },
       { status: 500 }
     );
   }

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ArrowRight,
-  BadgeCheck,
   CheckCircle2,
   CreditCard,
   Minus,

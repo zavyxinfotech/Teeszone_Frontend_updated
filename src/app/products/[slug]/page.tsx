@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { getProduct, getProducts, getNavigation, getReviews } from "@/lib/api";
+import { redirect } from "next/navigation";
+import { getProduct, getProducts, getReviews } from "@/lib/api";
 import { offPct } from "@/lib/pricing";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 import { FaqAccordion } from "@/components/product/FaqAccordion";

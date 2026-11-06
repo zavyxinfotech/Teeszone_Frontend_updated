@@ -6,28 +6,23 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
-  ArrowRight,
   BadgeCheck,
-  Building2,
   Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   CloudUpload,
   Heart,
-  HelpCircle,
   Minus,
-  PenTool,
+  Pencil,
   Plus,
   Ruler,
   ShoppingBag,
   Sparkles,
   Star,
-  Tag,
   X,
 } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { offPct } from "@/lib/pricing";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
@@ -188,9 +183,7 @@ export function ProductConfigurator({
   );
   const [colorIdx, setColorIdx] = useState(0);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
-  const [logoModalOpen, setLogoModalOpen] = useState(false);
-  const customizedApparelName = useMemo(() => getCustomizedApparelName(product), [product]);
-  const [apparelType, setApparelType] = useState<"blank" | "custom">("blank");
+  const [customizerOpen, setCustomizerOpen] = useState(false);
   const [flyingParticles, setFlyingParticles] = useState<
     Array<{ id: number; startX: number; startY: number; dx: number; dy: number }>
   >([]);
@@ -201,7 +194,6 @@ export function ProductConfigurator({
   const [logoName, setLogoName] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [justAdded, setJustAdded] = useState(false);
-  const [pasteText, setPasteText] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
   const { addItems } = useCart();
@@ -213,9 +205,7 @@ export function ProductConfigurator({
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [isGalleryHovered, setIsGalleryHovered] = useState(false);
-  const [blankStartIdx, setBlankStartIdx] = useState(0);
   const color = product.colors[colorIdx];
-  const colorQty = qty[color.name] ?? {};
   const thumbnailItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Compute all available images for auto-scrolling
@@ -244,11 +234,6 @@ export function ProductConfigurator({
     return uniqueAngles.length > 0 ? uniqueAngles : [color.image];
   }, [color, product.colors]);
 
-  // Reset image view index when color is switched
-  useEffect(() => {
-    setActiveImageIdx(0);
-  }, [colorIdx]);
-
   // 3-second auto-scroll interval (pauses when user hovers gallery)
   useEffect(() => {
     if (displayImages.length <= 1 || isGalleryHovered) return;
@@ -260,25 +245,15 @@ export function ProductConfigurator({
     return () => clearInterval(timer);
   }, [displayImages.length, isGalleryHovered]);
 
-  // Keep active thumbnail scrolled into view when auto-sliding or clicking
+  // Keep active thumbnail scrolled into view within its thumbnail container only (never scroll the window)
   useEffect(() => {
-    if (thumbnailItemRefs.current[activeImageIdx]) {
-      thumbnailItemRefs.current[activeImageIdx]?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "nearest",
-      });
+    const el = thumbnailItemRefs.current[activeImageIdx];
+    const container = el?.parentElement;
+    if (el && container) {
+      const top = el.offsetTop - container.offsetHeight / 2 + el.offsetHeight / 2;
+      container.scrollTo({ top, behavior: "smooth" });
     }
   }, [activeImageIdx]);
-
-  // Auto-scroll blank apparel carousel when a color is selected
-  useEffect(() => {
-    if (colorIdx < blankStartIdx) {
-      setBlankStartIdx(colorIdx);
-    } else if (colorIdx >= blankStartIdx + 6) {
-      setBlankStartIdx(Math.max(0, Math.min(product.colors.length - 6, colorIdx - 5)));
-    }
-  }, [colorIdx, product.colors.length, blankStartIdx]);
 
   const colorTotals = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -289,73 +264,39 @@ export function ProductConfigurator({
     return totals;
   }, [qty]);
 
-  const [selectedColorNames, setSelectedColorNames] = useState<string[]>(() => [
-    product.colors[0]?.name || "",
-  ]);
-
-  // Sync selectedColorNames if product changes
-  useEffect(() => {
-    if (product.colors[0]?.name) {
-      setSelectedColorNames([product.colors[0].name]);
-    }
-  }, [product.id, product.slug]);
-
-  // If user enters pieces for multiple colors, auto-reflect in selectedColorNames
-  useEffect(() => {
-    const activeColorsWithQty = Object.keys(colorTotals).filter(
-      (cn) => (colorTotals[cn] ?? 0) > 0,
-    );
-    if (activeColorsWithQty.length > 0) {
-      setSelectedColorNames((prev) =>
-        Array.from(new Set([...prev, ...activeColorsWithQty])),
-      );
-    }
-  }, [colorTotals]);
-
   // Total allocated quantity across all colors and sizes
   const totalQty = useMemo(
     () => Object.values(colorTotals).reduce((a, b) => a + b, 0),
     [colorTotals],
   );
 
-  const [targetQty, setTargetQty] = useState<number>(6);
   const [sizeError, setSizeError] = useState<string | null>(null);
 
-  // Active pricing tier based on chosen targetQty
-  const activeTier = useMemo(() => {
-    return (
-      PRICE_TIERS.slice()
-        .reverse()
-        .find((t) => targetQty >= t.minQty) || PRICE_TIERS[0]
-    );
-  }, [targetQty]);
+  // 4-Tier Pricing Structure matching product details design (MOQ: 5 pcs)
+  const pricingTiers = useMemo(() => {
+    const p4 = product.price;
+    const p1 = Math.max(p4, Math.round(product.mrp * 0.93));
+    const p2 = Math.max(p4, Math.round(product.mrp * 0.82));
+    const p3 = Math.max(p4, Math.round(product.mrp * 0.70));
+
+    return [
+      { range: "5–9 pcs", minQty: 5, maxQty: 9, pricePerPc: p1, totalText: `₹${(p1 * 5).toLocaleString("en-IN")}+` },
+      { range: "10–49 pcs", minQty: 10, maxQty: 49, pricePerPc: p2, totalText: `₹${(p2 * 10).toLocaleString("en-IN")}+` },
+      { range: "50–99 pcs", minQty: 50, maxQty: 99, pricePerPc: p3, totalText: `₹${(p3 * 50).toLocaleString("en-IN")}+` },
+      { range: "100+ pcs", minQty: 100, maxQty: null, pricePerPc: p4, totalText: `₹${(p4 * 100).toLocaleString("en-IN")}+` },
+    ];
+  }, [product.price, product.mrp]);
 
   const activeUnitPrice = useMemo(() => {
-    return Math.round(product.price * (1 - activeTier.offPct / 100));
-  }, [product.price, activeTier]);
+    const qtyCount = totalQty || 5;
+    if (qtyCount >= 100) return pricingTiers[3].pricePerPc;
+    if (qtyCount >= 50) return pricingTiers[2].pricePerPc;
+    if (qtyCount >= 10) return pricingTiers[1].pricePerPc;
+    return pricingTiers[0].pricePerPc;
+  }, [pricingTiers, totalQty]);
 
-  const nextTier = useMemo(() => {
-    return PRICE_TIERS.find((t) => t.minQty > targetQty) || null;
-  }, [targetQty]);
-
-  const nextTierUnitPrice = useMemo(() => {
-    if (!nextTier) return null;
-    return Math.round(product.price * (1 - nextTier.offPct / 100));
-  }, [product.price, nextTier]);
-
-  const savingsPerPc = useMemo(() => {
-    if (!nextTierUnitPrice) return 0;
-    return Math.max(0, activeUnitPrice - nextTierUnitPrice);
-  }, [activeUnitPrice, nextTierUnitPrice]);
-
-  // Auto-dismiss size error when allocated matches target
-  useEffect(() => {
-    if (sizeError && totalQty === targetQty) {
-      setSizeError(null);
-    }
-  }, [totalQty, targetQty, sizeError]);
-
-  const setSizeQty = (size: string, value: number) =>
+  const setSizeQty = (size: string, value: number) => {
+    if (sizeError) setSizeError(null);
     setQty((q) => ({
       ...q,
       [color.name]: {
@@ -363,6 +304,7 @@ export function ProductConfigurator({
         [size]: Math.max(0, Math.min(9999, value)),
       },
     }));
+  };
 
   const triggerSwatchPulse = (colorName: string) => {
     setPulsingColor(colorName);
@@ -404,85 +346,8 @@ export function ProductConfigurator({
   };
 
   const handleSwatchClick = (idx: number) => {
-    const target = product.colors[idx];
-    if (!target) return;
-
-    if (selectedColorNames.includes(target.name)) {
-      // If user clicks the currently active color and multiple colors are selected, toggle it off
-      if (color.name === target.name && selectedColorNames.length > 1) {
-        handleRemoveSelectedColor(target.name);
-        return;
-      }
-      setColorIdx(idx);
-      setActiveImageIdx(0);
-    } else {
-      // Add this color to selection so user can choose more than one color
-      setSelectedColorNames((prev) => [...prev, target.name]);
-      setColorIdx(idx);
-      setActiveImageIdx(0);
-    }
-  };
-
-  const handleRemoveSelectedColor = (colorName: string) => {
-    if (selectedColorNames.length <= 1) return;
-    // Clear quantity for this color
-    setQty((q) => {
-      const next = { ...q };
-      delete next[colorName];
-      return next;
-    });
-    const updated = selectedColorNames.filter((cn) => cn !== colorName);
-    setSelectedColorNames(updated);
-    if (color.name === colorName) {
-      const nextIdx = product.colors.findIndex((c) => c.name === updated[0]);
-      if (nextIdx !== -1) {
-        setColorIdx(nextIdx);
-        setActiveImageIdx(0);
-      }
-    }
-  };
-
-  const removeColorSplit = (colorName: string) => {
-    setQty((q) => {
-      const next = { ...q };
-      delete next[colorName];
-      return next;
-    });
-    if (selectedColorNames.length > 1) {
-      const remaining = selectedColorNames.filter((cn) => cn !== colorName);
-      setSelectedColorNames(remaining);
-      if (color.name === colorName) {
-        const nextIdx = product.colors.findIndex((c) => c.name === remaining[0]);
-        if (nextIdx !== -1) {
-          setColorIdx(nextIdx);
-          setActiveImageIdx(0);
-        }
-      }
-    }
-  };
-
-  const splitFor = (colorName: string) =>
-    productSizes
-      .filter((s) => (qty[colorName]?.[s] ?? 0) > 0)
-      .map((s) => `${s}×${qty[colorName]![s]}`)
-      .join(", ");
-
-  // parse "S-4 M-3 XL-10" (also S:4 / S 4 / S×4 / 2XL-5) into the active color's split
-  const applyPaste = () => {
-    const parsed: Record<string, number> = {};
-    for (const m of pasteText.matchAll(/([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\s*[-:x×]?\s*(\d+)/g)) {
-      const token = m[1].toLowerCase();
-      const size = productSizes.find(
-        (s) =>
-          s.toLowerCase() === token ||
-          (token === "xxl" && s.toLowerCase() === "2xl") ||
-          (token === "2xl" && s.toLowerCase() === "xxl")
-      );
-      if (size) parsed[size] = Math.min(9999, Number(m[2]));
-    }
-    if (Object.keys(parsed).length === 0) return;
-    setQty((q) => ({ ...q, [color.name]: { ...(q[color.name] ?? {}), ...parsed } }));
-    setPasteText("");
+    setColorIdx(idx);
+    setActiveImageIdx(0);
   };
 
   const onLogoChange = (file: File | undefined) => {
@@ -501,6 +366,33 @@ export function ProductConfigurator({
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  const handleQuickPreset = (count: number) => {
+    const currentSizes = productSizes.length > 0 ? productSizes : ["S", "M", "L", "XL", "2XL"];
+    const newSizesQty: Record<string, number> = {};
+    const base = Math.floor(count / currentSizes.length);
+    let rem = count % currentSizes.length;
+    currentSizes.forEach((s) => {
+      let allocated = base;
+      if (rem > 0) {
+        allocated += 1;
+        rem -= 1;
+      }
+      newSizesQty[s] = allocated;
+    });
+    setQty((q) => ({
+      ...q,
+      [color.name]: newSizesQty,
+    }));
+  };
+
+  const handleClearColorQty = () => {
+    setQty((q) => {
+      const next = { ...q };
+      delete next[color.name];
+      return next;
+    });
+  };
+
   const colorsWithQty = Object.keys(colorTotals);
 
   // branding note (logo filename or print text) goes in as the cart note
@@ -509,18 +401,9 @@ export function ProductConfigurator({
       router.push(`/login?next=${encodeURIComponent(pathname || `/products/${product.slug}`)}`);
       return;
     }
-    if (totalQty === 0) {
-      setSizeError(`Please allocate sizes for your chosen quantity (${targetQty} pcs).`);
-      document.getElementById("sizes-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
-    if (totalQty !== targetQty) {
-      setSizeError(
-        totalQty < targetQty
-          ? `Please allocate all ${targetQty} pcs across sizes before adding to cart (currently ${totalQty}/${targetQty} pcs assigned).`
-          : `Allocated sizes (${totalQty} pcs) exceed chosen quantity (${targetQty} pcs). Please match quantities.`
-      );
-      document.getElementById("sizes-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (totalQty < 5) {
+      setSizeError("Minimum order quantity is 5 pcs. Please select at least 5 pcs across sizes.");
+      setCustomizerOpen(true);
       return;
     }
     const lines: Parameters<typeof addItems>[0] = [];
@@ -541,18 +424,21 @@ export function ProductConfigurator({
           });
       }
     }
-    if (lines.length === 0) return;
-    const note =
-      apparelType === "custom"
-        ? logoName
-          ? `${customizedApparelName} — Logo: ${logoName} (will share on WhatsApp)`
-          : printText
-            ? `${customizedApparelName} — Print text: "${printText}"`
-            : `${customizedApparelName}`
-        : undefined;
+    if (lines.length === 0) {
+      setCustomizerOpen(true);
+      return;
+    }
+    const isCustomized = Boolean(logoName || printText);
+    const note = isCustomized
+      ? logoName
+        ? `Customized — Logo: ${logoName} (will share on WhatsApp)`
+        : printText
+          ? `Customized — Print text: "${printText}"`
+          : "Customized Apparel"
+      : undefined;
     addItems(lines, note || undefined);
-    setQty({});
     setJustAdded(true);
+    setCustomizerOpen(false);
   };
 
   const handleToggleWishlist = () => {
@@ -567,7 +453,7 @@ export function ProductConfigurator({
 
   // Size Chart Image resolver (High-speed local WebP / S3 media proxy)
   const sizeChartImg = useMemo(() => {
-    let url = product.sizeChartImage;
+    const url = product.sizeChartImage;
     if (url) {
       if (url.includes("hoodie-size-chart.webp")) return "/size-charts/hoodie-size-chart.webp";
       if (url.includes("womens-polo-size-chart.webp")) return "/size-charts/womens-polo-size-chart.webp";
@@ -612,35 +498,6 @@ export function ProductConfigurator({
         onMouseEnter={() => setIsGalleryHovered(true)}
         onMouseLeave={() => setIsGalleryHovered(false)}
       >
-        {/* Option Selector at top right corner above the image */}
-        <div id="tour-apparel-type" className="mb-2 sm:mb-3 flex items-center justify-between">
-          <span className="text-[11px] sm:text-xs font-medium sm:font-bold uppercase tracking-wider text-body">
-            Apparel Type
-          </span>
-          <div className="inline-flex rounded-lg border border-line bg-surface p-0.5 sm:p-1 shadow-xs">
-            <button
-              type="button"
-              onClick={() => setApparelType("blank")}
-              className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${apparelType === "blank"
-                ? "bg-ink text-white shadow-xs"
-                : "text-body hover:text-ink"
-                }`}
-            >
-              Blank Apparel
-            </button>
-            <button
-              type="button"
-              onClick={() => setApparelType("custom")}
-              className={`rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider transition-all ${apparelType === "custom"
-                ? "bg-accent text-white shadow-xs"
-                : "text-body hover:text-ink"
-                }`}
-            >
-              {customizedApparelName}
-            </button>
-          </div>
-        </div>
-
         {(() => {
           const currentMainImage = displayImages[activeImageIdx] || color.image;
           const isSvg = typeof currentMainImage === "string" && currentMainImage.toLowerCase().endsWith(".svg");
@@ -787,542 +644,160 @@ export function ProductConfigurator({
           </div>
         </div>
 
-        {/* Price row */}
-        <div className="mt-4 flex flex-wrap items-baseline gap-x-3">
-          <span className="text-sm text-body line-through">
-            ₹ {product.mrp.toFixed(2)}
+        {/* Price Range & MOQ Header (Matches Product Details Design) */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-3">
+          <span className="text-2xl sm:text-3xl font-extrabold text-accent tracking-tight">
+            ₹{pricingTiers[3].pricePerPc} – ₹{pricingTiers[0].pricePerPc}
           </span>
-          <span className="text-sm font-bold text-accent">
-            ({offPct(product)}% OFF)
+          <span className="text-xs sm:text-sm text-body font-medium">per piece</span>
+          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-0.5 text-xs font-bold text-slate-700 border border-slate-200">
+            MOQ: 5 pcs
           </span>
-          <span className="text-2xl font-bold text-ink">₹ {product.price}</span>
-          <span className="text-xs text-body">per piece</span>
         </div>
 
-        {/* ======================================================== */}
-        {/* 1. COLOR SECTION                                        */}
-        {/* ======================================================== */}
-        <div id="section-choose-colors" className="mt-6">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-              Choose Colors
-              <span className="normal-case font-medium text-body">
-                — {selectedColorNames.length > 1 ? `${selectedColorNames.length} colors selected` : color.name}
-              </span>
-            </p>
-          </div>
-
-          {/* Color Swatches Grid */}
-          <div className="mt-3 flex flex-wrap gap-2.5">
+        {/* Choose Colors */}
+        <div id="section-choose-colors" className="mt-5">
+          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
+            Choose Colors
+            <span className="normal-case font-medium text-body">
+              — {color.name}
+            </span>
+          </p>
+          <div className="mt-2.5 flex flex-wrap gap-2.5">
             {product.colors.map((c, i) => {
-              const isSelected = selectedColorNames.includes(c.name);
               const isCurrentlyActive = i === colorIdx;
-              const count = colorTotals[c.name] ?? 0;
               const isPulsing = pulsingColor === c.name;
               return (
                 <button
                   key={c.name}
                   id={`color-swatch-${c.name.replace(/\s+/g, "-")}`}
                   onClick={() => handleSwatchClick(i)}
-                  title={`${c.name}${count > 0 ? ` (${count} pcs)` : ""}`}
-                  aria-label={`Select ${c.name}${count > 0 ? ` (${count} pcs added)` : ""}`}
+                  title={c.name}
+                  aria-label={`Select ${c.name}`}
                   className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full border transition-all duration-300 hover:scale-110 cursor-pointer ${isCurrentlyActive
                     ? "border-ink ring-2 ring-ink ring-offset-2 shadow-sm"
-                    : isSelected
-                      ? "border-[#6e0019] ring-2 ring-[#6e0019]/40"
-                      : "border-ink/20 opacity-80 hover:opacity-100"
-                    } ${isPulsing ? "scale-115 ring-4 ring-[#6e0019]/50" : ""}`}
+                    : "border-ink/20 opacity-80 hover:opacity-100"
+                    } ${isPulsing ? "scale-115 ring-4 ring-accent/50" : ""}`}
                   style={{ backgroundColor: c.hex }}
                 >
-                  {isSelected && (
+                  {isCurrentlyActive && (
                     <Check
                       size={15}
                       className={`stroke-[2.5] ${LIGHT_HEXES.has(c.hex) ? "text-ink" : "text-white"}`}
                     />
                   )}
-                  {count > 0 && (
-                    <span
-                      className={`absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#6e0019] px-1 text-[10px] font-bold text-white shadow-sm transition-transform duration-300 ${isPulsing ? "scale-135 ring-2 ring-white" : "scale-100"
-                        }`}
-                    >
-                      {count}
-                    </span>
-                  )}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* ======================================================== */}
-        {/* 2. QUANTITY WITH PRICE (TEESZONE THEME)                  */}
-        {/* ======================================================== */}
-        <div id="section-quantity-pricing" className="mt-6 rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-base sm:text-lg font-bold text-ink">Quantity</h3>
-            <span className="rounded-md bg-[#6e0019] px-2.5 py-1 text-xs font-bold text-white shadow-xs">
-              {targetQty} pcs
-            </span>
+        {/* Quantity & Tiered Pricing Table (Matches Product Details Design) */}
+        <div className="mt-5 rounded-2xl border border-line bg-white shadow-xs overflow-hidden">
+          <div className="grid grid-cols-3 bg-slate-50/80 px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-body/80 border-b border-line">
+            <span>Quantity</span>
+            <span className="text-center">Price / Piece</span>
+            <span className="text-right">Total</span>
           </div>
-
-          {/* Stepper + Price per piece + Total */}
-          <div className="mt-3.5 flex flex-wrap items-center gap-4">
-            <div className="inline-flex items-center rounded-xl border border-line bg-surface p-1 shadow-xs">
-              <button
-                type="button"
-                onClick={() => setTargetQty((prev) => Math.max(2, prev - 1))}
-                disabled={targetQty <= 2}
-                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-white text-ink shadow-xs hover:bg-line disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                aria-label="Decrease quantity"
+          <div className="divide-y divide-line text-xs sm:text-sm">
+            {pricingTiers.map((t) => (
+              <div
+                key={t.range}
+                className="grid grid-cols-3 items-center px-4 sm:px-6 py-3.5 transition-colors hover:bg-slate-50/60"
               >
-                <Minus size={16} className="stroke-[2.5]" />
-              </button>
-              <input
-                type="number"
-                min={2}
-                value={targetQty}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  if (!isNaN(val) && val >= 1) setTargetQty(val);
-                }}
-                className="w-12 sm:w-14 border-0 bg-transparent text-center text-base sm:text-lg font-bold text-ink focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
-              <button
-                type="button"
-                onClick={() => setTargetQty((prev) => prev + 1)}
-                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-white text-ink shadow-xs hover:bg-line transition-colors cursor-pointer"
-                aria-label="Increase quantity"
-              >
-                <Plus size={16} className="stroke-[2.5]" />
-              </button>
-            </div>
-            <div>
-              <p className="text-lg sm:text-xl font-extrabold text-ink flex items-baseline gap-1.5">
-                <span>₹{activeUnitPrice}</span>
-                <span className="text-xs font-medium text-body">per piece</span>
-              </p>
-              <p className="text-sm font-bold text-ink">
-                ₹{(activeUnitPrice * targetQty).toLocaleString("en-IN")} total
-              </p>
-            </div>
+                <span className="font-semibold text-ink">{t.range}</span>
+                <span className="text-center font-bold text-accent">₹{t.pricePerPc}</span>
+                <span className="text-right font-medium text-body">{t.totalText}</span>
+              </div>
+            ))}
           </div>
-
-          {/* Subheading: QUANTITY-WISE PRICE LIST */}
-          <p className="mt-5 text-[11px] font-bold uppercase tracking-wider text-body">
-            Quantity-Wise Price List
-          </p>
-
-          {/* Grid of Price Tiers */}
-          <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
-            {PRICE_TIERS.map((t) => {
-              const isSelected = activeTier.label === t.label;
-              const tierUnit = Math.round(product.price * (1 - t.offPct / 100));
-              return (
-                <button
-                  key={t.label}
-                  type="button"
-                  onClick={() => setTargetQty(t.minQty)}
-                  className={`rounded-xl border p-2.5 text-center transition-all cursor-pointer ${
-                    isSelected
-                      ? "border-[#6e0019] bg-[#6e0019]/5 ring-2 ring-[#6e0019]/25 shadow-xs"
-                      : "border-line bg-white hover:border-ink/30 hover:bg-surface/50"
-                  }`}
-                >
-                  <p className={`text-xs font-bold ${isSelected ? "text-[#6e0019]" : "text-ink"}`}>
-                    {t.label}
-                  </p>
-                  <p className="mt-0.5 text-sm font-extrabold text-ink">
-                    ₹{tierUnit}
-                  </p>
-                  <p className={`text-[10px] font-semibold ${
-                    t.offPct > 0 ? "text-emerald-700" : "text-body/70"
-                  }`}>
-                    {t.tag}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Upsell Banner */}
-          {nextTier && nextTierUnitPrice && (
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-600/20 bg-emerald-50/70 p-3 sm:p-3.5 text-emerald-950">
-              <p className="text-xs sm:text-sm font-medium">
-                Add <strong className="font-bold text-emerald-900">{nextTier.minQty - targetQty} more</strong> pcs → pay{" "}
-                <strong className="font-bold text-emerald-900">₹{nextTierUnitPrice}/pc</strong> and save ₹{savingsPerPc} on every piece.
-              </p>
-              <button
-                type="button"
-                onClick={() => setTargetQty(nextTier.minQty)}
-                className="shrink-0 rounded-lg bg-[#6e0019] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#540013] transition-colors cursor-pointer"
-              >
-                Make it {nextTier.minQty}
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* ======================================================== */}
-        {/* 3. LOGO / CUSTOMIZATION (ONLY FOR CUSTOMIZED APPAREL)     */}
-        {/* ======================================================== */}
-        {apparelType === "custom" && (
-          <div
-            id="customization-section"
-            className="mt-6 rounded-2xl bg-accent-soft/30 p-4 sm:p-5 space-y-3.5 animate-in fade-in duration-200"
-          >
-            <div className="flex items-center justify-between">
-              <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-                Customization ({customizedApparelName})
-              </p>
-              <button
-                type="button"
-                onClick={() => setApparelType("blank")}
-                className="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1 cursor-pointer"
-              >
-                <span>Switch to Plain Apparel</span>
-                <X size={14} />
-              </button>
-            </div>
+        {/* Payment Terms Banner (Matches Product Details Design) */}
+        <div className="mt-3.5 rounded-xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 text-center text-xs sm:text-sm text-emerald-900">
+          You can pay only <strong className="font-bold text-emerald-950">30%</strong> now, rest{" "}
+          <strong className="font-bold text-emerald-950">70% COD</strong>
+        </div>
 
-            {/* Option 1: Customization button (popup for upload logo) */}
-            <div>
-              {logoName ? (
-                <div className="flex items-center gap-3 rounded-xl border border-accent bg-white p-2.5 sm:p-3 shadow-xs">
-                  {logoPreview && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={logoPreview}
-                      alt="Logo preview"
-                      className="h-10 w-10 rounded-lg border border-line bg-surface object-contain p-0.5 shrink-0"
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs sm:text-sm font-bold text-ink">
-                      {logoName}
-                    </p>
-                    <p className="text-[11px] text-accent font-medium">
-                      Logo attached · WhatsApp mockup will be shared
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setLogoModalOpen(true)}
-                    className="text-xs font-bold text-accent hover:underline shrink-0 cursor-pointer px-1"
-                  >
-                    Change
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clearLogo}
-                    aria-label="Remove logo"
-                    className="rounded-full p-1 text-body hover:text-accent shrink-0 cursor-pointer"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setLogoModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#6e0019] px-4 py-3 text-xs sm:text-sm font-bold text-white hover:bg-[#540013] transition-all shadow-sm cursor-pointer"
-                >
-                  <CloudUpload size={18} />
-                  <span>Upload Logo or Artwork</span>
-                </button>
+        {/* Customize Logo & Color Action Button (Matches Product Details Design) */}
+        <button
+          type="button"
+          onClick={() => setCustomizerOpen(true)}
+          className="mt-4 w-full flex items-center justify-center gap-2.5 rounded-2xl bg-accent px-6 py-4 text-base sm:text-lg font-bold text-white shadow-md hover:bg-accent-dark hover:shadow-lg transition-all cursor-pointer"
+        >
+          <Pencil size={20} className="stroke-[2.5]" />
+          <span>Customize Logo &amp; Color</span>
+        </button>
+
+        {/* Attached Customization Indicator */}
+        {(logoName || printText) && (
+          <div className="mt-3.5 flex items-center justify-between gap-3 rounded-xl border border-accent/40 bg-accent-soft/30 p-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {logoPreview && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoPreview}
+                  alt="Logo preview"
+                  className="h-10 w-10 rounded-lg border border-line bg-white object-contain p-0.5 shrink-0"
+                />
               )}
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*,.pdf,.ai,.eps,.cdr"
-                className="hidden"
-                onChange={(e) => onLogoChange(e.target.files?.[0])}
-              />
+              <div className="min-w-0">
+                <p className="truncate text-xs font-bold text-ink">
+                  {logoName || printText}
+                </p>
+                <p className="text-[11px] text-accent font-medium">
+                  Custom logo attached · WhatsApp mockup will be shared
+                </p>
+              </div>
             </div>
-
-            {/* Option 2: Custom Text to Print Instead */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1.5">
-                {logoName ? "Printing Instructions / Placement Notes" : "Or Custom Text to Print Instead"}
-              </label>
-              <input
-                value={printText}
-                onChange={(e) => setPrintText(e.target.value)}
-                placeholder={
-                  logoName
-                    ? 'e.g. "Print logo on left chest, 3.5 inches wide"'
-                    : 'e.g. "Team Phoenix — Est. 2026"'
-                }
-                className="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
-              />
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setCustomizerOpen(true)}
+                className="text-xs font-bold text-accent hover:underline cursor-pointer"
+              >
+                Change
+              </button>
+              <button
+                type="button"
+                onClick={clearLogo}
+                className="text-body hover:text-accent p-1 cursor-pointer"
+                aria-label="Remove logo"
+              >
+                <X size={15} />
+              </button>
             </div>
           </div>
         )}
 
-        {/* ======================================================== */}
-        {/* 4. SIZE SECTION (STRICT ALLOCATION VALIDATION)           */}
-        {/* ======================================================== */}
-        <div id="sizes-section" className="mt-6 min-w-0 max-w-full">
-          <div className="flex items-center justify-between gap-2 min-w-0">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <p className="text-xs font-bold uppercase tracking-wider text-ink shrink-0">
-                Sizes &amp; Quantities
-              </p>
-              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold normal-case tracking-normal ${
-                totalQty === targetQty
-                  ? "bg-emerald-100 text-emerald-800"
-                  : totalQty > targetQty
-                  ? "bg-rose-100 text-rose-800"
-                  : "bg-amber-100 text-amber-800"
-              }`}>
-                {totalQty} / {targetQty} pcs allocated
-              </span>
-            </div>
-            {sizeChartImg ? (
-              <button
-                id="size-chart-btn"
-                type="button"
-                onClick={() => setSizeChartOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent hover:text-accent-dark hover:underline transition-colors cursor-pointer shrink-0"
-                aria-label="Open Size Chart"
-              >
-                <Ruler size={14} className="shrink-0" />
-                <span>Size Chart</span>
-              </button>
-            ) : showSizeGuide ? (
-              <details className="relative">
-                <summary className="cursor-pointer list-none text-xs font-bold text-accent underline underline-offset-4 [&::-webkit-details-marker]:hidden">
-                  Size Guide
-                </summary>
-                <div className="absolute right-0 z-20 mt-2 w-56 border border-line bg-white p-4 shadow-xl">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-body">
-                    Chest (garment)
-                  </p>
-                  <table className="mt-2 w-full text-xs">
-                    <tbody className="divide-y divide-line">
-                      {productSizes
-                        .filter((s) => sizeGuideMap[s])
-                        .map((s) => (
-                          <tr key={s}>
-                            <td className="py-1.5 font-bold text-ink">{s}</td>
-                            <td className="py-1.5 text-right">{sizeGuideMap[s]}</td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              </details>
-            ) : null}
-          </div>
-
-          {/* Allocation Alerts & Status */}
-          {totalQty < targetQty && (
-            <div className="mt-2.5 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50/90 p-3 text-amber-900 text-xs sm:text-sm">
-              <AlertCircle size={17} className="text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold">Size allocation pending: </span>
-                <span>
-                  You selected <strong>{targetQty} pcs</strong> total, but only <strong>{totalQty} pcs</strong> are assigned to sizes. Please allocate the remaining <strong>{targetQty - totalQty} pcs</strong> below.
-                </span>
-              </div>
-            </div>
-          )}
-
-          {totalQty > targetQty && (
-            <div className="mt-2.5 flex items-start gap-2 rounded-xl border border-rose-300 bg-rose-50/90 p-3 text-rose-900 text-xs sm:text-sm">
-              <AlertCircle size={17} className="text-rose-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold">Allocation exceeds chosen quantity: </span>
-                <span>
-                  Allocated sizes total <strong>{totalQty} pcs</strong>, which exceeds your chosen quantity of <strong>{targetQty} pcs</strong> by <strong>{totalQty - targetQty} pcs</strong>. Please reduce size counts or increase total quantity.
-                </span>
-              </div>
-            </div>
-          )}
-
-          {totalQty === targetQty && (
-            <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50/90 px-3.5 py-2 text-emerald-900 text-xs sm:text-sm">
-              <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-              <span>
-                <strong className="font-bold">All set!</strong> All <strong>{targetQty} pcs</strong> are perfectly allocated across sizes.
-              </span>
-            </div>
-          )}
-
-          {/* Color icons with count — minimal & user friendly */}
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
-            {selectedColorNames.map((cn) => {
-              const cObj = product.colors.find((c) => c.name === cn);
-              const count = colorTotals[cn] ?? 0;
-              const isActive = cObj?.name === color.name;
-              return (
-                <button
-                  key={cn}
-                  type="button"
-                  onClick={() => {
-                    const idx = product.colors.findIndex((c) => c.name === cn);
-                    if (idx !== -1) {
-                      setColorIdx(idx);
-                      setActiveImageIdx(0);
-                    }
-                  }}
-                  title={`${cn}: ${count} pcs`}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
-                    isActive
-                      ? "bg-ink text-white shadow-xs ring-2 ring-ink ring-offset-1"
-                      : "bg-surface hover:bg-black/5 text-ink"
-                  }`}
-                >
-                  <span
-                    className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
-                    style={{ backgroundColor: cObj?.hex }}
-                  />
-                  <span
-                    className={`text-xs font-bold ${
-                      isActive
-                        ? "text-white"
-                        : count > 0
-                        ? "text-[#6e0019]"
-                        : "text-body/70"
-                    }`}
-                  >
-                    {count > 0 ? `${count} pcs` : "0"}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Size boxes grid */}
-          <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-            {productSizes.map((s) => {
-              const value = colorQty[s] ?? 0;
-              const chest = sizeGuideMap[s];
-              return (
-                <div
-                  key={s}
-                  className={`rounded-xl sm:rounded-2xl border bg-white p-2.5 sm:p-3 flex flex-col items-center justify-between gap-2.5 sm:gap-3 transition-all ${value > 0
-                    ? "border-ink ring-1 ring-ink/20 shadow-xs"
-                    : "border-line hover:border-ink/40"
-                    }`}
-                >
-                  <div className="text-center">
-                    <span className="text-base sm:text-lg font-bold text-[#6e0019]">{s}</span>
-                    {chest && (
-                      <span className="ml-1 text-sm sm:text-base text-body font-normal">
-                        ({chest.replace(/"/g, "")})
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between w-full px-0.5">
-                    <button
-                      type="button"
-                      aria-label={`Decrease ${s} quantity`}
-                      onClick={() => setSizeQty(s, value - 1)}
-                      disabled={value === 0}
-                      className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-surface text-ink transition-colors hover:bg-line disabled:opacity-30 disabled:hover:bg-surface cursor-pointer disabled:cursor-not-allowed"
-                    >
-                      <Minus size={14} className="stroke-[2.5]" />
-                    </button>
-                    <input
-                      type="number"
-                      min={0}
-                      inputMode="numeric"
-                      value={value === 0 ? "" : value}
-                      placeholder="0"
-                      onChange={(e) => {
-                        const next = Number(e.target.value) || 0;
-                        if (next > value) triggerSwatchPulse(color.name);
-                        setSizeQty(s, next);
-                      }}
-                      aria-label={`${s} quantity`}
-                      className="w-8 border-0 bg-transparent text-center text-sm sm:text-base font-bold text-ink placeholder:text-ink placeholder:font-bold outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                    />
-                    <button
-                      type="button"
-                      aria-label={`Increase ${s} quantity`}
-                      onClick={(e) => handleIncreaseQty(s, value, e)}
-                      className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-surface text-ink transition-colors hover:bg-line cursor-pointer active:scale-95"
-                    >
-                      <Plus size={14} className="stroke-[2.5]" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* paste-to-fill for the active color */}
-          <div className="mt-3 flex gap-2">
-            <input
-              value={pasteText}
-              onChange={(e) => setPasteText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyPaste()}
-              placeholder='In a hurry? Paste a list — e.g. "S-4 M-3 XL-10"'
-              className="w-full border border-line px-3 py-2.5 text-xs text-ink placeholder:text-body/50 focus:border-ink focus:outline-none"
-            />
-            <button
-              onClick={applyPaste}
-              className="shrink-0 border border-ink px-4 text-[11px] font-bold uppercase tracking-wider text-ink transition-colors hover:bg-ink hover:text-white"
-            >
-              Fill
-            </button>
-          </div>
-        </div>
-
-        {/* Step Review & Add */}
-        <div className="mt-7 flex flex-col gap-3">
-          {sizeError && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-rose-300 bg-rose-50 p-3.5 text-rose-900 text-xs sm:text-sm animate-in fade-in">
-              <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold">Cannot proceed to cart</p>
-                <p className="mt-0.5 leading-snug">{sizeError}</p>
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between gap-2">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-              Review &amp; Add
-            </p>
-            <span className={`text-xs font-bold ${totalQty === targetQty ? "text-emerald-700" : "text-amber-700"}`}>
-              {totalQty} of {targetQty} pcs assigned
-            </span>
-          </div>
+        {/* Direct Add to Cart when sizes are configured */}
+        {totalQty >= 5 && (
           <button
+            type="button"
             onClick={handleAddToCart}
-            className="group flex items-center justify-center gap-2.5 rounded-xl bg-ink px-8 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#6e0019] hover:shadow-lg cursor-pointer"
+            className="mt-3 w-full flex items-center justify-center gap-2.5 rounded-2xl bg-ink px-6 py-3.5 text-sm sm:text-base font-bold text-white shadow-md hover:bg-accent hover:shadow-lg transition-all cursor-pointer"
           >
-            <ShoppingBag size={17} />
+            <ShoppingBag size={18} />
             <span>
-              {totalQty === targetQty
-                ? `Add ${targetQty} pcs to Cart (₹${(activeUnitPrice * targetQty).toLocaleString("en-IN")})`
-                : totalQty === 0
-                ? `Allocate sizes for ${targetQty} pcs`
-                : totalQty < targetQty
-                ? `Allocate remaining ${targetQty - totalQty} pcs to add to cart`
-                : `Adjust sizes to match ${targetQty} pcs`}
+              Add {totalQty} pcs to Cart (₹{(activeUnitPrice * totalQty).toLocaleString("en-IN")})
             </span>
-            <ArrowRight
-              size={16}
-              className="transition-transform group-hover:translate-x-1"
-            />
           </button>
-          {justAdded && (
-            <Link
-              href="/cart"
-              className="flex items-center justify-center gap-2 rounded-xl border border-whatsapp bg-whatsapp/10 px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-whatsapp-dark transition-colors hover:bg-whatsapp hover:text-white"
-            >
-              <BadgeCheck size={17} />
-              Added — View Cart & Checkout
-            </Link>
-          )}
-          <p className="flex items-center justify-center gap-1.5 text-center text-xs text-body">
-            <Sparkles size={13} className="text-accent" />
-            Free design support · Mockup before production · Pan-India delivery
-          </p>
-        </div>
+        )}
+
+        {justAdded && (
+          <Link
+            href="/cart"
+            className="mt-2.5 flex items-center justify-center gap-2 rounded-xl border border-whatsapp bg-whatsapp/10 px-6 py-3 text-sm font-bold uppercase tracking-wider text-whatsapp-dark transition-colors hover:bg-whatsapp hover:text-white"
+          >
+            <BadgeCheck size={18} />
+            <span>Added to Cart — View Cart &amp; Checkout</span>
+          </Link>
+        )}
+
+        <p className="mt-3.5 flex items-center justify-center gap-1.5 text-center text-xs text-body">
+          <Sparkles size={13} className="text-accent" />
+          Free design support · Mockup before production · Pan-India delivery
+        </p>
 
         {/* Customer Reviews Section */}
         <div className="mt-8">
@@ -1475,7 +950,7 @@ export function ProductConfigurator({
               {totalQty} pcs · {product.name}
             </p>
             <p className="text-xs text-body">
-              est. ₹ {(activeUnitPrice * (totalQty || targetQty)).toLocaleString("en-IN")} @ ₹
+              est. ₹ {(activeUnitPrice * totalQty).toLocaleString("en-IN")} @ ₹
               {activeUnitPrice}/pc
             </p>
           </div>
@@ -1517,6 +992,7 @@ export function ProductConfigurator({
 
             {/* Size Chart Image */}
             <div className="overflow-auto max-h-[94vh] p-2 sm:p-3 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={sizeChartImg}
                 alt={`${product.name} Size Chart`}
@@ -1539,102 +1015,339 @@ export function ProductConfigurator({
         </div>
       )}
 
-      {/* Upload Logo Popup Modal */}
-      {logoModalOpen && (
+      {/* Hidden file input for logo / artwork upload */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*,.pdf,.ai,.eps"
+        className="hidden"
+        onChange={(e) => onLogoChange(e.target.files?.[0])}
+      />
+
+      {/* Customize Logo & Color Popup Modal */}
+      {customizerOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Upload Logo or Artwork"
-          onClick={() => setLogoModalOpen(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+          aria-label="Customize Logo & Color"
+          onClick={() => setCustomizerOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-lg rounded-2xl bg-white p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200"
+            className="relative flex flex-col w-full max-w-2xl max-h-[92vh] rounded-2xl bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
           >
-            <div className="flex items-center justify-between border-b border-line pb-3.5">
-              <h3 className="text-sm sm:text-base font-bold text-ink flex items-center gap-2">
-                <CloudUpload size={20} className="text-accent" />
-                <span>Upload Logo or Artwork</span>
-              </h3>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-line px-5 py-4 bg-surface/50">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <Pencil size={18} className="stroke-[2.5]" />
+                </span>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-ink">
+                    Customize Logo, Color &amp; Sizes
+                  </h3>
+                  <p className="text-xs text-body line-clamp-1">{product.name}</p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setLogoModalOpen(false)}
-                className="rounded-full p-1.5 text-body hover:bg-surface hover:text-ink transition-colors cursor-pointer"
-                aria-label="Close upload popup"
+                onClick={() => setCustomizerOpen(false)}
+                className="rounded-full p-2 text-body hover:bg-white hover:text-ink transition-colors cursor-pointer"
+                aria-label="Close modal"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="mt-4">
-              {logoPreview ? (
-                <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/40 p-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={logoPreview}
-                    alt="Your logo preview"
-                    className="h-16 w-16 rounded-lg border border-line bg-white object-contain p-1 shrink-0"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-ink">{logoName}</p>
-                    <p className="mt-0.5 text-xs text-emerald-700 font-semibold">
-                      Logo attached successfully
-                    </p>
+            {/* Modal Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+              {/* Step 1: Color Selection */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink">
+                    1. Select Color
+                  </span>
+                  <span className="text-xs font-semibold text-accent bg-accent-soft/50 px-2.5 py-0.5 rounded-full">
+                    Active: {color.name}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {product.colors.map((c, idx) => {
+                    const isSelected = colorIdx === idx;
+                    return (
+                      <button
+                        key={c.name}
+                        type="button"
+                        onClick={() => {
+                          setColorIdx(idx);
+                          setActiveImageIdx(0);
+                        }}
+                        className={`group relative flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all cursor-pointer ${isSelected
+                          ? "border-accent bg-accent-soft/30 text-ink ring-2 ring-accent/30 shadow-xs"
+                          : "border-line bg-white text-ink/75 hover:border-ink/40"
+                          }`}
+                      >
+                        <span
+                          className="h-4 w-4 rounded-full border border-black/10 shrink-0"
+                          style={{ backgroundColor: c.hex }}
+                        />
+                        <span>{c.name}</span>
+                        {isSelected && <Check size={14} className="text-accent ml-0.5" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Step 2: Sizes & Quantities */}
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-ink">
+                      2. Sizes &amp; Quantities
+                    </span>
+                    <span className="ml-2 text-xs font-bold text-accent bg-accent-soft/40 px-2 py-0.5 rounded">
+                      MOQ: 5 pcs
+                    </span>
                   </div>
+                  {showSizeGuide && (
+                    <button
+                      type="button"
+                      onClick={() => setSizeChartOpen(true)}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline cursor-pointer"
+                    >
+                      <Ruler size={14} />
+                      <span>Size Guide</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="text-[11px] font-semibold text-body">Quick presets:</span>
+                  {[5, 10, 25, 50].map((presetCount) => (
+                    <button
+                      key={presetCount}
+                      type="button"
+                      onClick={() => handleQuickPreset(presetCount)}
+                      className="rounded-lg border border-line bg-surface/70 px-2.5 py-1 text-xs font-bold text-ink hover:border-accent hover:bg-accent-soft/40 hover:text-accent transition-colors cursor-pointer"
+                    >
+                      +{presetCount} pcs
+                    </button>
+                  ))}
+                  {Object.values(qty[color.name] ?? {}).some((v) => v > 0) && (
+                    <button
+                      type="button"
+                      onClick={handleClearColorQty}
+                      className="rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-semibold text-body hover:text-accent hover:bg-red-50 hover:border-red-200 transition-colors cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                {/* Size Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {productSizes.map((s) => {
+                    const currentVal = qty[color.name]?.[s] ?? 0;
+                    const guide = sizeGuideMap[s];
+                    return (
+                      <div
+                        key={s}
+                        className={`flex flex-col justify-between rounded-xl border p-3 transition-colors ${currentVal > 0
+                          ? "border-accent bg-accent-soft/20 shadow-xs"
+                          : "border-line bg-surface/30"
+                          }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-extrabold text-ink">{s}</span>
+                          {guide && (
+                            <span className="text-[10px] font-medium text-body">
+                              Chest {guide}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-2.5 flex items-center justify-between gap-1.5 bg-white rounded-lg border border-line p-1">
+                          <button
+                            type="button"
+                            onClick={() => setSizeQty(s, currentVal - 1)}
+                            disabled={currentVal <= 0}
+                            className="flex h-7 w-7 items-center justify-center rounded text-body hover:bg-surface hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                            aria-label={`Decrease ${s}`}
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <input
+                            type="number"
+                            min="0"
+                            max="9999"
+                            value={currentVal === 0 ? "" : currentVal}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              setSizeQty(s, isNaN(val) ? 0 : val);
+                            }}
+                            placeholder="0"
+                            className="w-12 text-center text-sm font-bold text-ink focus:outline-hidden [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => handleIncreaseQty(s, currentVal, e)}
+                            className="flex h-7 w-7 items-center justify-center rounded text-body hover:bg-surface hover:text-ink cursor-pointer"
+                            aria-label={`Increase ${s}`}
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Validation / Status Bar */}
+                <div className="mt-3">
+                  {totalQty < 5 ? (
+                    <div className="flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-xs font-semibold text-amber-900">
+                      <AlertCircle size={16} className="text-amber-700 shrink-0" />
+                      <span>
+                        Minimum 5 pieces required. Please allocate at least {5 - totalQty} more pc
+                        {5 - totalQty > 1 ? "s" : ""} to add to cart.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2.5 text-xs font-semibold text-emerald-900">
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 size={16} className="text-emerald-600" />
+                        <span>{totalQty} pieces allocated across sizes</span>
+                      </span>
+                      <span className="font-bold text-emerald-950">
+                        ₹{activeUnitPrice}/pc tier
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 3: Custom Logo / Artwork (Optional) */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink">
+                    3. Logo / Branding (Optional)
+                  </span>
+                  <span className="text-[11px] text-body">Leave blank for plain apparel</span>
+                </div>
+                <p className="text-xs text-body leading-relaxed mb-3">
+                  If you upload a logo, this item will be treated as <strong>Customized Apparel</strong>.
+                  If no logo is added, it will be processed as <strong>Blank Apparel</strong>.
+                </p>
+
+                {logoPreview ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-accent bg-accent-soft/40 p-3.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logoPreview}
+                      alt="Your logo preview"
+                      className="h-16 w-16 rounded-lg border border-line bg-white object-contain p-1 shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-ink">{logoName}</p>
+                      <p className="mt-0.5 text-xs text-emerald-700 font-semibold">
+                        Logo attached — Digital mockup will be shared before production
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        className="rounded-lg border border-line bg-white px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-surface cursor-pointer"
+                      >
+                        Change
+                      </button>
+                      <button
+                        type="button"
+                        onClick={clearLogo}
+                        aria-label="Remove logo"
+                        className="rounded-lg p-1.5 text-body hover:bg-white hover:text-accent transition-colors cursor-pointer"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={clearLogo}
-                    aria-label="Remove logo"
-                    className="rounded-full p-1.5 text-body hover:bg-white hover:text-accent transition-colors cursor-pointer"
+                    onClick={() => fileRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      onLogoChange(e.dataTransfer.files?.[0]);
+                    }}
+                    className="group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-ink/20 bg-surface/50 px-5 py-6 transition-colors hover:border-accent hover:bg-accent-soft/30 cursor-pointer"
                   >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    onLogoChange(e.dataTransfer.files?.[0]);
-                  }}
-                  className="group flex w-full flex-col items-center gap-2.5 rounded-xl border-2 border-dashed border-ink/20 bg-surface/50 px-5 py-8 transition-colors hover:border-accent hover:bg-accent-soft/30 cursor-pointer"
-                >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-accent shadow-xs transition-transform group-hover:-translate-y-0.5">
-                    <CloudUpload size={22} />
-                  </span>
-                  <span className="text-sm font-bold text-ink">
-                    Drop your logo here or{" "}
-                    <span className="text-accent underline underline-offset-2">
-                      browse files
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-accent shadow-xs transition-transform group-hover:-translate-y-0.5">
+                      <CloudUpload size={22} />
                     </span>
-                  </span>
-                  <span className="text-[11px] text-body">
-                    PNG, JPG, SVG, PDF, AI, EPS — high resolution
-                  </span>
-                </button>
-              )}
+                    <span className="text-sm font-bold text-ink">
+                      Drop logo here or{" "}
+                      <span className="text-accent underline underline-offset-2">browse files</span>
+                    </span>
+                    <span className="text-[11px] text-body">
+                      PNG, JPG, SVG, PDF, AI, EPS — high resolution
+                    </span>
+                  </button>
+                )}
+
+                {/* Print instructions or custom text */}
+                <div className="mt-3">
+                  <label htmlFor="modal-print-text" className="block text-xs font-semibold text-ink mb-1">
+                    Placement / Branding Notes (Optional)
+                  </label>
+                  <input
+                    id="modal-print-text"
+                    type="text"
+                    value={printText}
+                    onChange={(e) => setPrintText(e.target.value)}
+                    placeholder="e.g. Left chest embroidery, 3-inch wide, back team name..."
+                    className="w-full rounded-xl border border-line bg-surface/40 px-3.5 py-2.5 text-xs sm:text-sm text-ink placeholder:text-body/60 focus:border-accent focus:bg-white focus:outline-hidden"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="mt-5 flex items-center justify-end gap-2.5 border-t border-line pt-3.5">
-              {logoPreview && (
+            {/* Modal Sticky Footer */}
+            <div className="border-t border-line bg-surface/50 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-base sm:text-lg font-extrabold text-ink">
+                    ₹{(activeUnitPrice * (totalQty || 5)).toLocaleString("en-IN")}
+                  </span>
+                  <span className="text-xs font-semibold text-body">
+                    ({totalQty || 5} pcs @ ₹{activeUnitPrice}/pc)
+                  </span>
+                </div>
+                <p className="text-[11px] font-medium text-emerald-800">
+                  Pay 30% (₹{Math.round(activeUnitPrice * (totalQty || 5) * 0.3).toLocaleString("en-IN")}) now · 70% COD
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="rounded-lg border border-line px-4 py-2 text-xs font-bold text-ink hover:bg-surface cursor-pointer"
+                  onClick={() => setCustomizerOpen(false)}
+                  className="rounded-xl border border-line bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-ink hover:bg-surface cursor-pointer"
                 >
-                  Choose Another File
+                  Cancel
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setLogoModalOpen(false)}
-                className="rounded-lg bg-ink px-5 py-2 text-xs font-bold text-white hover:bg-accent transition-colors cursor-pointer"
-              >
-                Done
-              </button>
+                <button
+                  type="button"
+                  disabled={totalQty < 5}
+                  onClick={handleAddToCart}
+                  className="flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md hover:bg-accent-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                >
+                  <ShoppingBag size={16} />
+                  <span>Add to Cart</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

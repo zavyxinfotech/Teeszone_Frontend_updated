@@ -92,57 +92,6 @@ export const collections: Collection[] = [
     group: "Unisex Hoodies",
     description: "Unisex Hoodies - (360 - 370 GSM)",
   },
-
-  // SPECIALTY & FABRICS CATEGORIES
-  {
-    slug: "ecoblend-rn-180",
-    name: "Ecoblend Round Neck - 180 GSM (Polycotton)",
-    segment: "specialty",
-    group: "Eco & Biowash",
-    description: "Ecoblend Round Neck T-Shirts - 180 GSM (Polycotton Fabric)",
-  },
-  {
-    slug: "biowash-rn-180",
-    name: "Biowash Round Neck - 180 GSM (100% Cotton)",
-    segment: "specialty",
-    group: "Eco & Biowash",
-    description: "Biowash Round Neck T-Shirts - 180 GSM (100% Cotton)",
-  },
-  {
-    slug: "ecoblend-polo-240",
-    name: "Ecoblend Polo Neck - 240 GSM (Polycotton)",
-    segment: "specialty",
-    group: "Eco & Biowash",
-    description: "Ecoblend Polo Neck T-Shirts - 240 GSM (Polycotton Ecoblend Fabric)",
-  },
-  {
-    slug: "primoknit-polo-200",
-    name: "Primoknit Polo - 200 GSM (Dotknit)",
-    segment: "specialty",
-    group: "Performance Fabrics",
-    description: "Primoknit Polo T-Shirt - 200 GSM (Dotknit Fabrics)",
-  },
-  {
-    slug: "aeropiq-polo-210",
-    name: "Aeropiq Polo - 210 GSM (Nano Poly)",
-    segment: "specialty",
-    group: "Performance Fabrics",
-    description: "Aeropiq Polo T-Shirts - 210 GSM (Nano Poly Fabric)",
-  },
-  {
-    slug: "organic-polo-270",
-    name: "Organic Polo - 270 GSM (100% Premium Cotton)",
-    segment: "specialty",
-    group: "Organic Collection",
-    description: "Organic Polo T-Shirts - 270 GSM (100% Premium Cotton)",
-  },
-  {
-    slug: "organic-polo-plain-270",
-    name: "Organic Polo Plain - 270 GSM (100% Premium Cotton)",
-    segment: "specialty",
-    group: "Organic Collection",
-    description: "Organic Polo Plain T-Shirts - 270 GSM (100% Premium Cotton)",
-  },
 ];
 
 export const segments: Segment[] = [

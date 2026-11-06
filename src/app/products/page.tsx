@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getNavigation, getProducts } from "@/lib/api";
+import { getProducts } from "@/lib/api";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
 
@@ -72,21 +72,6 @@ const CATEGORY_MAP: Record<
     desc: "Skin-safe, super-combed durable tees for schools, sports, and kids events.",
     slugs: ["kids-rn-half-180"],
   },
-  "eco-biowash": {
-    title: "Eco & Biowash Collection",
-    desc: "Eco-friendly polycotton ecoblend and bio-enzyme washed lint-free fabrics.",
-    slugs: ["ecoblend-rn-180", "biowash-rn-180", "ecoblend-polo-240"],
-  },
-  "performance-fabrics": {
-    title: "Performance Fabrics",
-    desc: "Breathable dotknit and nano-poly athletic performance wear.",
-    slugs: ["primoknit-polo-200", "aeropiq-polo-210"],
-  },
-  "organic-collection": {
-    title: "Organic Collection",
-    desc: "GOTS certified 100% organic cotton luxury polo t-shirts.",
-    slugs: ["organic-polo-270", "organic-polo-plain-270"],
-  },
 };
 
 // Aliases for user-friendly navigation
@@ -97,9 +82,6 @@ CATEGORY_MAP["hoodie"] = CATEGORY_MAP["hoodies"];
 CATEGORY_MAP["unisex"] = CATEGORY_MAP["unisex-hoodies"];
 CATEGORY_MAP["zip"] = CATEGORY_MAP["with-zip"];
 CATEGORY_MAP["withoutzip"] = CATEGORY_MAP["without-zip"];
-CATEGORY_MAP["eco"] = CATEGORY_MAP["eco-biowash"];
-CATEGORY_MAP["performance"] = CATEGORY_MAP["performance-fabrics"];
-CATEGORY_MAP["organic"] = CATEGORY_MAP["organic-collection"];
 
 export async function generateMetadata({
   searchParams,

@@ -19,8 +19,6 @@ import { products, getProduct as getMockProduct, getProductsByCollection as getM
 import { fabrics } from "@/data/fabrics";
 import { reviews } from "@/data/reviews";
 
-const REVALIDATE_SECONDS = 300;
-
 export interface Navigation {
   segments: Segment[];
   collections: Collection[];
@@ -227,7 +225,7 @@ export async function getHomeContent(): Promise<HomeContent | null> {
     if (!res.ok) return null;
     const json = await res.json();
     return json.data as HomeContent;
-  } catch (err) {
+  } catch {
     return null;
   }
 }

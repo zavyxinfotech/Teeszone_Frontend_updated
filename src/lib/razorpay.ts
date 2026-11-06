@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface RazorpayPaymentSuccessResponse {
   razorpay_payment_id: string;
   razorpay_order_id: string;

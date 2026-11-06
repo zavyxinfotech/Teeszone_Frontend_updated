@@ -73,8 +73,6 @@ export function Header({
   };
 
   const shopMore = collections.filter((c) => c.segment === "shop-more");
-  const collectionBySlug = new Map(collections.map((c) => [c.slug, c]));
-  const getCollection = (slug: string) => collectionBySlug.get(slug);
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white">
