@@ -29,6 +29,7 @@ import { useAuth } from "@/lib/auth";
 import { reviews as defaultReviews } from "@/data/reviews";
 import { getProductRating } from "@/data/ratings";
 import type { Review } from "@/lib/types";
+import { BrandDesignerModal } from "./BrandDesignerModal";
 
 /**
  * Dynamically determines the customized apparel option label based on the product category.
@@ -184,6 +185,7 @@ export function ProductConfigurator({
   const [colorIdx, setColorIdx] = useState(0);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [brandDesignerOpen, setBrandDesignerOpen] = useState(false);
   const [flyingParticles, setFlyingParticles] = useState<
     Array<{ id: number; startX: number; startY: number; dx: number; dy: number }>
   >([]);
@@ -719,14 +721,24 @@ export function ProductConfigurator({
           <strong className="font-bold text-emerald-950">70% COD</strong>
         </div>
 
-        {/* Customize Logo & Color Action Button (Matches Product Details Design) */}
+        {/* Design Your Logo Primary Action Button */}
+        <button
+          type="button"
+          onClick={() => setBrandDesignerOpen(true)}
+          className="mt-4 w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#80011F] hover:bg-[#680119] px-6 py-4 text-base sm:text-lg font-bold text-white shadow-md hover:shadow-xl transition-all cursor-pointer group"
+        >
+          <Sparkles size={20} className="stroke-[2.2] text-rose-200 transition-transform group-hover:rotate-12" />
+          <span>Design Your Logo</span>
+        </button>
+
+        {/* Customize Logo & Color Action Secondary Button */}
         <button
           type="button"
           onClick={() => setCustomizerOpen(true)}
-          className="mt-4 w-full flex items-center justify-center gap-2.5 rounded-2xl bg-accent px-6 py-4 text-base sm:text-lg font-bold text-white shadow-md hover:bg-accent-dark hover:shadow-lg transition-all cursor-pointer"
+          className="mt-2.5 w-full flex items-center justify-center gap-2 rounded-xl border border-line bg-surface/60 hover:bg-surface px-4 py-2.5 text-xs sm:text-sm font-semibold text-ink transition-all cursor-pointer"
         >
-          <Pencil size={20} className="stroke-[2.5]" />
-          <span>Customize Logo &amp; Color</span>
+          <Pencil size={15} />
+          <span>Add Custom Text / Embroidery Notes</span>
         </button>
 
         {/* Attached Customization Indicator */}
@@ -753,10 +765,10 @@ export function ProductConfigurator({
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
-                onClick={() => setCustomizerOpen(true)}
-                className="text-xs font-bold text-accent hover:underline cursor-pointer"
+                onClick={() => setBrandDesignerOpen(true)}
+                className="text-xs font-bold text-[#80011F] hover:underline cursor-pointer"
               >
-                Change
+                Edit Brand Logo
               </button>
               <button
                 type="button"
@@ -1352,6 +1364,18 @@ export function ProductConfigurator({
           </div>
         </div>
       )}
+
+      {/* Brand Designer Pop-up Page (Exact match to reference design for desktop and mobile) */}
+      <BrandDesignerModal
+        isOpen={brandDesignerOpen}
+        onClose={() => setBrandDesignerOpen(false)}
+        currentLogoUrl={logoPreview}
+        currentLogoName={logoName}
+        onApplyLogo={(newLogoUrl, newLogoName) => {
+          setLogoPreview(newLogoUrl);
+          setLogoName(newLogoName);
+        }}
+      />
 
       {/* Minimal flying +1 particle overlay */}
       {flyingParticles.map((p) => (
