@@ -30,6 +30,10 @@ import { reviews as defaultReviews } from "@/data/reviews";
 import { getProductRating } from "@/data/ratings";
 import type { Review } from "@/lib/types";
 import { BrandDesignerModal } from "./BrandDesignerModal";
+import {
+  DesignStudioModal,
+  CustomDesignResult,
+} from "./design-studio/DesignStudioModal";
 
 /**
  * Dynamically determines the customized apparel option label based on the product category.
@@ -186,6 +190,17 @@ export function ProductConfigurator({
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [brandDesignerOpen, setBrandDesignerOpen] = useState(false);
+  const [studioOpen, setStudioOpen] = useState(false);
+  const [savedCustomDesign, setSavedCustomDesign] = useState<CustomDesignResult | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(`teeszone_custom_design_${product.slug}`);
+        if (raw) return JSON.parse(raw);
+      } catch {}
+    }
+    return null;
+  });
+
   const [flyingParticles, setFlyingParticles] = useState<
     Array<{ id: number; startX: number; startY: number; dx: number; dy: number }>
   >([]);
@@ -195,6 +210,17 @@ export function ProductConfigurator({
   const [printText, setPrintText] = useState("");
   const [logoName, setLogoName] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const clearCustomDesign = useCallback(() => {
+    setSavedCustomDesign(null);
+    setLogoPreview(null);
+    setLogoName(null);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(`teeszone_custom_design_${product.slug}`);
+      } catch {}
+    }
+  }, [product.slug, setSavedCustomDesign, setLogoPreview, setLogoName]);
   const [justAdded, setJustAdded] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
@@ -212,6 +238,15 @@ export function ProductConfigurator({
 
   // Compute all available images for auto-scrolling
   const displayImages = useMemo(() => {
+    // If customized, showcase customized front and back previews first
+    if (savedCustomDesign?.frontPreviewUrl) {
+      const customImgs = [savedCustomDesign.frontPreviewUrl];
+      if (savedCustomDesign.backPreviewUrl) {
+        customImgs.push(savedCustomDesign.backPreviewUrl);
+      }
+      return customImgs;
+    }
+
     const angles = [
       color.image,
       color.backImage,
@@ -234,7 +269,7 @@ export function ProductConfigurator({
       }
     }
     return uniqueAngles.length > 0 ? uniqueAngles : [color.image];
-  }, [color, product.colors]);
+  }, [color, product.colors, savedCustomDesign]);
 
   // 3-second auto-scroll interval (pauses when user hovers gallery)
   useEffect(() => {
@@ -417,8 +452,8 @@ export function ProductConfigurator({
         if (n > 0)
           lines.push({
             slug: product.slug,
-            name: product.name,
-            image: swatch.image,
+            name: savedCustomDesign ? `Customized ${product.name}` : product.name,
+            image: savedCustomDesign?.frontPreviewUrl || swatch.image,
             colorName: cn,
             colorHex: swatch.hex,
             size: s,
@@ -430,17 +465,31 @@ export function ProductConfigurator({
       setCustomizerOpen(true);
       return;
     }
-    const isCustomized = Boolean(logoName || printText);
-    const note = isCustomized
-      ? logoName
-        ? `Customized — Logo: ${logoName} (will share on WhatsApp)`
-        : printText
-          ? `Customized — Print text: "${printText}"`
-          : "Customized Apparel"
-      : undefined;
+    const isCustomized = Boolean(savedCustomDesign || logoName || printText);
+    const note = savedCustomDesign
+      ? `Customized: ${savedCustomDesign.companyName || product.name} | Front: ${savedCustomDesign.frontPositionPreset} | Back: ${savedCustomDesign.backPositionPreset} | Color: ${savedCustomDesign.colorName}`
+      : isCustomized
+        ? logoName
+          ? `Customized — Logo: ${logoName} (will share on WhatsApp)`
+          : printText
+            ? `Customized — Print text: "${printText}"`
+            : "Customized Apparel"
+        : undefined;
     addItems(lines, note || undefined);
     setJustAdded(true);
     setCustomizerOpen(false);
+  };
+
+  const handleBuyNow = () => {
+    if (!user) {
+      router.push(`/login?next=${encodeURIComponent(pathname || `/products/${product.slug}`)}`);
+      return;
+    }
+    if (totalQty < 5) {
+      handleQuickPreset(5);
+    }
+    handleAddToCart();
+    router.push("/cart");
   };
 
   const handleToggleWishlist = () => {
@@ -721,65 +770,133 @@ export function ProductConfigurator({
           <strong className="font-bold text-emerald-950">70% COD</strong>
         </div>
 
-        {/* Design Your Logo Primary Action Button */}
-        <button
-          type="button"
-          onClick={() => setBrandDesignerOpen(true)}
-          className="mt-4 w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#80011F] hover:bg-[#680119] px-6 py-4 text-base sm:text-lg font-bold text-white shadow-md hover:shadow-xl transition-all cursor-pointer group"
-        >
-          <Sparkles size={20} className="stroke-[2.2] text-rose-200 transition-transform group-hover:rotate-12" />
-          <span>Design Your Logo</span>
-        </button>
+        {/* ======================================================== */}
+        {/* YOUR CUSTOMISED DESIGN CARD (Section 11 & Screen 6/7)    */}
+        {/* ======================================================== */}
+        {savedCustomDesign ? (
+          <div className="mt-5 rounded-2xl border-2 border-[#80011F] bg-gradient-to-b from-[#FFFDFE] to-[#FFF8F9] p-4 sm:p-5 shadow-md animate-in fade-in duration-300">
+            <div className="flex items-center justify-between border-b border-rose-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#80011F] text-white shadow-xs">
+                  <Sparkles size={14} className="stroke-[2.5]" />
+                </span>
+                <span className="text-xs font-black uppercase tracking-wider text-[#80011F]">
+                  Your Customised Design
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={clearCustomDesign}
+                className="text-xs font-semibold text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
+              >
+                Remove Design
+              </button>
+            </div>
 
-        {/* Customize Logo & Color Action Secondary Button */}
-        <button
-          type="button"
-          onClick={() => setCustomizerOpen(true)}
-          className="mt-2.5 w-full flex items-center justify-center gap-2 rounded-xl border border-line bg-surface/60 hover:bg-surface px-4 py-2.5 text-xs sm:text-sm font-semibold text-ink transition-all cursor-pointer"
-        >
-          <Pencil size={15} />
-          <span>Add Custom Text / Embroidery Notes</span>
-        </button>
-
-        {/* Attached Customization Indicator */}
-        {(logoName || printText) && (
-          <div className="mt-3.5 flex items-center justify-between gap-3 rounded-xl border border-accent/40 bg-accent-soft/30 p-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              {logoPreview && (
-                // eslint-disable-next-line @next/next/no-img-element
+            {/* Dual Front & Back Previews */}
+            <div className="mt-3.5 grid grid-cols-2 gap-3">
+              <div className="relative aspect-square rounded-xl bg-white border border-rose-100 p-2 flex flex-col items-center justify-center shadow-xs overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={logoPreview}
-                  alt="Logo preview"
-                  className="h-10 w-10 rounded-lg border border-line bg-white object-contain p-0.5 shrink-0"
+                  src={savedCustomDesign.frontPreviewUrl}
+                  alt="Customized Front"
+                  className="max-h-full max-w-full object-contain filter drop-shadow-sm"
                 />
-              )}
-              <div className="min-w-0">
-                <p className="truncate text-xs font-bold text-ink">
-                  {logoName || printText}
-                </p>
-                <p className="text-[11px] text-accent font-medium">
-                  Custom logo attached · WhatsApp mockup will be shared
-                </p>
+                <span className="absolute bottom-1.5 left-2 rounded-md bg-white/95 border border-rose-100 px-2 py-0.5 text-[10px] font-bold text-gray-700 shadow-xs">
+                  Front View
+                </span>
+              </div>
+
+              <div className="relative aspect-square rounded-xl bg-white border border-rose-100 p-2 flex flex-col items-center justify-center shadow-xs overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={savedCustomDesign.backPreviewUrl || savedCustomDesign.frontPreviewUrl}
+                  alt="Customized Back"
+                  className="max-h-full max-w-full object-contain filter drop-shadow-sm"
+                />
+                <span className="absolute bottom-1.5 left-2 rounded-md bg-white/95 border border-rose-100 px-2 py-0.5 text-[10px] font-bold text-gray-700 shadow-xs">
+                  Back View
+                </span>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+
+            {/* Customization Details Table */}
+            <div className="mt-3.5 rounded-xl bg-white border border-rose-100 p-3 space-y-1.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 font-medium">Colour:</span>
+                <span className="flex items-center gap-1.5 font-bold text-gray-900">
+                  <span
+                    className="inline-block h-3 w-3 rounded-full border border-black/10"
+                    style={{ backgroundColor: savedCustomDesign.colorHex }}
+                  />
+                  {savedCustomDesign.colorName}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 font-medium">Print Position:</span>
+                <span className="font-bold text-[#80011F]">
+                  {savedCustomDesign.frontPositionPreset}
+                  {savedCustomDesign.backPositionPreset !== "None" ? ` + ${savedCustomDesign.backPositionPreset}` : ""}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-500 font-medium">Total Quantity:</span>
+                <span className="font-bold text-gray-900">{totalQty > 0 ? `${totalQty} pcs` : "5 pcs minimum"}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons: [ Customize Again ] & [ Add to Cart ] & [ Buy Now ] */}
+            <div className="mt-4 flex flex-col gap-2">
               <button
                 type="button"
-                onClick={() => setBrandDesignerOpen(true)}
-                className="text-xs font-bold text-[#80011F] hover:underline cursor-pointer"
+                onClick={() => setStudioOpen(true)}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#80011F] hover:bg-[#680119] py-3 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
               >
-                Edit Brand Logo
+                <Pencil size={15} />
+                <span>Customize Again</span>
               </button>
-              <button
-                type="button"
-                onClick={clearLogo}
-                className="text-body hover:text-accent p-1 cursor-pointer"
-                aria-label="Remove logo"
-              >
-                <X size={15} />
-              </button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 py-2.5 text-xs sm:text-sm font-bold text-gray-800 shadow-xs cursor-pointer"
+                >
+                  <ShoppingBag size={15} />
+                  <span>Add to Cart</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#231F20] hover:bg-black py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs cursor-pointer"
+                >
+                  <span>Buy Now</span>
+                </button>
+              </div>
             </div>
           </div>
+        ) : (
+          /* Primary CTA Button when not yet customized */
+          <>
+            <button
+              type="button"
+              onClick={() => setStudioOpen(true)}
+              className="mt-4 w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#80011F] hover:bg-[#680119] px-6 py-4 text-base sm:text-lg font-bold text-white shadow-md hover:shadow-xl transition-all cursor-pointer group"
+            >
+              <Sparkles size={20} className="stroke-[2.2] text-rose-200 transition-transform group-hover:rotate-12" />
+              <span>Design Your T-Shirt</span>
+            </button>
+
+            {/* Customize Logo & Color Action Secondary Button */}
+            <button
+              type="button"
+              onClick={() => setCustomizerOpen(true)}
+              className="mt-2.5 w-full flex items-center justify-center gap-2 rounded-xl border border-line bg-surface/60 hover:bg-surface px-4 py-2.5 text-xs sm:text-sm font-semibold text-ink transition-all cursor-pointer"
+            >
+              <Pencil size={15} />
+              <span>Add Custom Text / Embroidery Notes</span>
+            </button>
+          </>
         )}
 
         {/* Direct Add to Cart when sizes are configured */}
@@ -1365,7 +1482,7 @@ export function ProductConfigurator({
         </div>
       )}
 
-      {/* Brand Designer Pop-up Page (Exact match to reference design for desktop and mobile) */}
+      {/* Brand Designer Pop-up Page (Crop Modal) */}
       <BrandDesignerModal
         isOpen={brandDesignerOpen}
         onClose={() => setBrandDesignerOpen(false)}
@@ -1374,6 +1491,32 @@ export function ProductConfigurator({
         onApplyLogo={(newLogoUrl, newLogoName) => {
           setLogoPreview(newLogoUrl);
           setLogoName(newLogoName);
+        }}
+      />
+
+      {/* Advanced T-Shirt Customisation Design Studio (7-Step Complete Studio) */}
+      <DesignStudioModal
+        isOpen={studioOpen}
+        onClose={() => setStudioOpen(false)}
+        product={product}
+        initialColorIdx={colorIdx}
+        initialCustomization={savedCustomDesign}
+        onSaveCustomization={(result) => {
+          setSavedCustomDesign(result);
+          if (result.frontLogoUrl) {
+            setLogoPreview(result.frontLogoUrl);
+            setLogoName(result.companyName || "Custom Logo");
+          }
+          // Sync color with customizer
+          const colorIndex = product.colors.findIndex((c) => c.name === result.colorName);
+          if (colorIndex !== -1) {
+            setColorIdx(colorIndex);
+          }
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem(`teeszone_custom_design_${product.slug}`, JSON.stringify(result));
+            } catch {}
+          }
         }}
       />
 
