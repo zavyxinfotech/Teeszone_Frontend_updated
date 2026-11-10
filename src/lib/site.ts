@@ -9,7 +9,13 @@ export const site = {
   email: "info@teeszone.in",
   address:
     "#2155, Fortune City, Global Market – Texvalley, NH 544 Bengaluru–Cochin National Highway, Chithode, Erode – 638 102, Tamil Nadu, India.",
-  url: "https://teeszone.in", // TODO: confirm final domain
+  workingHours: {
+    weekdays: "Mon–Fri, 9:30 AM – 6:00 PM IST",
+    saturday: "Sat, 9:30 AM – 6:00 PM IST",
+    sunday: "Sunday - Holiday",
+  },
+  workingHoursText: "Mon–Fri: 9:30 AM – 6:00 PM IST | Sat: 9:30 AM – 6:00 PM IST | Sunday: Holiday",
+  url: "https://teeszone.in",
 };
 
 export function waLink(message: string): string {

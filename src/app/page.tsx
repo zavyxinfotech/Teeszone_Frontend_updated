@@ -4,21 +4,19 @@ import { ShopByRange } from "@/components/home/ShopByRange";
 import { ProductRail } from "@/components/home/ProductRail";
 import { ProcessSteps } from "@/components/home/ProcessSteps";
 import { StatsBand } from "@/components/home/StatsBand";
-import { ReviewsGrid } from "@/components/home/ReviewsGrid";
+import { CustomerReviewsSection } from "@/components/home/CustomerReviewsSection";
 import { CtaBand } from "@/components/home/CtaBand";
 import {
   getHomeContent,
   getProductsByCollection,
-  getReviews,
 } from "@/lib/api";
 import { isPoloProduct } from "@/data/ratings";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [bestSellers, reviews, homeContent] = await Promise.all([
+  const [bestSellers, homeContent] = await Promise.all([
     getProductsByCollection("best-sellers"),
-    getReviews(),
     getHomeContent(),
   ]);
 
@@ -37,7 +35,7 @@ export default async function HomePage() {
       />
       <ProcessSteps content={homeContent?.processSteps} />
       <StatsBand />
-      <ReviewsGrid reviews={reviews} />
+      <CustomerReviewsSection />
       <CtaBand />
     </>
   );

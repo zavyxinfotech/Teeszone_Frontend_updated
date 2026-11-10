@@ -18,7 +18,12 @@ const details = [
   { icon: MapPin, label: "Address", value: site.address },
   { icon: Phone, label: "Phone / WhatsApp", value: site.phoneDisplay },
   { icon: Mail, label: "Email", value: site.email },
-  { icon: Clock, label: "Hours", value: "Mon–Sat, 9:30 AM – 6:00 PM IST" },
+  {
+    icon: Clock,
+    label: "Working Hours",
+    value: "Mon–Fri: 9:30 AM – 6:00 PM IST\nSat: 9:30 AM – 6:00 PM IST\nSunday: Holiday",
+    isHours: true,
+  },
 ];
 
 export default async function ContactPage({
@@ -61,7 +66,7 @@ export default async function ContactPage({
                     <p className="text-xs font-bold uppercase tracking-wider text-body">
                       {label}
                     </p>
-                    <p className="mt-0.5 text-sm font-bold text-ink">{value}</p>
+                    <p className="mt-0.5 text-sm font-bold text-ink whitespace-pre-line leading-relaxed">{value}</p>
                   </div>
                 </li>
               ))}

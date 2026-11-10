@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Phone, Mail, MessageCircle } from "lucide-react";
+import { MapPin, Phone, Mail, MessageCircle, Clock } from "lucide-react";
 import { site, waLink, defaultWaMessage } from "@/lib/site";
 import type { Segment } from "@/lib/types";
 import { NewsletterForm } from "@/components/layout/NewsletterForm";
@@ -56,6 +56,13 @@ export function Footer({ segments }: { segments: Segment[] }) {
                 <MessageCircle size={16} className="shrink-0 text-ink" />
                 <span>Chat on WhatsApp</span>
               </a>
+            </li>
+            <li className="flex items-start justify-center md:justify-start gap-2.5 text-xs text-body pt-0.5">
+              <Clock size={16} className="mt-0.5 shrink-0 text-ink" />
+              <div className="flex flex-col">
+                <span>Mon–Fri: 9:30 AM – 6:00 PM IST</span>
+                <span>Sat: 9:30 AM – 6:00 PM IST • Sun: Holiday</span>
+              </div>
             </li>
           </ul>
         </div>

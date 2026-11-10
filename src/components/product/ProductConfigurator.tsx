@@ -604,26 +604,6 @@ export function ProductConfigurator({
                     }`}
                 />
 
-                {/* Download Mockup Floating Icon Button with Tooltip */}
-                <button
-                  type="button"
-                  onClick={handleDownloadMockup}
-                  disabled={isDownloadingMockup}
-                  title="Download Mockup"
-                  aria-label="Download Mockup"
-                  className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-30 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/95 text-[#80011F] hover:bg-[#80011F] hover:text-white shadow-md border border-rose-100 transition-all hover:scale-110 cursor-pointer disabled:opacity-50 group/download"
-                >
-                  {isDownloadingMockup ? (
-                    <Loader2 size={16} className="animate-spin text-[#80011F]" />
-                  ) : (
-                    <Download size={16} className="transition-transform group-hover/download:-translate-y-0.5" />
-                  )}
-                  {/* Tooltip */}
-                  <span className="pointer-events-none absolute -bottom-7 right-0 whitespace-nowrap rounded-md bg-gray-900 px-2 py-0.5 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover/download:opacity-100 shadow-sm z-40">
-                    Download Mockup
-                  </span>
-                </button>
-
                 {/* Left / Right chevron navigation on image */}
                 {displayImages.length > 1 && (
                   <>
@@ -883,33 +863,35 @@ export function ProductConfigurator({
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#80011F] text-white shadow-xs">
                   <Sparkles size={14} className="stroke-[2.5]" />
                 </span>
-                <span className="text-xs font-black uppercase tracking-wider text-[#80011F]">
+                <span className="text-xs font-medium uppercase tracking-wider text-[#80011F]">
                   Your Customised Design
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={handleDownloadMockup}
                   disabled={isDownloadingMockup}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 hover:bg-[#80011F] text-[#80011F] hover:text-white border border-rose-200/90 px-2.5 py-1 text-xs font-bold transition-all cursor-pointer shadow-2xs group/btn"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-rose-50 hover:bg-[#80011F] text-[#80011F] hover:text-white border border-rose-200/90 h-8 px-2 sm:px-2.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs group/btn"
                   title="Download Mockup"
+                  aria-label="Download Mockup"
                 >
                   {isDownloadingMockup ? (
-                    <Loader2 size={13} className="animate-spin" />
+                    <Loader2 size={14} className="animate-spin" />
                   ) : (
-                    <Download size={13} className="transition-transform group-hover/btn:-translate-y-0.5" />
+                    <Download size={14} className="transition-transform group-hover/btn:-translate-y-0.5" />
                   )}
-                  <span>Download Mockup</span>
+                  <span className="hidden sm:inline">Download Mockup</span>
                 </button>
                 <button
                   type="button"
                   onClick={clearCustomDesign}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 hover:text-red-600 transition-colors cursor-pointer ml-1 py-1 px-2 rounded-lg hover:bg-rose-50"
+                  className="inline-flex items-center justify-center gap-1 text-xs font-medium text-rose-700 hover:text-white hover:bg-[#80011F] border border-transparent hover:border-[#80011F] transition-all cursor-pointer h-8 px-2 rounded-lg"
                   title="Remove Customization and return to design options"
+                  aria-label="Remove Customization"
                 >
-                  <Trash2 size={13} />
-                  <span>Remove Customization</span>
+                  <Trash2 size={14} />
+                  <span className="hidden sm:inline">Remove Customization</span>
                 </button>
               </div>
             </div>
