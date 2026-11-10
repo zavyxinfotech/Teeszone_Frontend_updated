@@ -11,7 +11,7 @@ import {
   getProductsByCollection,
   getReviews,
 } from "@/lib/api";
-import { isPoloProduct } from "@/components/product/ProductCard";
+import { isPoloProduct } from "@/data/ratings";
 
 export const dynamic = "force-dynamic";
 

@@ -20,7 +20,7 @@ export function ReviewsGrid({ reviews }: { reviews: Review[] }) {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 group/glink py-1 text-xs sm:text-sm font-semibold text-[#80011F] hover:underline"
-            title="View TeesZone 5.0 Star Reviews on Google"
+            title="View TeesZone 5.0 Star Google Ratings"
           >
             <div className="flex items-center text-amber-500">
               {[...Array(5)].map((_, i) => (
@@ -28,7 +28,7 @@ export function ReviewsGrid({ reviews }: { reviews: Review[] }) {
               ))}
             </div>
             <span className="font-bold text-ink">5.0</span>
-            <span className="text-body group-hover/glink:text-[#80011F]">(21 Google Reviews) &rarr;</span>
+            <span className="text-body group-hover/glink:text-[#80011F]">Google Ratings &rarr;</span>
           </a>
         </div>
       </Reveal>

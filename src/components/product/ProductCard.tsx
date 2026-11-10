@@ -9,14 +9,8 @@ import { offPct } from "@/lib/pricing";
 import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
 
-import { getProductRating, TEESZONE_GOOGLE_REVIEWS_URL } from "@/data/ratings";
-
-export function isPoloProduct(product: Product): boolean {
-  const s = (product.slug || "").toLowerCase();
-  const n = (product.name || "").toLowerCase();
-  const cols = (product.collections || []).map((c) => c.toLowerCase());
-  return s.includes("polo") || n.includes("polo") || cols.some((c) => c.includes("polo"));
-}
+import { getProductRating, TEESZONE_GOOGLE_REVIEWS_URL, isPoloProduct } from "@/data/ratings";
+export { isPoloProduct };
 
 export function ProductCard({ product }: { product: Product }) {
   const { user } = useAuth();
@@ -138,7 +132,7 @@ export function ProductCard({ product }: { product: Product }) {
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="mt-2 hidden sm:flex items-center gap-1.5 text-xs group/rev hover:opacity-90"
-            title="View TeesZone 5.0 Google Reviews"
+            title="View TeesZone 5.0 Google Ratings"
           >
             <div className="flex items-center text-amber-500">
               {[...Array(5)].map((_, i) => (
@@ -146,7 +140,7 @@ export function ProductCard({ product }: { product: Product }) {
               ))}
             </div>
             <span className="font-bold text-ink">{ratingInfo.rating}</span>
-            <span className="text-body group-hover/rev:underline">({ratingInfo.reviews} Reviews)</span>
+            <span className="text-body group-hover/rev:underline">Google Ratings</span>
           </a>
 
           {/* Price - Original Price & Selling Price (shown for active polo products only) */}

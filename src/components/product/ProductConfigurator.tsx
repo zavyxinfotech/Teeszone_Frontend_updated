@@ -31,7 +31,7 @@ import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
 import { reviews as defaultReviews } from "@/data/reviews";
-import { getProductRating, TEESZONE_GOOGLE_REVIEWS_URL } from "@/data/ratings";
+import { TEESZONE_GOOGLE_REVIEWS_URL } from "@/data/ratings";
 import type { Review } from "@/lib/types";
 import { BrandDesignerModal } from "./BrandDesignerModal";
 import {
@@ -185,8 +185,7 @@ export function ProductConfigurator({
   initialReviews?: Review[];
 }) {
   const reviewsList = initialReviews && initialReviews.length > 0 ? initialReviews : defaultReviews;
-  const ratingInfo = getProductRating(product.id || product.slug);
-  const deliveredOrdersCount = product.ordersDelivered != null ? product.ordersDelivered : ratingInfo.deliveredCompanies;
+  const deliveredOrdersCount = 500;
   const { sizes: productSizes, sizeGuide: sizeGuideMap } = useMemo(
     () => getProductSizeConfig(product),
     [product]
@@ -738,7 +737,7 @@ export function ProductConfigurator({
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 group/rev hover:opacity-90 transition-opacity cursor-pointer"
-            title="Read TeesZone 5.0 Star Reviews on Google"
+            title="Read TeesZone 5.0 Star Google Ratings"
           >
             <div className="flex items-center text-amber-500">
               {[...Array(5)].map((_, i) => (
@@ -747,14 +746,14 @@ export function ProductConfigurator({
             </div>
             <span className="text-base sm:text-lg font-bold text-ink">5.0</span>
             <span className="text-sm sm:text-base font-semibold text-body group-hover/rev:text-[#80011F] group-hover/rev:underline">
-              (21 Google Reviews)
+              Google Ratings
             </span>
           </a>
 
           <div className="mt-1 flex items-center justify-between gap-2 flex-wrap">
             <p className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
               <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-              <span>{deliveredOrdersCount.toLocaleString("en-IN")}+ orders delivered</span>
+              <span>{deliveredOrdersCount}+ orders delivered</span>
             </p>
           </div>
         </div>
@@ -1070,13 +1069,13 @@ export function ProductConfigurator({
                     ))}
                   </div>
                   <p className="mt-0.5 text-sm font-semibold text-body group-hover/rev:text-[#80011F] group-hover/rev:underline">
-                    21 Google Reviews (5.0 ★)
+                    Google Ratings
                   </p>
                 </div>
               </a>
               <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
                 <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                <span>{deliveredOrdersCount.toLocaleString("en-IN")}+ orders delivered</span>
+                <span>{deliveredOrdersCount}+ orders delivered</span>
               </p>
             </div>
             <a
@@ -1084,9 +1083,9 @@ export function ProductConfigurator({
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded-full border border-line px-3.5 py-1 text-xs font-semibold text-ink transition-colors hover:border-[#80011F] hover:text-[#80011F]"
-              title="View all Google Reviews"
+              title="View all Google Ratings"
             >
-              <span>See Google Reviews</span>
+              <span>See Google Ratings</span>
               <ExternalLink size={12} />
             </a>
           </div>
