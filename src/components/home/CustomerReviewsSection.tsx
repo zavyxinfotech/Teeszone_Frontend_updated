@@ -225,86 +225,59 @@ export function CustomerReviewsSection({
           ref={carouselRef}
           className="flex gap-5 overflow-x-auto py-2 scrollbar-none select-none"
         >
-          {loopedReviews.map((rev, idx) => (
-            <article
-              key={`${rev.id}-${idx}`}
-              className="w-[280px] sm:w-[340px] lg:w-[380px] shrink-0 flex flex-col justify-between rounded-2xl border border-line/80 bg-white p-5 sm:p-6 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#80011F]/30"
-            >
-              <div>
-                {/* Header: Author + Star Rating + Google Source */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    {rev.authorPhotoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={rev.authorPhotoUrl}
-                        alt={rev.authorName}
-                        className="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200 shadow-2xs"
-                      />
-                    ) : (
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#80011F]/10 text-[#80011F] font-bold text-sm">
-                        {rev.authorName.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="text-sm font-bold text-ink leading-tight">
-                          {rev.authorName}
-                        </h3>
-                        {rev.badge && (
-                          <span className="text-[10px] font-semibold text-amber-900 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded">
-                            {rev.badge}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-1 flex items-center gap-2 text-[11px] text-gray-500">
-                        <span>{rev.relativeTime}</span>
-                        {rev.verifiedOrder && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
-                            <ShieldCheck size={11} className="text-emerald-600" />
-                            Verified
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <GoogleGIcon className="w-4 h-4 shrink-0 opacity-80" />
-                </div>
-
-                {/* Star Rating */}
-                <div className="mt-3.5 flex items-center gap-1 text-amber-500">
-                  {[...Array(rev.rating)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={14}
-                      className="fill-amber-400 text-amber-400"
+          {loopedReviews.map((rev, idx) => {
+            const cardImg = rev.apparelImageUrl || rev.authorPhotoUrl;
+            return (
+              <article
+                key={`${rev.id}-${idx}`}
+                className="w-[280px] sm:w-[320px] lg:w-[350px] shrink-0 flex flex-col justify-between rounded-none border border-line bg-white shadow-none transition-colors hover:border-[#80011F]/50 overflow-hidden"
+              >
+                {/* Top: Customer / Apparel Photo from AWS S3 */}
+                {cardImg && (
+                  <div className="relative h-44 sm:h-52 w-full overflow-hidden bg-slate-100 rounded-none border-b border-line/60">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={cardImg}
+                      alt={rev.authorName}
+                      className="h-full w-full object-cover object-center rounded-none"
                     />
-                  ))}
+                  </div>
+                )}
+
+                {/* Card Body */}
+                <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
+                  <div>
+                    {/* 5 Star Rating */}
+                    <div className="flex items-center gap-1 text-amber-500">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={15}
+                          className="fill-amber-400 text-amber-400"
+                        />
+                      ))}
+                    </div>
+
+                    {/* Review Text Quote */}
+                    <p className="mt-3 text-sm font-semibold text-ink leading-relaxed line-clamp-4">
+                      {rev.text}
+                    </p>
+                  </div>
+
+                  {/* Card Footer: Reviewer Name + Verified Badge */}
+                  <div className="mt-4 pt-3 border-t border-line/50 flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-bold text-ink">
+                      {rev.authorName}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-none">
+                      <ShieldCheck size={12} className="text-emerald-600" />
+                      Verified
+                    </span>
+                  </div>
                 </div>
-
-                {/* Review Text */}
-                <p className="mt-3 text-sm leading-relaxed text-gray-700 line-clamp-5">
-                  &ldquo;{rev.text}&rdquo;
-                </p>
-              </div>
-
-              {/* Card Footer: View original review link */}
-              <div className="mt-5 pt-3.5 border-t border-line/60 flex items-center justify-between">
-                <span className="text-[11px] font-medium text-gray-500">
-                  Posted on Google
-                </span>
-                <a
-                  href={rev.googleReviewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#80011F] hover:underline"
-                >
-                  <span>Read on Google</span>
-                  <ExternalLink size={11} />
-                </a>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
 

@@ -8,20 +8,20 @@ import { CustomerReviewsSection } from "@/components/home/CustomerReviewsSection
 import { CtaBand } from "@/components/home/CtaBand";
 import {
   getHomeContent,
-  getProductsByCollection,
+  getProducts,
 } from "@/lib/api";
 import { isPoloProduct } from "@/data/ratings";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [bestSellers, homeContent] = await Promise.all([
-    getProductsByCollection("best-sellers"),
+  const [allProducts, homeContent] = await Promise.all([
+    getProducts(),
     getHomeContent(),
   ]);
 
-  // Exclude Coming Soon products from Best Sellers rail
-  const activeBestSellers = (bestSellers || []).filter(isPoloProduct);
+  // Add all products in the polo t-shirts category to Best Sellers
+  const activeBestSellers = (allProducts || []).filter(isPoloProduct);
 
   return (
     <>
@@ -31,7 +31,7 @@ export default async function HomePage() {
       <ProductRail
         title="Best Sellers"
         products={activeBestSellers}
-        viewAllHref="/collections/best-sellers"
+        viewAllHref="/products?category=polo-t-shirts"
       />
       <ProcessSteps content={homeContent?.processSteps} />
       <StatsBand />

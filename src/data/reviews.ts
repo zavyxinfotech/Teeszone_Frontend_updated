@@ -1,63 +1,79 @@
 import type { Review } from "../lib/types";
 
+const S3_BASE = "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/reviews";
+
 // Genuine Google customer reviews (5.0 rating for TeesZone Clothing Private Limited)
 export const reviews: Review[] = [
   {
     stars: 5,
-    quote:
-      "Just want to tell everyone, product quality, delivery timeline simply awesome.. Mr Shakti and viji maam along with Archana maam are so helpful in every step that I got my package on time... Shakti sir is truly genuine person who try to help us as much as he can and we will love to collaborate with them.",
+    quote: "We got it for our restaurant in US , it's great quality and logo came out really good !!! Value for money!!",
+    author: "VP GenZ",
+    verified: true,
+    product: "Custom Restaurant Uniform Polos",
+    image: `${S3_BASE}/customer-pachauri-polo.jpg`,
+  },
+  {
+    stars: 5,
+    quote: "Very good and perfect fit. High quality brand T-shirts. I recommended purchase this T-shirts 100% trustable and valuable.",
+    author: "Sathish Priya",
+    verified: true,
+    product: "Aerosoft Polo Neck T-Shirt (200 GSM)",
+    image: `${S3_BASE}/customer-green-polo.jpg`,
+  },
+  {
+    stars: 5,
+    quote: "Print came out really good, stitching is clean, and the material feels super light & breathable. Really happy with it! Can’t wait to wear it for our next match. Great work, thanks a lot! 🙌",
+    author: "Pravin Jaganathan",
+    verified: true,
+    product: "Custom Sports Event Polo T-Shirt",
+    image: `${S3_BASE}/customer-pishon-polo.jpg`,
+  },
+  {
+    stars: 5,
+    quote: "Very nice... Good service...All the Best...",
+    author: "Arun Sundhar",
+    verified: true,
+    product: "Men's Polo Half Sleeve (240-250 GSM)",
+    image: `${S3_BASE}/arun-sundhar.jpg`,
+  },
+  {
+    stars: 5,
+    quote: "Thank you for the T shirt it’s comfortable and nice ❤️✨",
+    author: "Taj Taj",
+    verified: true,
+    product: "Customized Corporate Polo T-Shirt",
+    image: `${S3_BASE}/taj-taj.jpg`,
+  },
+  {
+    stars: 5,
+    quote: "Too Good in both service and quality of materials",
+    author: "RK ACADEMY",
+    verified: true,
+    product: "Institutional Uniform Polos",
+    image: `${S3_BASE}/rk-academy.jpg`,
+  },
+  {
+    stars: 5,
+    quote: "Great job, team! Your commitment to quality and timeline has produced excellent results. Keep up the good work.",
+    author: "Riswah Na",
+    verified: true,
+    product: "Executive Cotton Pique Polo",
+    image: `${S3_BASE}/riswah-na.jpg`,
+  },
+  {
+    stars: 5,
+    quote: "Just want to tell everyone, product quality, delivery timeline simply awesome.. Mr Shakti and viji maam along with Archana maam are so helpful in every step that I got my package on time... Shakti sir is truly genuine person who try to help us as much as he can and we will love to collaborate with them.",
     author: "Parthasarathi Majumdar",
     verified: true,
     product: "Custom Corporate Apparel & Uniforms",
-    image: "/reviews/parthasarathi-majumdar.jpg",
+    image: `${S3_BASE}/parthasarathi-majumdar.jpg`,
   },
   {
     stars: 5,
-    quote:
-      "I am writing to express our sincere appreciation for the outstanding apparel you supplied for our recent event. The feedback from participants has been overwhelmingly positive. Many specifically praised the quality of the fabric, noting that it was comfortable, durable, and well-suited for the activities during the event. Several attendees mentioned that the material felt premium and appreciated the attention to detail in the stitching and finish.and Logo printing was perfect\n\nYour commitment to quality has not only enhanced the overall experience for our participants but also reflected very well on our event brand. We truly value your professionalism, timely delivery, and the high standard of products you provided.",
+    quote: "I am writing to express our sincere appreciation for the outstanding apparel you supplied for our recent event. The feedback from participants has been overwhelmingly positive. Many specifically praised the quality of the fabric, noting that it was comfortable, durable, and well-suited for the activities during the event. Several attendees mentioned that the material felt premium and appreciated the attention to detail in the stitching and finish.and Logo printing was perfect.",
     author: "Prabhu Balaraman",
     verified: true,
     product: "Event Merchandise & Custom Printed Polos",
-    image: "/reviews/prabhu-balaraman.jpg",
-  },
-  {
-    stars: 5,
-    quote:
-      "TeesZone Clothing delivered 350 customized Polo T-Shirts for our corporate annual meet. Exceptional pique knit fabric quality and precise computer embroidery of our company logo. Delivered right on schedule in Tiruppur.",
-    author: "Senthil Nathan K.",
-    verified: true,
-    product: "Men's Polo Half Sleeve (240-250 GSM)",
-  },
-  {
-    stars: 5,
-    quote:
-      "Best manufacturer in Tamil Nadu for corporate uniforms. We ordered custom polo tees for our tech team in Bangalore; the color fastness and collar stiffness even after multiple washes is outstanding.",
-    author: "Praveen Kumar R.",
-    verified: true,
-    product: "Aerosoft Polo Neck T-Shirt (200 GSM)",
-  },
-  {
-    stars: 5,
-    quote:
-      "The online customizer made it effortless to upload our high-res logo and preview both front chest and back prints. The physical polo shirts matched the mockup 100%. Highly recommended!",
-    author: "Ananya Deshmukh",
-    verified: true,
-    product: "Customized Corporate Polo T-Shirt",
-  },
-  {
-    stars: 5,
-    quote:
-      "Ordered 500 pieces with multi-color company emblem embroidery. TeesZone shared physical pre-production swatches for approval. Outstanding stitch density and professional team support.",
-    author: "Manoj Varma",
-    verified: true,
-    product: "Executive Cotton Pique Polo",
-  },
-  {
-    stars: 5,
-    quote:
-      "Prompt delivery, transparent tiered bulk pricing, and unmatched fabric feel. Their 240 GSM pique knit polo t-shirts have set a new benchmark for corporate uniforms.",
-    author: "Karthik Subramanian",
-    verified: true,
-    product: "EcoBlend Polo Neck T-Shirt",
+    image: `${S3_BASE}/prabhu-balaraman.jpg`,
   },
 ];

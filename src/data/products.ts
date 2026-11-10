@@ -37,7 +37,7 @@ export const products: Product[] = [
     id: "p-aerosoft-polo-200",
     name: "Men's AeroSoft Polo T-Shirt (200 GSM) | 100% Microfiber Quick-Dry Performance Corporate Polo",
     slug: "aerosoft-polo-200",
-    collections: ["aerosoft-polo-200", "men"],
+    collections: ["aerosoft-polo-200", "men", "best-sellers", "polo-t-shirts"],
     description: "Engineered 200 GSM Aerosoft knit polo t-shirt. Ultra-soft breathable texture with moisture-wicking technology and anti-wrinkle performance, ideal for corporate uniforms, staff apparel, and daily workwear.",
     fit: "Modern regular polo fit with tailored comfort.",
     fabric: "100% Microfiber Poly-Rich Performance Knit",
@@ -61,6 +61,7 @@ export const products: Product[] = [
       "Reinforced ribbed collar and 3-button placket ready for company logo",
     ],
     isNew: true,
+    bestSeller: true,
   },
 
   // 2. Mens Polo Half Sleeve - 240-250 GSM
@@ -68,7 +69,7 @@ export const products: Product[] = [
     id: "p-mens-polo-half-sleeve-240",
     name: "Men's Polo Half Sleeve T-Shirt (240-250 GSM) | 100% Compact Cotton Pique Knit Premium Corporate Polo",
     slug: "mens-polo-half-sleeve-240",
-    collections: ["mens-polo-half-sleeve-240", "men"],
+    collections: ["mens-polo-half-sleeve-240", "men", "best-sellers", "polo-t-shirts"],
     description: "Executive 240-250 GSM heavyweight compact cotton pique polo t-shirt. Features superior stitch density, anti-curl ribbed collar, and smooth hand-feel tailored for corporate teams and luxury brand merchandise.",
     fit: "Classic executive regular polo fit.",
     fabric: "100% Compact Cotton Heavy Pique (240-250 GSM)",
@@ -119,7 +120,7 @@ export const products: Product[] = [
     id: "p-ecoblend-polo-neck-240",
     name: "Men's Ecoblend Polo T-Shirt (240 GSM) | Polycotton EcoBlend Fabric, Jacquard Collar with Contrast Tipping",
     slug: "ecoblend-polo-neck-240",
-    collections: ["ecoblend-polo-neck-240", "men"],
+    collections: ["ecoblend-polo-neck-240", "men", "best-sellers", "polo-t-shirts"],
     description: "Eco-conscious 240 GSM polycotton Ecoblend polo shirt featuring a stylish jacquard collar with contrast tipping. Built for durability, premium comfort, and industrial uniform longevity.",
     fit: "Structured corporate uniform fit.",
     fabric: "Polycotton EcoBlend Fabric with Jacquard Collar & Contrast Tipping",
@@ -138,10 +139,11 @@ export const products: Product[] = [
     sizes: ADULT,
     qtyDiscounts: QTY,
     features: [
-      "240 GSM heavy-duty polycotton blend for industrial wash durability",
-      "Anti-fade and wrinkle-resistant fabric technology",
-      "Durable collar structure with neat top-stitching",
+      "240 GSM heavy eco-blend polycotton performance fabric",
+      "Signature jacquard rib collar with premium contrast tipping",
+      "Stain-resistant and wrinkle-resistant corporate finish",
     ],
+    bestSeller: true,
   },
 
   // ==========================================

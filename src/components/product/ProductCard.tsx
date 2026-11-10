@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -25,6 +26,29 @@ export function ProductCard({ product }: { product: Product }) {
   const sellingPrice = product.price.toLocaleString("en-IN");
   const discount = offPct(product);
 
+  // Collect all available color preview images for this product
+  const cardImages = useMemo(() => {
+    const list: { src: string; name: string; hex: string }[] = [];
+    (product.colors || []).forEach((c) => {
+      if (c.image) list.push({ src: c.image, name: c.name, hex: c.hex });
+    });
+    return list.length > 0
+      ? list
+      : [{ src: "/products/crew-white.svg", name: "Default", hex: "#CCCCCC" }];
+  }, [product]);
+
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Automatically cycle through images as like in product details page
+  useEffect(() => {
+    if (!isPolo || cardImages.length <= 1 || isHovered) return;
+    const interval = setInterval(() => {
+      setActiveIdx((prev) => (prev + 1) % cardImages.length);
+    }, 2600);
+    return () => clearInterval(interval);
+  }, [isPolo, cardImages.length, isHovered]);
+
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -47,7 +71,7 @@ export function ProductCard({ product }: { product: Product }) {
       {/* Top badges */}
       {isPolo ? (
         <>
-          <span className="hidden sm:inline-block absolute right-3.5 top-3.5 z-10 rounded-md bg-ink px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-xs">
+          <span className="hidden sm:inline-block absolute right-3.5 top-3.5 z-20 rounded-md bg-ink px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-xs">
             {discount}% OFF
           </span>
 
@@ -55,7 +79,7 @@ export function ProductCard({ product }: { product: Product }) {
             onClick={handleLike}
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={saved}
-            className={`absolute left-2 top-2 sm:left-3.5 sm:top-3.5 z-10 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-transparent transition-all hover:scale-110 cursor-pointer ${
+            className={`absolute left-2 top-2 sm:left-3.5 sm:top-3.5 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-transparent transition-all hover:scale-110 cursor-pointer ${
               saved ? "text-accent" : "text-ink/60 hover:text-accent"
             }`}
           >
@@ -65,21 +89,57 @@ export function ProductCard({ product }: { product: Product }) {
       ) : null}
 
       <div>
-        {/* Product Image - Constant 3:4 Aspect Ratio */}
-        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-surface">
+        {/* Product Image - Constant 3:4 Aspect Ratio with Automatic Cycling */}
+        <div
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-surface"
+        >
           {isPolo ? (
             <Link href={`/products/${product.slug}`} className="relative block h-full w-full">
-              <Image
-                src={product.colors[0]?.image || "/products/crew-white.svg"}
-                alt={product.name}
-                fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className={`transition-transform duration-300 group-hover:scale-105 ${
-                  (product.colors[0]?.image || "").toLowerCase().endsWith(".svg")
-                    ? "object-contain p-3"
-                    : "object-cover object-top"
-                }`}
-              />
+              {cardImages.map((img, i) => (
+                <Image
+                  key={`${img.src}-${i}`}
+                  src={img.src}
+                  alt={`${product.name} - ${img.name}`}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className={`transition-all duration-700 ease-in-out ${
+                    i === activeIdx
+                      ? "opacity-100 scale-100 z-10"
+                      : "opacity-0 scale-98 z-0 pointer-events-none"
+                  } ${
+                    (img.src || "").toLowerCase().endsWith(".svg")
+                      ? "object-contain p-3"
+                      : "object-cover object-top"
+                  }`}
+                />
+              ))}
+
+              {/* Color indicator dots */}
+              {cardImages.length > 1 && (
+                <div className="absolute bottom-2 left-0 right-0 z-20 flex items-center justify-center gap-1.5 px-2">
+                  {cardImages.map((img, i) => (
+                    <button
+                      key={`${img.name}-${i}`}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setActiveIdx(i);
+                      }}
+                      onMouseEnter={() => setActiveIdx(i)}
+                      aria-label={`View ${img.name}`}
+                      className={`h-2.5 w-2.5 rounded-full border border-black/20 transition-all cursor-pointer ${
+                        i === activeIdx
+                          ? "scale-125 ring-2 ring-white shadow-xs"
+                          : "opacity-70 hover:opacity-100"
+                      }`}
+                      style={{ backgroundColor: img.hex }}
+                    />
+                  ))}
+                </div>
+              )}
             </Link>
           ) : (
             /* Non-Polo Product: Hidden Navigation with Shaded Background & Coming Soon Badge */
