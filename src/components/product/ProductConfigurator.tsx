@@ -31,6 +31,7 @@ import type { Product } from "@/lib/types";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
+import { logCustomerActivity } from "@/lib/activity";
 import { TEESZONE_GOOGLE_REVIEWS_URL } from "@/data/ratings";
 import { VERIFIED_GOOGLE_REVIEWS } from "@/lib/googleReviews";
 import { GoogleGIcon } from "@/components/home/CustomerReviewsSection";
@@ -186,6 +187,7 @@ export function ProductConfigurator({
   initialReviews?: Review[];
 }) {
   const deliveredOrdersCount = 500;
+  const { user, token } = useAuth();
   const { sizes: productSizes, sizeGuide: sizeGuideMap } = useMemo(
     () => getProductSizeConfig(product),
     [product]
@@ -195,15 +197,28 @@ export function ProductConfigurator({
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [brandDesignerOpen, setBrandDesignerOpen] = useState(false);
   const [studioOpen, setStudioOpen] = useState(false);
-  const [savedCustomDesign, setSavedCustomDesign] = useState<CustomDesignResult | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem(`teeszone_custom_design_${product.slug}`);
-        if (raw) return JSON.parse(raw);
-      } catch { }
+
+  // User-isolated custom design storage key
+  const customDesignStorageKey = user?.id
+    ? `teeszone_custom_design_u_${user.id}_${product.slug}`
+    : `teeszone_custom_design_guest_${product.slug}`;
+
+  const [savedCustomDesign, setSavedCustomDesign] = useState<CustomDesignResult | null>(null);
+
+  // Strictly sync user-isolated custom design on active user / product change
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(customDesignStorageKey);
+      if (raw) {
+        setSavedCustomDesign(JSON.parse(raw));
+      } else {
+        setSavedCustomDesign(null);
+      }
+    } catch {
+      setSavedCustomDesign(null);
     }
-    return null;
-  });
+  }, [customDesignStorageKey]);
 
   const [flyingParticles, setFlyingParticles] = useState<
     Array<{ id: number; startX: number; startY: number; dx: number; dy: number }>
@@ -221,10 +236,17 @@ export function ProductConfigurator({
     setLogoName(null);
     if (typeof window !== "undefined") {
       try {
-        localStorage.removeItem(`teeszone_custom_design_${product.slug}`);
+        localStorage.removeItem(customDesignStorageKey);
       } catch { }
     }
-  }, [product.slug, setSavedCustomDesign, setLogoPreview, setLogoName]);
+    if (token) {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4010/api";
+      fetch(`${backendUrl}/custom-designs/${product.slug}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
+  }, [customDesignStorageKey, product.slug, token]);
   const [justAdded, setJustAdded] = useState(false);
   const [isDownloadingMockup, setIsDownloadingMockup] = useState(false);
   const [downloadSuccessToast, setDownloadSuccessToast] = useState(false);
@@ -306,7 +328,6 @@ export function ProductConfigurator({
   }, []);
   const { addItems } = useCart();
   const { has: hasWishlist, toggle: toggleWishlist } = useWishlist();
-  const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const saved = hasWishlist(product.slug);
@@ -1681,9 +1702,43 @@ export function ProductConfigurator({
           }
           if (typeof window !== "undefined") {
             try {
-              localStorage.setItem(`teeszone_custom_design_${product.slug}`, JSON.stringify(result));
+              localStorage.setItem(customDesignStorageKey, JSON.stringify(result));
             } catch { }
           }
+          if (token) {
+            const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4010/api";
+            fetch(`${backendUrl}/custom-designs`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                productSlug: product.slug,
+                productName: product.name,
+                colorName: result.colorName || color.name,
+                companyName: result.companyName,
+                logoUrl: result.frontLogoUrl || result.backLogoUrl,
+                logoName: result.companyName || "Custom Design",
+                frontPreviewUrl: result.frontPreviewUrl,
+                backPreviewUrl: result.backPreviewUrl,
+                printLocation: `${result.frontPositionPreset} + ${result.backPositionPreset}`,
+                embroideryNotes: result.companyName || null,
+              }),
+            }).catch(() => {});
+          }
+
+          logCustomerActivity({
+            activityType: "DESIGN_SAVE",
+            productId: product.slug,
+            productName: product.name,
+            details: {
+              color: result.colorName || color.name,
+              company: result.companyName,
+              hasFrontLogo: Boolean(result.frontLogoUrl),
+              hasBackLogo: Boolean(result.backLogoUrl),
+            },
+          });
         }}
       />
 

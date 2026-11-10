@@ -12,6 +12,7 @@ import {
 } from "react";
 import { authApi, type AuthSession, type RegisterPayload } from "@/lib/api";
 import type { AuthUser } from "@/lib/types";
+import { logCustomerActivity } from "@/lib/activity";
 
 // token lives in localStorage, profile is always re-fetched from /auth/me
 
@@ -71,10 +72,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const adopt = useCallback((session: AuthSession) => {
+  const adopt = useCallback((session: AuthSession, isRegister = false) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: session.token }));
+    try {
+      localStorage.setItem("teeszone-token-v1", session.token);
+    } catch {}
     setToken(session.token);
     setUserState(session.user);
+
+    logCustomerActivity({
+      activityType: isRegister ? "REGISTER" : "LOGIN",
+      userName: session.user.name,
+      userEmail: session.user.email,
+    });
+
     return session.user;
   }, []);
 
@@ -84,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (input: RegisterPayload) => adopt(await authApi.register(input)),
+    async (input: RegisterPayload) => adopt(await authApi.register(input), true),
     [adopt],
   );
 
@@ -95,6 +106,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
+    try {
+      localStorage.removeItem("teeszone-token-v1");
+      localStorage.removeItem("teeszone-cart-guest");
+    } catch {}
     setToken(null);
     setUserState(null);
   }, []);

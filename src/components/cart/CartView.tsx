@@ -18,6 +18,7 @@ import { useCart, type CartItem } from "@/lib/cart";
 import type { Product } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { openRazorpayCheckout } from "@/lib/razorpay";
+import { logCustomerActivity } from "@/lib/activity";
 
 interface PricedLine extends CartItem {
   unitPrice: number;
@@ -28,7 +29,7 @@ interface PricedLine extends CartItem {
 export function CartView({ products }: { products: Product[] }) {
   const { items, note, setNote, updateQty, removeItem, clear, totalItems } =
     useCart();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   const [isPaying, setIsPaying] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<{
@@ -73,6 +74,15 @@ export function CartView({ products }: { products: Product[] }) {
     setPaymentError(null);
     setIsPaying(true);
 
+    logCustomerActivity({
+      activityType: "CHECKOUT_START",
+      details: {
+        amount: subtotal,
+        totalItems,
+        itemCount: priced.length,
+      },
+    });
+
     await openRazorpayCheckout({
       amountInRupees: subtotal,
       user: user
@@ -89,6 +99,42 @@ export function CartView({ products }: { products: Product[] }) {
       onSuccess: ({ payment_id, order_id }) => {
         setIsPaying(false);
         setPaymentSuccess({ payment_id, order_id });
+
+        // Persist order associated with user
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4010/api";
+        fetch(`${backendUrl}/orders`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            amount: subtotal,
+            items: priced.map((p) => ({
+              slug: p.slug,
+              name: p.name,
+              color: p.colorName,
+              size: p.size,
+              qty: p.qty,
+              unitPrice: p.unitPrice,
+              customNote: p.customNote || note,
+            })),
+            razorpayOrderId: order_id,
+            razorpayPaymentId: payment_id,
+            shippingAddress: user ? { name: user.name, email: user.email, phone: user.phone } : null,
+            userPhone: user?.phone,
+          }),
+        }).catch(() => {});
+
+        logCustomerActivity({
+          activityType: "PAYMENT_SUCCESS",
+          orderId: order_id,
+          details: {
+            paymentId: payment_id,
+            amount: subtotal,
+          },
+        });
+
         clear();
       },
       onFailure: (err) => {

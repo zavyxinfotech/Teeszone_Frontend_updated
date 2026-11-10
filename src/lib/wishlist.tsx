@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "@/lib/auth";
+import { logCustomerActivity } from "@/lib/activity";
 
 const CLIENT_API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4010/api";
@@ -93,6 +94,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const toggle = useCallback(
     (slug: string, productName?: string) => {
+      const isCurrentlyLiked = slugs.includes(slug);
+      logCustomerActivity({
+        activityType: isCurrentlyLiked ? "WISHLIST_REMOVE" : "WISHLIST_ADD",
+        productId: slug,
+        productName: productName || slug,
+      });
+
       setSlugs((prev) => {
         const next = prev.includes(slug)
           ? prev.filter((s) => s !== slug)
@@ -123,6 +131,11 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const remove = useCallback(
     (slug: string) => {
+      logCustomerActivity({
+        activityType: "WISHLIST_REMOVE",
+        productId: slug,
+      });
+
       setSlugs((prev) => {
         const next = prev.filter((s) => s !== slug);
         try {

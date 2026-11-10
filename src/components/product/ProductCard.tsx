@@ -62,11 +62,10 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <div
-      className={`group relative flex flex-col justify-between p-2 rounded-2xl transition-all ${
-        isPolo
+      className={`group relative flex flex-col justify-between p-2 rounded-2xl transition-all ${isPolo
           ? "bg-white"
           : "bg-slate-50/90 border border-slate-200/80 shadow-xs"
-      }`}
+        }`}
     >
       {/* Top badges */}
       {isPolo ? (
@@ -79,9 +78,8 @@ export function ProductCard({ product }: { product: Product }) {
             onClick={handleLike}
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={saved}
-            className={`absolute left-2 top-2 sm:left-3.5 sm:top-3.5 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-transparent transition-all hover:scale-110 cursor-pointer ${
-              saved ? "text-accent" : "text-ink/60 hover:text-accent"
-            }`}
+            className={`absolute left-2 top-2 sm:left-3.5 sm:top-3.5 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-transparent transition-all hover:scale-110 cursor-pointer ${saved ? "text-accent" : "text-ink/60 hover:text-accent"
+              }`}
           >
             <Heart className="h-4 w-4 sm:h-5 sm:w-5" fill={saved ? "currentColor" : "none"} strokeWidth={2.2} />
           </button>
@@ -104,15 +102,13 @@ export function ProductCard({ product }: { product: Product }) {
                   alt={`${product.name} - ${img.name}`}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className={`transition-all duration-700 ease-in-out ${
-                    i === activeIdx
+                  className={`transition-all duration-700 ease-in-out ${i === activeIdx
                       ? "opacity-100 scale-100 z-10"
                       : "opacity-0 scale-98 z-0 pointer-events-none"
-                  } ${
-                    (img.src || "").toLowerCase().endsWith(".svg")
+                    } ${(img.src || "").toLowerCase().endsWith(".svg")
                       ? "object-contain p-3"
                       : "object-cover object-top"
-                  }`}
+                    }`}
                 />
               ))}
 
@@ -135,11 +131,10 @@ export function ProductCard({ product }: { product: Product }) {
                       }}
                       onMouseEnter={() => setActiveIdx(i)}
                       aria-label={`View ${img.name}`}
-                      className={`h-2.5 w-2.5 rounded-full border border-black/20 transition-all cursor-pointer ${
-                        i === activeIdx
+                      className={`h-2.5 w-2.5 rounded-full border border-black/20 transition-all cursor-pointer ${i === activeIdx
                           ? "scale-110 ring-1.5 ring-[#80011F]"
                           : "opacity-80 hover:opacity-100"
-                      }`}
+                        }`}
                       style={{ backgroundColor: img.hex }}
                     />
                   ))}
@@ -159,11 +154,10 @@ export function ProductCard({ product }: { product: Product }) {
                 alt={product.name}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className={`grayscale-[25%] opacity-70 ${
-                  (product.colors[0]?.image || "").toLowerCase().endsWith(".svg")
+                className={`grayscale-[25%] opacity-70 ${(product.colors[0]?.image || "").toLowerCase().endsWith(".svg")
                     ? "object-contain p-3"
                     : "object-cover object-top"
-                }`}
+                  }`}
               />
               {/* Shaded Overlay & Badge */}
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[1.5px] p-3 text-center">

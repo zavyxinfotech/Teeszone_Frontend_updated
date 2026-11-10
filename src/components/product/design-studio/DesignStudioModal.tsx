@@ -43,6 +43,7 @@ import {
   generateCompositeGarment,
 } from "./canvasUtils";
 import { generateAndDownloadBrandedMockup } from "@/lib/mockupDownload";
+import { logCustomerActivity } from "@/lib/activity";
 
 export interface StudioElement {
   id: string;
@@ -383,6 +384,13 @@ export function DesignStudioModal({
         setUploadedLogoName(file.name);
         setCropBox({ x: 5, y: 5, width: 90, height: 90 });
         setCurrentStep("crop");
+
+        logCustomerActivity({
+          activityType: "LOGO_UPLOAD",
+          productId: product.slug,
+          productName: product.name,
+          details: { fileName: file.name, fileSize: file.size },
+        });
       }
     };
     reader.readAsDataURL(file);
