@@ -6,18 +6,11 @@ import {
   Crop,
   ZoomIn,
   ZoomOut,
-  RotateCcw,
-  RotateCw,
-  RefreshCw,
   Upload,
   ArrowRight,
-  Check,
   X,
   Sparkles,
   Scan,
-  Menu,
-  Search,
-  ShoppingBag,
 } from "lucide-react";
 
 interface BrandDesignerModalProps {
@@ -29,68 +22,54 @@ interface BrandDesignerModalProps {
 }
 
 /**
- * High-precision canvas crop function supporting transparency, custom angles, and zoom.
+ * Pixel-accurate HTML5 Canvas cropper that preserves PNG transparency
+ * and outputs the exact natural-resolution cropped image.
  */
 function cropImageCanvas(
   sourceUrl: string,
-  cropArea: { x: number; y: number; width: number; height: number },
-  rotationDeg: number,
-  zoomScale: number
+  cropArea: { x: number; y: number; width: number; height: number } // percentages 0-100
 ): Promise<string> {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
-      const origW = img.naturalWidth || img.width || 400;
-      const origH = img.naturalHeight || img.height || 200;
+      const naturalW = img.naturalWidth || img.width;
+      const naturalH = img.naturalHeight || img.height;
 
-      // 1. Calculate dimensions for rotated image
-      const rad = (rotationDeg * Math.PI) / 180;
-      const cos = Math.abs(Math.cos(rad));
-      const sin = Math.abs(Math.sin(rad));
-      const rotW = Math.round(origW * cos + origH * sin);
-      const rotH = Math.round(origW * sin + origH * cos);
+      // Calculate pixel coordinates relative to the natural image dimensions
+      const pixelX = Math.round((Math.max(0, cropArea.x) / 100) * naturalW);
+      const pixelY = Math.round((Math.max(0, cropArea.y) / 100) * naturalH);
+      const pixelW = Math.max(1, Math.min(naturalW - pixelX, Math.round((cropArea.width / 100) * naturalW)));
+      const pixelH = Math.max(1, Math.min(naturalH - pixelY, Math.round((cropArea.height / 100) * naturalH)));
 
-      const rotCanvas = document.createElement("canvas");
-      rotCanvas.width = rotW;
-      rotCanvas.height = rotH;
-      const rotCtx = rotCanvas.getContext("2d");
+      const canvas = document.createElement("canvas");
+      canvas.width = pixelW;
+      canvas.height = pixelH;
+      const ctx = canvas.getContext("2d");
 
-      if (!rotCtx) {
+      if (!ctx) {
         resolve(sourceUrl);
         return;
       }
 
-      // Ensure transparent background is preserved
-      rotCtx.clearRect(0, 0, rotW, rotH);
+      // Preserve alpha channel / transparent PNG backgrounds
+      ctx.clearRect(0, 0, pixelW, pixelH);
 
-      // Draw rotated and scaled image onto rotated canvas
-      rotCtx.translate(rotW / 2, rotH / 2);
-      rotCtx.rotate(rad);
-      rotCtx.scale(zoomScale, zoomScale);
-      rotCtx.drawImage(img, -origW / 2, -origH / 2);
+      // Draw the cropped region at full natural quality
+      ctx.drawImage(
+        img,
+        pixelX,
+        pixelY,
+        pixelW,
+        pixelH,
+        0,
+        0,
+        pixelW,
+        pixelH
+      );
 
-      // 2. Crop area coordinates mapped to the rotated canvas
-      const cropX = Math.max(0, Math.round((cropArea.x / 100) * rotW));
-      const cropY = Math.max(0, Math.round((cropArea.y / 100) * rotH));
-      const cropW = Math.max(16, Math.min(rotW - cropX, Math.round((cropArea.width / 100) * rotW)));
-      const cropH = Math.max(16, Math.min(rotH - cropY, Math.round((cropArea.height / 100) * rotH)));
-
-      const finalCanvas = document.createElement("canvas");
-      finalCanvas.width = cropW;
-      finalCanvas.height = cropH;
-      const finalCtx = finalCanvas.getContext("2d");
-
-      if (!finalCtx) {
-        resolve(sourceUrl);
-        return;
-      }
-
-      // Preserve alpha channel / transparency
-      finalCtx.clearRect(0, 0, cropW, cropH);
-      finalCtx.drawImage(rotCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
-      resolve(finalCanvas.toDataURL("image/png"));
+      // Export as transparent PNG
+      resolve(canvas.toDataURL("image/png"));
     };
 
     img.onerror = () => {
@@ -100,6 +79,17 @@ function cropImageCanvas(
     img.src = sourceUrl;
   });
 }
+
+type DragHandleType =
+  | "move"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right"
+  | "top"
+  | "bottom"
+  | "left"
+  | "right";
 
 export function BrandDesignerModal({
   isOpen,
@@ -111,32 +101,43 @@ export function BrandDesignerModal({
   // Mode: "crop" or "zoom"
   const [activeMode, setActiveMode] = useState<"crop" | "zoom">("crop");
 
-  // Initial state: EMPTY when user opens the popup fresh!
-  // MUST NOT display TeesZone logo or any default sample image inside the crop area.
+  // Initial state: starts EMPTY when opened fresh!
+  // No default TeesZone logo or placeholder inside the crop area.
   const [uploadedImage, setUploadedImage] = useState<string | null>(() => currentLogoUrl || null);
-  const [originalUpload, setOriginalUpload] = useState<string | null>(() => currentLogoUrl || null);
   const [logoName, setLogoName] = useState<string>(() => currentLogoName || "");
   const [isDraggingFileOver, setIsDraggingFileOver] = useState<boolean>(false);
   const [cropSuccessToast, setCropSuccessToast] = useState<boolean>(false);
+  const [livePreviewUrl, setLivePreviewUrl] = useState<string | null>(null);
 
-  // Transformations
-  const [rotation, setRotation] = useState<number>(0);
+  // Synchronize when currentLogoUrl changes from parent without calling setState synchronously in effect
+  const [prevCurrentLogoUrl, setPrevCurrentLogoUrl] = useState(currentLogoUrl);
+  if (currentLogoUrl !== prevCurrentLogoUrl) {
+    setPrevCurrentLogoUrl(currentLogoUrl);
+    setUploadedImage(currentLogoUrl || null);
+    if (currentLogoName) setLogoName(currentLogoName);
+  }
+
+  // Zoom level (1x to 2.5x)
   const [zoomLevel, setZoomLevel] = useState<number>(1);
 
-  // Crop Box Coordinates (Percentages: 0-100% relative to the image frame)
+  // Crop Box Coordinates (Percentages: 0% to 100% relative to the image frame)
   const [cropBox, setCropBox] = useState<{ x: number; y: number; width: number; height: number }>({
     x: 5,
     y: 5,
     width: 90,
     height: 90,
   });
-  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const imageFrameRef = useRef<HTMLDivElement | null>(null);
-  const dragActionRef = useRef<"move" | "top-left" | "top-right" | "bottom-left" | "bottom-right" | null>(null);
-  const dragStartPosRef = useRef<{ clientX: number; clientY: number }>({ clientX: 0, clientY: 0 });
-  const dragStartBoxRef = useRef(cropBox);
+  const imageElementRef = useRef<HTMLImageElement | null>(null);
+
+  const activeDragRef = useRef<{
+    handle: DragHandleType;
+    startX: number;
+    startY: number;
+    initialBox: { x: number; y: number; width: number; height: number };
+  } | null>(null);
 
   // Handle Escape key to close
   useEffect(() => {
@@ -160,6 +161,27 @@ export function BrandDesignerModal({
     };
   }, [isOpen]);
 
+  // Generate live preview when crop box or uploaded image changes
+  useEffect(() => {
+    let isCancelled = false;
+    const timer = setTimeout(() => {
+      if (!uploadedImage) {
+        setLivePreviewUrl(null);
+        return;
+      }
+      cropImageCanvas(uploadedImage, cropBox)
+        .then((url) => {
+          if (!isCancelled) setLivePreviewUrl(url);
+        })
+        .catch(() => {});
+    }, 80);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [uploadedImage, cropBox]);
+
   // File Upload Logic
   const processUploadedFile = (file: File) => {
     if (!file) return;
@@ -168,9 +190,7 @@ export function BrandDesignerModal({
       if (event.target?.result) {
         const dataUrl = event.target.result as string;
         setUploadedImage(dataUrl);
-        setOriginalUpload(dataUrl);
         setLogoName(file.name);
-        setRotation(0);
         setZoomLevel(1);
         setCropBox({ x: 5, y: 5, width: 90, height: 90 });
         setActiveMode("crop");
@@ -207,139 +227,141 @@ export function BrandDesignerModal({
     }
   };
 
-  // Rotation: 90-degree steps
-  const handleRotateLeft = () => setRotation((prev) => (prev - 90 + 360) % 360);
-  const handleRotateRight = () => setRotation((prev) => (prev + 90) % 360);
-
-  // Reset to original uploaded image
-  const handleReset = () => {
-    if (!originalUpload) return;
-    setUploadedImage(originalUpload);
-    setRotation(0);
-    setZoomLevel(1);
-    setCropBox({ x: 5, y: 5, width: 90, height: 90 });
-    setActiveMode("crop");
-    setCropSuccessToast(false);
-  };
-
-  // Dragging crop box and corner handles
-  const handleStartDrag = (
-    action: "move" | "top-left" | "top-right" | "bottom-left" | "bottom-right",
-    e: React.MouseEvent | React.TouchEvent
-  ) => {
+  // Manual Crop Drag Handler (Corners, Edges, and Move)
+  const handleStartDrag = (handle: DragHandleType, e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    dragActionRef.current = action;
-    setIsDragging(true);
-    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-    dragStartPosRef.current = { clientX, clientY };
-    dragStartBoxRef.current = { ...cropBox };
 
-    const handlePointerMove = (moveEvt: MouseEvent | TouchEvent) => {
-      if (!dragActionRef.current || !imageFrameRef.current) return;
-      const curX = "touches" in moveEvt ? moveEvt.touches[0].clientX : moveEvt.clientX;
-      const curY = "touches" in moveEvt ? moveEvt.touches[0].clientY : moveEvt.clientY;
+    // Capture pointer on the element so movement is tracked even outside the element
+    const target = e.currentTarget;
+    if (target && "setPointerCapture" in target) {
+      try {
+        target.setPointerCapture(e.pointerId);
+      } catch {}
+    }
 
-      const deltaXPixels = curX - dragStartPosRef.current.clientX;
-      const deltaYPixels = curY - dragStartPosRef.current.clientY;
+    activeDragRef.current = {
+      handle,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialBox: { ...cropBox },
+    };
 
+    const handlePointerMove = (moveEvt: PointerEvent) => {
+      if (!activeDragRef.current || !imageFrameRef.current) return;
+      const { handle: dragHandle, initialBox } = activeDragRef.current;
       const rect = imageFrameRef.current.getBoundingClientRect();
-      const deltaXPct = (deltaXPixels / rect.width) * 100;
-      const deltaYPct = (deltaYPixels / rect.height) * 100;
 
-      const init = dragStartBoxRef.current;
-      const actionType = dragActionRef.current;
+      if (rect.width <= 0 || rect.height <= 0) return;
+
+      const currentClientX = moveEvt.clientX;
+      const currentClientY = moveEvt.clientY;
+
+      // Pointer positions as percentages of the image container (0% to 100%)
+      const pointerXPct = Math.max(0, Math.min(100, ((currentClientX - rect.left) / rect.width) * 100));
+      const pointerYPct = Math.max(0, Math.min(100, ((currentClientY - rect.top) / rect.height) * 100));
+
+      const deltaXPct = ((currentClientX - activeDragRef.current.startX) / rect.width) * 100;
+      const deltaYPct = ((currentClientY - activeDragRef.current.startY) / rect.height) * 100;
+
+      const minSize = 8; // minimum width and height in percentage
 
       setCropBox(() => {
-        let newX = init.x;
-        let newY = init.y;
-        let newW = init.width;
-        let newH = init.height;
+        let x = initialBox.x;
+        let y = initialBox.y;
+        let w = initialBox.width;
+        let h = initialBox.height;
 
-        if (actionType === "move") {
-          // Dragging inside selection: move entire box within 0-100% bounds
-          newX = Math.max(0, Math.min(100 - init.width, init.x + deltaXPct));
-          newY = Math.max(0, Math.min(100 - init.height, init.y + deltaYPct));
-        } else {
-          // Dragging individual corner handles
-          if (actionType.includes("top")) {
-            newY = Math.max(0, Math.min(init.y + deltaYPct, init.y + init.height - 10));
-            newH = init.height - (newY - init.y);
-          }
-          if (actionType.includes("bottom")) {
-            newH = Math.max(10, Math.min(100 - init.y, init.height + deltaYPct));
-          }
-          if (actionType.includes("left")) {
-            newX = Math.max(0, Math.min(init.x + deltaXPct, init.x + init.width - 10));
-            newW = init.width - (newX - init.x);
-          }
-          if (actionType.includes("right")) {
-            newW = Math.max(10, Math.min(100 - init.x, init.width + deltaXPct));
-          }
+        if (dragHandle === "move") {
+          // Move entire selection inside image boundaries
+          x = Math.max(0, Math.min(100 - initialBox.width, initialBox.x + deltaXPct));
+          y = Math.max(0, Math.min(100 - initialBox.height, initialBox.y + deltaYPct));
+          return { x, y, width: w, height: h };
         }
 
-        return { x: newX, y: newY, width: newW, height: newH };
+        // --- Drag Corners & Edges with Direct Pointer Tracking ---
+
+        // TOP resizing (handles: top-left, top, top-right)
+        if (dragHandle === "top-left" || dragHandle === "top" || dragHandle === "top-right") {
+          const maxY = initialBox.y + initialBox.height - minSize;
+          y = Math.max(0, Math.min(maxY, pointerYPct));
+          h = initialBox.y + initialBox.height - y;
+        }
+
+        // BOTTOM resizing (handles: bottom-left, bottom, bottom-right)
+        if (dragHandle === "bottom-left" || dragHandle === "bottom" || dragHandle === "bottom-right") {
+          const minY = initialBox.y + minSize;
+          const targetY = Math.max(minY, Math.min(100, pointerYPct));
+          h = targetY - initialBox.y;
+        }
+
+        // LEFT resizing (handles: top-left, left, bottom-left)
+        if (dragHandle === "top-left" || dragHandle === "left" || dragHandle === "bottom-left") {
+          const maxX = initialBox.x + initialBox.width - minSize;
+          x = Math.max(0, Math.min(maxX, pointerXPct));
+          w = initialBox.x + initialBox.width - x;
+        }
+
+        // RIGHT resizing (handles: top-right, right, bottom-right)
+        if (dragHandle === "top-right" || dragHandle === "right" || dragHandle === "bottom-right") {
+          const minX = initialBox.x + minSize;
+          const targetX = Math.max(minX, Math.min(100, pointerXPct));
+          w = targetX - initialBox.x;
+        }
+
+        return {
+          x: Math.max(0, Math.min(100 - minSize, x)),
+          y: Math.max(0, Math.min(100 - minSize, y)),
+          width: Math.max(minSize, Math.min(100 - x, w)),
+          height: Math.max(minSize, Math.min(100 - y, h)),
+        };
       });
     };
 
-    const handlePointerUp = () => {
-      dragActionRef.current = null;
-      setIsDragging(false);
-      window.removeEventListener("mousemove", handlePointerMove);
-      window.removeEventListener("mouseup", handlePointerUp);
-      window.removeEventListener("touchmove", handlePointerMove);
-      window.removeEventListener("touchend", handlePointerUp);
+    const handlePointerUp = (upEvt: PointerEvent) => {
+      activeDragRef.current = null;
+      if (target && "releasePointerCapture" in target) {
+        try {
+          target.releasePointerCapture(upEvt.pointerId);
+        } catch {}
+      }
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
     };
 
-    window.addEventListener("mousemove", handlePointerMove);
-    window.addEventListener("mouseup", handlePointerUp);
-    window.addEventListener("touchmove", handlePointerMove);
-    window.addEventListener("touchend", handlePointerUp);
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
   };
 
-  // Perform Actual Image Cropping
+  // Perform Immediate Crop Action
   const handlePerformCrop = async () => {
     if (!uploadedImage) return;
     try {
-      const croppedDataUrl = await cropImageCanvas(
-        uploadedImage,
-        cropBox,
-        rotation,
-        zoomLevel
-      );
+      const croppedDataUrl = await cropImageCanvas(uploadedImage, cropBox);
       setUploadedImage(croppedDataUrl);
-      setRotation(0);
       setZoomLevel(1);
       setCropBox({ x: 2, y: 2, width: 96, height: 96 });
       setCropSuccessToast(true);
       setTimeout(() => setCropSuccessToast(false), 2000);
-    } catch {
-      // Fallback
-    }
+    } catch {}
   };
 
-  // Crop & Continue Action: generates actual cropped image and sends to parent
+  // Crop & Continue Action
   const handleCropAndContinue = useCallback(async () => {
     if (!uploadedImage) return;
     let finalLogoUrl = uploadedImage;
     try {
-      finalLogoUrl = await cropImageCanvas(
-        uploadedImage,
-        cropBox,
-        rotation,
-        zoomLevel
-      );
+      finalLogoUrl = await cropImageCanvas(uploadedImage, cropBox);
     } catch {
       finalLogoUrl = uploadedImage;
     }
     onApplyLogo(finalLogoUrl, logoName || "custom-logo.png");
     onClose();
-  }, [uploadedImage, cropBox, rotation, zoomLevel, logoName, onApplyLogo, onClose]);
+  }, [uploadedImage, cropBox, logoName, onApplyLogo, onClose]);
 
   if (!isOpen) return null;
-
-  const isRotatedQuarterTurn = rotation === 90 || rotation === 270;
 
   return (
     <div
@@ -364,8 +386,8 @@ export function BrandDesignerModal({
         className="hidden"
       />
 
-      {/* Main Modal Card: Responsive with exact max-height to fit both desktop & mobile screens */}
-      <div className="relative w-full max-w-4xl max-h-[94vh] sm:max-h-[90vh] flex flex-col overflow-hidden rounded-[22px] sm:rounded-[28px] bg-gradient-to-b from-[#FDF5F6] via-[#FAF0F2] to-[#F7E7EA] p-2.5 sm:p-4 md:p-5 shadow-2xl border border-rose-200/70">
+      {/* Main Modal Card: Fits viewport on desktop and mobile */}
+      <div className="relative w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden rounded-[22px] sm:rounded-[28px] bg-gradient-to-b from-[#FDF5F6] via-[#FAF0F2] to-[#F7E7EA] p-2.5 sm:p-4 md:p-5 shadow-2xl border border-rose-200/70">
         
         {/* Decorative Maroon Curved Bottom Waves */}
         <div
@@ -381,125 +403,38 @@ export function BrandDesignerModal({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close brand designer"
+          aria-label="Close modal"
           className="absolute top-4 right-4 sm:top-5 sm:right-5 z-30 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/95 text-[#80011F] shadow-md hover:bg-white hover:scale-105 transition-all cursor-pointer border border-rose-100"
         >
           <X size={18} />
         </button>
 
-        {/* Inner Card: Flex layout containing header, scrollable body, and footer */}
-        <div className="relative z-10 flex flex-col flex-1 max-h-[91vh] sm:max-h-[86vh] overflow-hidden rounded-[18px] sm:rounded-[22px] bg-white shadow-sm border border-rose-100">
+        {/* Inner Card Container */}
+        <div className="relative z-10 flex flex-col flex-1 max-h-[89vh] sm:max-h-[84vh] overflow-hidden rounded-[18px] sm:rounded-[22px] bg-white shadow-sm border border-rose-100">
           
           {/* ======================================================== */}
-          {/* TOP HEADER: EXACT TEESZONE LOGO & 4-STEP STEPPER */}
+          {/* CLEAN POPUP HEADER (NO PROCESS STEPS / STEP INDICATOR)   */}
           {/* ======================================================== */}
-
-          {/* DESKTOP HEADER */}
-          <div className="hidden sm:flex items-center justify-between gap-4 px-5 sm:px-7 py-3 sm:py-3.5 border-b border-rose-100 bg-white shrink-0">
-            {/* Authentic TeesZone Logo from /logo.webp */}
+          <div className="flex items-center justify-between px-5 sm:px-7 py-3 sm:py-3.5 border-b border-rose-100 bg-white shrink-0 pr-14">
             <div className="flex items-center gap-2">
               <Image
                 src="/logo.webp"
                 alt="TeesZone — elevate your style with custom tees"
                 width={150}
                 height={30}
-                className="h-7 md:h-8 w-auto object-contain"
+                className="h-7 sm:h-8 w-auto object-contain"
                 priority
               />
-            </div>
-
-            {/* Stepper with Checkmark & Active Pill */}
-            <nav aria-label="Progress" className="flex items-center gap-2 text-xs">
-              <div className="flex items-center gap-1.5">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1A1A1A] text-white font-bold text-[10px]">
-                  <Check size={11} className="stroke-[3]" />
-                </div>
-                <span className="font-semibold text-ink whitespace-nowrap">Select Product</span>
-              </div>
-
-              <div className="h-0.5 w-6 bg-gray-200" />
-
-              <div className="flex items-center gap-1.5">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#80011F] text-white font-bold text-[10px]">
-                  2
-                </div>
-                <span className="font-bold text-[#80011F] whitespace-nowrap">Upload &amp; Crop Logo</span>
-              </div>
-
-              <div className="h-0.5 w-6 bg-gray-200" />
-
-              <div className="flex items-center gap-1.5 opacity-60">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-300 text-gray-400 text-[10px]">
-                  3
-                </div>
-                <span className="font-medium text-gray-500 whitespace-nowrap">Customize</span>
-              </div>
-
-              <div className="h-0.5 w-6 bg-gray-200" />
-
-              <div className="flex items-center gap-1.5 opacity-60">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-300 text-gray-400 text-[10px]">
-                  4
-                </div>
-                <span className="font-medium text-gray-500 whitespace-nowrap">Review &amp; Order</span>
-              </div>
-            </nav>
-          </div>
-
-          {/* MOBILE HEADER */}
-          <div className="flex sm:hidden flex-col gap-2 px-3.5 py-2.5 border-b border-rose-100 bg-white shrink-0">
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-1 text-ink"
-                aria-label="Navigation menu"
-              >
-                <Menu size={18} />
-              </button>
-              
-              <Image
-                src="/logo.webp"
-                alt="TeesZone"
-                width={120}
-                height={24}
-                className="h-5.5 w-auto object-contain"
-                priority
-              />
-
-              <div className="flex items-center gap-2 text-ink">
-                <Search size={16} />
-                <ShoppingBag size={16} />
-              </div>
-            </div>
-
-            {/* Mobile Stepper Row */}
-            <div className="flex items-center justify-center gap-2 pt-0.5">
-              <div className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#1A1A1A] text-white text-[9px] font-bold">
-                <Check size={9} className="stroke-[3]" />
-              </div>
-              <div className="h-0.5 w-6 bg-gray-200" />
-              <div className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#80011F] text-white text-[9px] font-bold">
-                2
-              </div>
-              <div className="h-0.5 w-6 bg-gray-200" />
-              <div className="flex h-4.5 w-4.5 items-center justify-center rounded-full border border-gray-300 text-gray-400 text-[9px]">
-                3
-              </div>
-              <div className="h-0.5 w-6 bg-gray-200" />
-              <div className="flex h-4.5 w-4.5 items-center justify-center rounded-full border border-gray-300 text-gray-400 text-[9px]">
-                4
-              </div>
             </div>
           </div>
 
           {/* ======================================================== */}
-          {/* BODY: EMPTY STATE (INITIAL) vs CROP STATE (AFTER UPLOAD) */}
+          {/* BODY: EMPTY STATE vs INTERACTIVE MANUAL CROPPER          */}
           {/* ======================================================== */}
           <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-7 sm:py-5">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-7 items-start">
               
-              {/* LEFT COLUMN: Title & 3 Guidance Cards */}
+              {/* LEFT COLUMN: Title & 3 Feature Guidance Cards */}
               <div className="lg:col-span-4 flex flex-col">
                 <h2
                   id="brand-designer-title"
@@ -511,21 +446,21 @@ export function BrandDesignerModal({
                   Position and crop your logo the way you want.
                 </p>
 
-                {/* 3 Guidance Rows (Desktop) */}
-                <div className="hidden lg:flex flex-col gap-3 mt-5">
+                {/* 3 Guidance Rows */}
+                <div className="flex flex-col gap-2.5 sm:gap-3 mt-4 sm:mt-5">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FCECEF] text-[#80011F] border border-rose-200/50 shadow-xs shrink-0">
-                      <Crop size={18} className="stroke-[2.2]" />
+                    <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#FCECEF] text-[#80011F] border border-rose-200/50 shadow-xs shrink-0">
+                      <Crop size={17} className="stroke-[2.2]" />
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-ink">Crop &amp; Adjust</h4>
-                      <p className="text-[11px] text-[#736A6E]">Trim unwanted areas</p>
+                      <p className="text-[11px] text-[#736A6E]">Drag any corner or edge to trim</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FCECEF] text-[#80011F] border border-rose-200/50 shadow-xs shrink-0">
-                      <Scan size={18} className="stroke-[2.2]" />
+                    <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#FCECEF] text-[#80011F] border border-rose-200/50 shadow-xs shrink-0">
+                      <Scan size={17} className="stroke-[2.2]" />
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-ink">Keep It Clear</h4>
@@ -534,18 +469,47 @@ export function BrandDesignerModal({
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FCECEF] text-[#80011F] border border-rose-200/50 shadow-xs shrink-0">
-                      <Sparkles size={18} className="stroke-[2.2]" />
+                    <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#FCECEF] text-[#80011F] border border-rose-200/50 shadow-xs shrink-0">
+                      <Sparkles size={17} className="stroke-[2.2]" />
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-ink">Best Results</h4>
-                      <p className="text-[11px] text-[#736A6E]">A transparent background (PNG) is recommended</p>
+                      <p className="text-[11px] text-[#736A6E]">Transparent background (PNG) recommended</p>
                     </div>
                   </div>
                 </div>
+
+                {/* Real-time Crop Preview Thumbnail (when logo is loaded) */}
+                {uploadedImage && livePreviewUrl && (
+                  <div className="mt-4 p-3 rounded-xl border border-rose-200/70 bg-[#FAF0F2]/50 flex items-center gap-3">
+                    <div
+                      style={{
+                        backgroundImage: `
+                          linear-gradient(45deg, #e5e5e5 25%, transparent 25%),
+                          linear-gradient(-45deg, #e5e5e5 25%, transparent 25%),
+                          linear-gradient(45deg, transparent 75%, #e5e5e5 75%),
+                          linear-gradient(-45deg, transparent 75%, #e5e5e5 75%)
+                        `,
+                        backgroundSize: "8px 8px",
+                      }}
+                      className="h-12 w-12 rounded-lg border border-line overflow-hidden flex items-center justify-center p-1 bg-white shrink-0"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={livePreviewUrl}
+                        alt="Crop preview"
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-bold text-[#80011F] leading-tight">Live Crop Preview</p>
+                      <p className="text-[10px] text-[#736A6E] truncate">This exact selection will be printed</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* RIGHT COLUMN: EMPTY DROPZONE vs INTERACTIVE CROP CANVAS */}
+              {/* RIGHT COLUMN: EMPTY UPLOAD DROPZONE vs REAL INTERACTIVE CROPPER */}
               <div className="lg:col-span-8 flex flex-col">
                 
                 {!uploadedImage ? (
@@ -573,12 +537,12 @@ export function BrandDesignerModal({
                       Upload Your Logo
                     </h3>
 
-                    {/* Subtitle */}
+                    {/* Description */}
                     <p className="mt-1 text-xs text-[#736A6E] max-w-sm">
                       Upload your company logo to get started.
                     </p>
 
-                    {/* Drag and Drop text */}
+                    {/* Action Text */}
                     <div className="mt-3.5 flex items-center gap-1.5 text-xs text-ink font-semibold">
                       <span>Drag &amp; drop your logo here</span>
                       <span className="text-[#80011F] underline underline-offset-2 hover:opacity-85">
@@ -596,11 +560,11 @@ export function BrandDesignerModal({
                   </div>
                 ) : (
                   /* ======================================================== */
-                  /* 2. AFTER UPLOADING: INTERACTIVE MANUAL CROPPER           */
+                  /* 2. AFTER UPLOADING: FULLY FUNCTIONAL MANUAL CROPPER      */
                   /* ======================================================== */
                   <>
                     {/* Mode Buttons: [ Crop ] & [ Zoom ] */}
-                    <div className="hidden sm:flex items-center justify-end gap-2 mb-2.5">
+                    <div className="flex items-center justify-end gap-2 mb-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -619,7 +583,7 @@ export function BrandDesignerModal({
                       </button>
                       <button
                         type="button"
-                        onClick={() => setActiveMode("zoom")}
+                        onClick={() => setActiveMode(activeMode === "zoom" ? "crop" : "zoom")}
                         title="Zoom adjustment"
                         className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                           activeMode === "zoom"
@@ -631,6 +595,26 @@ export function BrandDesignerModal({
                         <span>Zoom</span>
                       </button>
                     </div>
+
+                    {/* Zoom Slider Control (shown when Zoom mode is active) */}
+                    {activeMode === "zoom" && (
+                      <div className="flex items-center gap-2.5 mb-2 px-3 py-1.5 rounded-xl bg-surface border border-line animate-in fade-in duration-150">
+                        <ZoomOut size={14} className="text-body shrink-0" />
+                        <input
+                          type="range"
+                          min="1"
+                          max="2.5"
+                          step="0.05"
+                          value={zoomLevel}
+                          onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
+                          className="w-full accent-[#80011F] cursor-pointer"
+                        />
+                        <ZoomIn size={14} className="text-body shrink-0" />
+                        <span className="text-xs font-bold text-[#80011F] w-10 text-right shrink-0">
+                          {Math.round(zoomLevel * 100)}%
+                        </span>
+                      </div>
+                    )}
 
                     {/* Checkerboard Canvas Container */}
                     <div
@@ -644,7 +628,7 @@ export function BrandDesignerModal({
                         backgroundSize: "14px 14px",
                         backgroundPosition: "0 0, 0 7px, 7px -7px, -7px 0px",
                       }}
-                      className="relative h-[210px] sm:h-[250px] md:h-[270px] w-full rounded-2xl border border-gray-200/90 overflow-hidden flex items-center justify-center p-3 sm:p-4 bg-[#FAFAFA] select-none"
+                      className="relative h-[220px] sm:h-[260px] md:h-[280px] w-full rounded-2xl border border-gray-200/90 overflow-hidden flex items-center justify-center p-3 sm:p-4 bg-[#FAFAFA] select-none touch-none"
                     >
                       {/* Toast when cropped */}
                       {cropSuccessToast && (
@@ -653,31 +637,32 @@ export function BrandDesignerModal({
                         </div>
                       )}
 
-                      {/* Image Frame: Holds the uploaded image and crop box */}
+                      {/* Image Frame Container: sized strictly to the rendered image bounds */}
                       <div
                         ref={imageFrameRef}
                         style={{
-                          transform: `rotate(${rotation}deg) scale(${zoomLevel})`,
-                          transition: isDragging ? "none" : "transform 150ms cubic-bezier(0.4, 0, 0.2, 1)",
-                          maxWidth: isRotatedQuarterTurn ? "180px" : "85%",
-                          maxHeight: isRotatedQuarterTurn ? "180px" : "85%",
+                          transform: `scale(${zoomLevel})`,
+                          transformOrigin: "center center",
+                          transition: "transform 150ms ease-out",
                         }}
-                        className="relative flex items-center justify-center select-none"
+                        className="relative max-h-full max-w-full inline-flex items-center justify-center select-none"
                       >
-                        {/* Actual Uploaded Logo ONLY (No TeesZone Logo or Sample Artwork) */}
+                        {/* The Actual Uploaded Image */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
+                          ref={imageElementRef}
                           src={uploadedImage}
                           alt={logoName || "Uploaded Logo"}
-                          className="max-h-[170px] sm:max-h-[210px] max-w-full object-contain drop-shadow-sm pointer-events-none select-none block"
+                          draggable={false}
+                          className="max-h-[190px] sm:max-h-[230px] md:max-h-[250px] max-w-full w-auto h-auto object-contain drop-shadow-sm pointer-events-none select-none block"
                         />
 
-                        {/* Dimming Mask: Darkens area outside the crop selection */}
+                        {/* Dimming Mask: Darkens the area outside the crop box */}
                         <div
                           aria-hidden="true"
                           className="absolute inset-0 pointer-events-none"
                           style={{
-                            boxShadow: `0 0 0 9999px rgba(0, 0, 0, 0.35)`,
+                            boxShadow: `0 0 0 9999px rgba(0, 0, 0, 0.4)`,
                             clipPath: `polygon(
                               0% 0%, 0% 100%, 
                               ${cropBox.x}% 100%, 
@@ -691,7 +676,7 @@ export function BrandDesignerModal({
                           }}
                         />
 
-                        {/* Fully Interactive Crop Box Overlay with Dark Red Border & 4 Draggable Handles */}
+                        {/* Interactive Crop Box Overlay with Dark Red Border */}
                         <div
                           style={{
                             left: `${cropBox.x}%`,
@@ -699,11 +684,10 @@ export function BrandDesignerModal({
                             width: `${cropBox.width}%`,
                             height: `${cropBox.height}%`,
                           }}
-                          onMouseDown={(e) => handleStartDrag("move", e)}
-                          onTouchStart={(e) => handleStartDrag("move", e)}
-                          className="absolute border-2 border-[#80011F] rounded-xs cursor-move bg-transparent"
+                          onPointerDown={(e) => handleStartDrag("move", e)}
+                          className="absolute border-2 border-[#80011F] rounded-xs cursor-move bg-transparent touch-none"
                         >
-                          {/* Inner Rule-of-Thirds Grid Lines */}
+                          {/* Rule-of-Thirds Grid Lines */}
                           <div className="absolute inset-0 pointer-events-none opacity-30 flex flex-col justify-between p-0.5">
                             <div className="w-full border-b border-dashed border-white" />
                             <div className="w-full border-b border-dashed border-white" />
@@ -713,127 +697,65 @@ export function BrandDesignerModal({
                             <div className="h-full border-r border-dashed border-white" />
                           </div>
 
-                          {/* 4 Draggable Corner Handles */}
+                          {/* ======================================================== */}
+                          {/* 4 DRAGGABLE INDEPENDENT EDGE HANDLES                     */}
+                          {/* ======================================================== */}
+                          {/* Top Edge */}
+                          <div
+                            onPointerDown={(e) => handleStartDrag("top", e)}
+                            className="absolute -top-1.5 inset-x-2 h-3 cursor-ns-resize hover:bg-[#80011F]/30 active:bg-[#80011F]/50 transition-colors"
+                            title="Drag top edge"
+                          />
+                          {/* Bottom Edge */}
+                          <div
+                            onPointerDown={(e) => handleStartDrag("bottom", e)}
+                            className="absolute -bottom-1.5 inset-x-2 h-3 cursor-ns-resize hover:bg-[#80011F]/30 active:bg-[#80011F]/50 transition-colors"
+                            title="Drag bottom edge"
+                          />
+                          {/* Left Edge */}
+                          <div
+                            onPointerDown={(e) => handleStartDrag("left", e)}
+                            className="absolute -left-1.5 inset-y-2 w-3 cursor-ew-resize hover:bg-[#80011F]/30 active:bg-[#80011F]/50 transition-colors"
+                            title="Drag left edge"
+                          />
+                          {/* Right Edge */}
+                          <div
+                            onPointerDown={(e) => handleStartDrag("right", e)}
+                            className="absolute -right-1.5 inset-y-2 w-3 cursor-ew-resize hover:bg-[#80011F]/30 active:bg-[#80011F]/50 transition-colors"
+                            title="Drag right edge"
+                          />
+
+                          {/* ======================================================== */}
+                          {/* 4 DRAGGABLE INDEPENDENT CORNER HANDLES                   */}
+                          {/* ======================================================== */}
                           {/* Top-Left Corner Handle */}
                           <div
-                            onMouseDown={(e) => handleStartDrag("top-left", e)}
-                            onTouchStart={(e) => handleStartDrag("top-left", e)}
-                            className="absolute -top-2.5 -left-2.5 h-5 w-5 rounded-full border-2 border-[#80011F] bg-white shadow-md cursor-nwse-resize hover:scale-125 active:scale-125 transition-transform"
+                            onPointerDown={(e) => handleStartDrag("top-left", e)}
+                            className="absolute -top-2.5 -left-2.5 h-5 w-5 sm:h-5.5 sm:w-5.5 rounded-full border-2 border-[#80011F] bg-white shadow-md cursor-nwse-resize hover:scale-125 active:scale-125 transition-transform"
+                            title="Drag top-left corner"
                           />
 
                           {/* Top-Right Corner Handle */}
                           <div
-                            onMouseDown={(e) => handleStartDrag("top-right", e)}
-                            onTouchStart={(e) => handleStartDrag("top-right", e)}
-                            className="absolute -top-2.5 -right-2.5 h-5 w-5 rounded-full border-2 border-[#80011F] bg-white shadow-md cursor-nesw-resize hover:scale-125 active:scale-125 transition-transform"
+                            onPointerDown={(e) => handleStartDrag("top-right", e)}
+                            className="absolute -top-2.5 -right-2.5 h-5 w-5 sm:h-5.5 sm:w-5.5 rounded-full border-2 border-[#80011F] bg-white shadow-md cursor-nesw-resize hover:scale-125 active:scale-125 transition-transform"
+                            title="Drag top-right corner"
                           />
 
                           {/* Bottom-Left Corner Handle */}
                           <div
-                            onMouseDown={(e) => handleStartDrag("bottom-left", e)}
-                            onTouchStart={(e) => handleStartDrag("bottom-left", e)}
-                            className="absolute -bottom-2.5 -left-2.5 h-5 w-5 rounded-full border-2 border-[#80011F] bg-white shadow-md cursor-nesw-resize hover:scale-125 active:scale-125 transition-transform"
+                            onPointerDown={(e) => handleStartDrag("bottom-left", e)}
+                            className="absolute -bottom-2.5 -left-2.5 h-5 w-5 sm:h-5.5 sm:w-5.5 rounded-full border-2 border-[#80011F] bg-white shadow-md cursor-nesw-resize hover:scale-125 active:scale-125 transition-transform"
+                            title="Drag bottom-left corner"
                           />
 
                           {/* Bottom-Right Corner Handle */}
                           <div
-                            onMouseDown={(e) => handleStartDrag("bottom-right", e)}
-                            onTouchStart={(e) => handleStartDrag("bottom-right", e)}
-                            className="absolute -bottom-2.5 -right-2.5 h-5 w-5 rounded-full border-2 border-[#80011F] bg-white shadow-md cursor-nwse-resize hover:scale-125 active:scale-125 transition-transform"
+                            onPointerDown={(e) => handleStartDrag("bottom-right", e)}
+                            className="absolute -bottom-2.5 -right-2.5 h-5 w-5 sm:h-5.5 sm:w-5.5 rounded-full border-2 border-[#80011F] bg-white shadow-md cursor-nwse-resize hover:scale-125 active:scale-125 transition-transform"
+                            title="Drag bottom-right corner"
                           />
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Mobile Toggles */}
-                    <div className="flex sm:hidden items-center gap-2 mt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveMode("crop");
-                          handlePerformCrop();
-                        }}
-                        className={`flex-1 flex items-center justify-center gap-1 rounded-xl py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                          activeMode === "crop"
-                            ? "bg-[#80011F] text-white shadow-xs"
-                            : "bg-white border border-gray-300 text-ink"
-                        }`}
-                      >
-                        <Crop size={13} />
-                        <span>Crop</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveMode("zoom")}
-                        className={`flex-1 flex items-center justify-center gap-1 rounded-xl py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                          activeMode === "zoom"
-                            ? "bg-[#80011F] text-white shadow-xs"
-                            : "bg-white border border-gray-300 text-ink"
-                        }`}
-                      >
-                        <ZoomIn size={13} />
-                        <span>Zoom</span>
-                      </button>
-                    </div>
-
-                    {/* Zoom Slider Control (when Zoom mode active) */}
-                    {activeMode === "zoom" && (
-                      <div className="flex items-center gap-2.5 mt-2 px-3 py-1.5 rounded-xl bg-surface border border-line animate-in fade-in duration-150">
-                        <ZoomOut size={14} className="text-body" />
-                        <input
-                          type="range"
-                          min="0.6"
-                          max="2.5"
-                          step="0.05"
-                          value={zoomLevel}
-                          onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
-                          className="w-full accent-[#80011F] cursor-pointer"
-                        />
-                        <ZoomIn size={14} className="text-body" />
-                        <span className="text-xs font-bold text-[#80011F] w-10 text-right">
-                          {Math.round(zoomLevel * 100)}%
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Action Buttons: Rotate Left, Rotate Right & Reset */}
-                    <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center sm:justify-center sm:gap-3 mt-2.5 sm:mt-3">
-                      <button
-                        type="button"
-                        onClick={handleRotateLeft}
-                        className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 px-3 py-1.5 text-xs font-semibold text-ink shadow-xs transition-all cursor-pointer"
-                      >
-                        <RotateCcw size={14} className="text-[#80011F]" />
-                        <span className="whitespace-nowrap">Rotate Left</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleRotateRight}
-                        className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 px-3 py-1.5 text-xs font-semibold text-ink shadow-xs transition-all cursor-pointer"
-                      >
-                        <RotateCw size={14} className="text-[#80011F]" />
-                        <span className="whitespace-nowrap">Rotate Right</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleReset}
-                        className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 px-3 py-1.5 text-xs font-semibold text-ink shadow-xs transition-all cursor-pointer"
-                      >
-                        <RefreshCw size={14} className="text-[#80011F]" />
-                        <span className="whitespace-nowrap">Reset</span>
-                      </button>
-                    </div>
-
-                    {/* Mobile "For best results" Info Banner */}
-                    <div className="flex sm:hidden items-start gap-2 mt-2.5 p-2.5 rounded-xl bg-[#FCEBED] border border-rose-200/60 text-left">
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[#80011F] shrink-0 mt-0.5 shadow-xs">
-                        <Sparkles size={11} className="stroke-[2.2]" />
-                      </div>
-                      <div>
-                        <h5 className="text-[11px] font-bold text-[#80011F]">For best results</h5>
-                        <p className="text-[10px] text-[#736A6E] leading-relaxed">
-                          Use a high-resolution logo (PNG/JPG) with a transparent background (PNG) if possible.
-                        </p>
                       </div>
                     </div>
                   </>
@@ -844,7 +766,7 @@ export function BrandDesignerModal({
           </div>
 
           {/* ======================================================== */}
-          {/* BOTTOM FOOTER: [ Replace Logo ] & [ Crop & Continue ] */}
+          {/* BOTTOM FOOTER: [ Replace Logo ] & [ Crop & Continue ]    */}
           {/* ======================================================== */}
 
           {/* DESKTOP FOOTER */}
