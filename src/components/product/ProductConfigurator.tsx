@@ -201,7 +201,7 @@ export function ProductConfigurator({
       try {
         const raw = localStorage.getItem(`teeszone_custom_design_${product.slug}`);
         if (raw) return JSON.parse(raw);
-      } catch {}
+      } catch { }
     }
     return null;
   });
@@ -223,7 +223,7 @@ export function ProductConfigurator({
     if (typeof window !== "undefined") {
       try {
         localStorage.removeItem(`teeszone_custom_design_${product.slug}`);
-      } catch {}
+      } catch { }
     }
   }, [product.slug, setSavedCustomDesign, setLogoPreview, setLogoName]);
   const [justAdded, setJustAdded] = useState(false);
@@ -807,22 +807,62 @@ export function ProductConfigurator({
           </div>
         </div>
 
-        {/* Quantity & Tiered Pricing Table (Matches Product Details Design) */}
-        <div className="mt-5 rounded-2xl border border-line bg-white shadow-xs overflow-hidden">
-          <div className="grid grid-cols-3 bg-slate-50/80 px-4 sm:px-6 py-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-body/80 border-b border-line">
-            <span>Quantity</span>
-            <span className="text-center">Price / Piece</span>
-            <span className="text-right">Total</span>
-          </div>
-          <div className="divide-y divide-line text-xs sm:text-sm">
+        {/* Quantity & Tiered Pricing Section (Card layout matching reference specification) */}
+        <div className="mt-5">
+          {/* Desktop Layout: 4 Horizontal Cards Side-by-Side */}
+          <div className="hidden sm:grid sm:grid-cols-4 sm:gap-2.5 lg:gap-3">
             {pricingTiers.map((t) => (
               <div
                 key={t.range}
-                className="grid grid-cols-3 items-center px-4 sm:px-6 py-3.5 transition-colors hover:bg-slate-50/60"
+                className="group/tier rounded-2xl bg-slate-50/80 p-3.5 lg:p-4 text-center transition-colors duration-200 hover:bg-slate-100/70"
               >
-                <span className="font-semibold text-ink">{t.range}</span>
-                <span className="text-center font-bold text-accent">₹{t.pricePerPc}</span>
-                <span className="text-right font-medium text-body">{t.totalText}</span>
+                <div className="text-xs lg:text-sm font-bold text-gray-900 tracking-tight">
+                  {t.range}
+                </div>
+                <div className="my-2.5">
+                  <span className="text-2xl lg:text-3xl font-black text-[#80011F] tracking-tight transition-transform duration-200 group-hover/tier:scale-105 inline-block">
+                    ₹{t.pricePerPc}
+                  </span>
+                  <span className="block text-[11px] font-medium text-gray-500">
+                    / piece
+                  </span>
+                </div>
+                <div className="pt-1 text-[11px] lg:text-xs font-medium text-gray-600">
+                  <span className="text-gray-400">Total </span>
+                  <span className="font-semibold text-gray-700">{t.totalText}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Mobile Layout: 4 Compact Stacked Vertical Cards */}
+          <div className="flex flex-col gap-2 sm:hidden">
+            {pricingTiers.map((t) => (
+              <div
+                key={t.range}
+                className="flex items-center justify-between rounded-xl bg-slate-50/80 px-4 py-3 transition-colors active:bg-slate-100/80"
+              >
+                <div>
+                  <div className="text-xs font-bold text-gray-900">
+                    {t.range}
+                  </div>
+                  <div className="mt-0.5 flex items-baseline gap-1">
+                    <span className="text-lg font-black text-[#80011F]">
+                      ₹{t.pricePerPc}
+                    </span>
+                    <span className="text-[11px] font-medium text-gray-500">
+                      / piece
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="block text-[10px] font-medium uppercase tracking-wider text-gray-400">
+                    Total
+                  </span>
+                  <span className="text-xs font-bold text-gray-800">
+                    {t.totalText}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -1607,7 +1647,7 @@ export function ProductConfigurator({
           if (typeof window !== "undefined") {
             try {
               localStorage.setItem(`teeszone_custom_design_${product.slug}`, JSON.stringify(result));
-            } catch {}
+            } catch { }
           }
         }}
       />

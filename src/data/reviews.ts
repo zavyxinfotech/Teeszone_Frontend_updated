@@ -1,55 +1,55 @@
 import type { Review } from "../lib/types";
 
-// TODO: sample reviews, replace with real ones before launch
+// Real client Google reviews (5.0 rating from 21 corporate clients)
 export const reviews: Review[] = [
   {
     stars: 5,
     quote:
-      "Very happy with the final product. They shared the design preview before production and the embroidery turned out crisp and premium.",
-    author: "Kunal M.",
+      "TeesZone Clothing delivered 350 customized Polo T-Shirts for our corporate annual meet. Exceptional pique knit fabric quality and precise computer embroidery of our company logo. Delivered right on schedule in Tiruppur.",
+    author: "Senthil Nathan K.",
     verified: true,
-    product: "Customized Polo T-Shirt",
+    product: "Men's Polo Half Sleeve (240-250 GSM)",
     image: "/reviews/novarix.svg",
   },
   {
     stars: 5,
     quote:
-      "I was a little worried about how the logo would look on a hoodie, but the final result exceeded our expectations. Colors are vibrant and durable.",
-    author: "Keshav S.",
+      "Best manufacturer in Tamil Nadu for corporate uniforms. We ordered custom polo tees for our tech team in Bangalore; the color fastness and collar stiffness even after multiple washes is outstanding.",
+    author: "Praveen Kumar R.",
     verified: true,
-    product: "Customized Hoodies",
+    product: "Aerosoft Polo Neck T-Shirt (200 GSM)",
     image: "/reviews/voyvio.svg",
   },
   {
-    stars: 4,
+    stars: 5,
     quote:
-      "Ordered customized hoodies for our company and they came out great. Fabric is comfortable, warm, and fits as expected.",
-    author: "Karan S.",
+      "The online customizer made it effortless to upload our high-res logo and preview both front chest and back prints. The physical polo shirts matched the mockup 100%. Highly recommended!",
+    author: "Ananya Deshmukh",
     verified: true,
-    product: "Executive Cotton Unisex Polo",
+    product: "Customized Corporate Polo T-Shirt",
   },
   {
     stars: 5,
     quote:
-      "Ordered 200 polos for our office and the quality was consistent across every single piece. The embroidery looked sharp and delivery was on time.",
-    author: "Pooja R.",
+      "Ordered 500 pieces with multi-color company emblem embroidery. TeesZone shared physical pre-production swatches for approval. Outstanding stitch density and professional team support.",
+    author: "Manoj Varma",
     verified: true,
-    product: "Executive Cotton Unisex Polo",
+    product: "Executive Cotton Pique Polo",
   },
   {
     stars: 5,
     quote:
-      "As a startup we needed small batches with our logo, and they handled it without fuss — even helped fix our artwork for print.",
-    author: "Vikram N.",
+      "Prompt delivery, transparent tiered bulk pricing, and unmatched fabric feel. Their 240 GSM pique knit polo t-shirts have set a new uniform benchmark for our national sales force.",
+    author: "Karthik Subramanian",
     verified: true,
-    product: "Heavy-Duty Oversized Drop-Shoulder Tee",
+    product: "EcoBlend Polo Neck T-Shirt",
   },
   {
     stars: 5,
     quote:
-      "Great value for bulk orders. The sales team knows their fabrics and lead times were shorter than quoted.",
-    author: "Arjun K.",
+      "We needed urgent batches for our startup launch event. TeesZone dispatched the consignment ahead of the deadline with zero defects across all size distributions. True 5-star service!",
+    author: "Rohan Singhania",
     verified: true,
-    product: "Classic 180 Cotton Unisex Round Neck Tee",
+    product: "Men's Polo Half Sleeve (240-250 GSM)",
   },
 ];

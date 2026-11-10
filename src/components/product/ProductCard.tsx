@@ -149,16 +149,18 @@ export function ProductCard({ product }: { product: Product }) {
             <span className="text-body group-hover/rev:underline">({ratingInfo.reviews} Reviews)</span>
           </a>
 
-          {/* Price - Original Price & Selling Price */}
-          <div className="mt-1.5 sm:mt-2.5 flex items-baseline gap-1.5">
-            <span className="text-[11px] sm:text-xs text-body line-through">
-              ₹ {originalPrice}
-            </span>
-            <span className="font-heading text-sm sm:text-lg font-bold sm:font-extrabold text-accent whitespace-nowrap">
-              ₹ {sellingPrice}
-            </span>
-            <span className="hidden sm:inline text-xs font-medium text-body">/ pc</span>
-          </div>
+          {/* Price - Original Price & Selling Price (shown for active polo products only) */}
+          {isPolo && (
+            <div className="mt-1.5 sm:mt-2.5 flex items-baseline gap-1.5">
+              <span className="text-[11px] sm:text-xs text-body line-through">
+                ₹ {originalPrice}
+              </span>
+              <span className="font-heading text-sm sm:text-lg font-bold sm:font-extrabold text-accent whitespace-nowrap">
+                ₹ {sellingPrice}
+              </span>
+              <span className="hidden sm:inline text-xs font-medium text-body">/ pc</span>
+            </div>
+          )}
         </div>
       </div>
 
