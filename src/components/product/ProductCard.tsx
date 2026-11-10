@@ -116,10 +116,15 @@ export function ProductCard({ product }: { product: Product }) {
                 />
               ))}
 
-              {/* Color indicator dots */}
+              {/* Color variations aligned at bottom-right corner */}
               {cardImages.length > 1 && (
-                <div className="absolute bottom-2 left-0 right-0 z-20 flex items-center justify-center gap-1.5 px-2">
-                  {cardImages.map((img, i) => (
+                <div
+                  className="absolute bottom-2 right-2 z-20 flex items-center gap-1 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded-full border border-slate-200/80 shadow-xs pointer-events-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  {cardImages.slice(0, 2).map((img, i) => (
                     <button
                       key={`${img.name}-${i}`}
                       type="button"
@@ -132,12 +137,17 @@ export function ProductCard({ product }: { product: Product }) {
                       aria-label={`View ${img.name}`}
                       className={`h-2.5 w-2.5 rounded-full border border-black/20 transition-all cursor-pointer ${
                         i === activeIdx
-                          ? "scale-125 ring-2 ring-white shadow-xs"
-                          : "opacity-70 hover:opacity-100"
+                          ? "scale-110 ring-1.5 ring-[#80011F]"
+                          : "opacity-80 hover:opacity-100"
                       }`}
                       style={{ backgroundColor: img.hex }}
                     />
                   ))}
+                  {cardImages.length > 2 && (
+                    <span className="text-[10px] font-semibold text-gray-700 ml-0.5 whitespace-nowrap">
+                      +{cardImages.length - 2} more
+                    </span>
+                  )}
                 </div>
               )}
             </Link>

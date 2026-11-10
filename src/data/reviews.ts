@@ -1,6 +1,7 @@
 import type { Review } from "../lib/types";
 
-const S3_BASE = "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/reviews";
+// Proxy S3 review media through authenticated Next.js streamer to avoid S3 403 Forbidden errors
+const S3_BASE = "/api/upload/media/reviews";
 
 // Genuine Google customer reviews (5.0 rating for TeesZone Clothing Private Limited)
 export const reviews: Review[] = [

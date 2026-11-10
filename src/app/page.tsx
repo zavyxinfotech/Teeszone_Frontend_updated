@@ -10,7 +10,6 @@ import {
   getHomeContent,
   getProducts,
 } from "@/lib/api";
-import { isPoloProduct } from "@/data/ratings";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +20,12 @@ export default async function HomePage() {
   ]);
 
   // Add all products in the polo t-shirts category to Best Sellers
-  const activeBestSellers = (allProducts || []).filter(isPoloProduct);
+  const activeBestSellers = (allProducts || []).filter((p) => {
+    const s = (p.slug || "").toLowerCase();
+    const n = (p.name || "").toLowerCase();
+    const cols = (p.collections || []).map((c) => c.toLowerCase());
+    return s.includes("polo") || n.includes("polo") || cols.some((c) => c.includes("polo"));
+  });
 
   return (
     <>

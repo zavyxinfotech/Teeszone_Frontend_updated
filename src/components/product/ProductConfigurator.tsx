@@ -20,6 +20,7 @@ import {
   Pencil,
   Plus,
   Ruler,
+  ShieldCheck,
   ShoppingBag,
   Sparkles,
   Star,
@@ -388,12 +389,13 @@ export function ProductConfigurator({
 
   const [sizeError, setSizeError] = useState<string | null>(null);
 
-  // 4-Tier Pricing Structure matching product details design (MOQ: 5 pcs)
+  // 4-Tier Pricing Structure computed dynamically from single t-shirt selling price (MOQ: 5 pcs)
   const pricingTiers = useMemo(() => {
-    const p4 = product.price;
-    const p1 = Math.max(p4, Math.round(product.mrp * 0.93));
-    const p2 = Math.max(p4, Math.round(product.mrp * 0.82));
-    const p3 = Math.max(p4, Math.round(product.mrp * 0.70));
+    const base = product.price; // Single t-shirt selling price
+    const p1 = Math.round(base * 0.90); // 5–9 pcs
+    const p2 = Math.round(base * 0.80); // 10–49 pcs
+    const p3 = Math.round(base * 0.70); // 50–99 pcs
+    const p4 = Math.round(base * 0.60); // 100+ pcs
 
     return [
       { range: "5–9 pcs", minQty: 5, maxQty: 9, pricePerPc: p1, totalText: `₹${(p1 * 5).toLocaleString("en-IN")}+` },
@@ -401,7 +403,7 @@ export function ProductConfigurator({
       { range: "50–99 pcs", minQty: 50, maxQty: 99, pricePerPc: p3, totalText: `₹${(p3 * 50).toLocaleString("en-IN")}+` },
       { range: "100+ pcs", minQty: 100, maxQty: null, pricePerPc: p4, totalText: `₹${(p4 * 100).toLocaleString("en-IN")}+` },
     ];
-  }, [product.price, product.mrp]);
+  }, [product.price]);
 
   const activeUnitPrice = useMemo(() => {
     const qtyCount = totalQty || 5;
@@ -1139,67 +1141,66 @@ export function ProductConfigurator({
 
             <div
               ref={reviewsRef}
-              className="flex gap-3.5 overflow-x-auto scroll-smooth py-1 scrollbar-none"
+              className="flex gap-4 overflow-x-auto scroll-smooth py-1 scrollbar-none select-none"
             >
-              {[...VERIFIED_GOOGLE_REVIEWS, ...VERIFIED_GOOGLE_REVIEWS, ...VERIFIED_GOOGLE_REVIEWS].map((rev, idx) => (
-                <div
-                  key={`${rev.id}-${idx}`}
-                  className="flex w-[260px] sm:w-[280px] shrink-0 flex-col justify-between rounded-2xl bg-surface/80 p-3.5 border border-line/60 transition-colors hover:bg-slate-100/70"
-                >
-                  <div>
-                    {/* Header: Author Initial + Name + Google G Icon */}
-                    <div className="flex items-start justify-between gap-2 mb-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#80011F]/10 text-[#80011F] font-bold text-xs">
-                          {rev.authorName.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <span className="block truncate text-xs font-bold text-ink">
-                            {rev.authorName}
-                          </span>
-                          <span className="block text-[10px] text-gray-500">
-                            {rev.relativeTime}
-                          </span>
-                        </div>
-                      </div>
-                      <GoogleGIcon className="w-4 h-4 shrink-0 opacity-80" />
-                    </div>
-
-                    {/* Star Rating: 5.0 */}
-                    <div className="flex items-center gap-1 text-amber-500 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          size={12}
-                          className="fill-amber-400 text-amber-400"
+              {[...VERIFIED_GOOGLE_REVIEWS, ...VERIFIED_GOOGLE_REVIEWS, ...VERIFIED_GOOGLE_REVIEWS].map((rev, idx) => {
+                const cardImg = rev.apparelImageUrl || rev.authorPhotoUrl;
+                return (
+                  <article
+                    key={`${rev.id}-${idx}`}
+                    className="w-[210px] sm:w-[240px] shrink-0 flex flex-col justify-between rounded-none border border-line bg-white shadow-none transition-colors hover:border-[#80011F]/50 overflow-hidden"
+                  >
+                    {/* Top: Customer / Apparel Photo from AWS S3 Backend */}
+                    {cardImg && (
+                      <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-slate-100 rounded-none border-b border-line/60">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={cardImg}
+                          alt={rev.authorName}
+                          loading="lazy"
+                          decoding="async"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
+                          className="h-full w-full object-cover object-center rounded-none"
                         />
-                      ))}
-                      <span className="text-[11px] font-bold text-ink ml-0.5">5.0</span>
+                      </div>
+                    )}
+
+                    {/* Card Body */}
+                    <div className="p-3 sm:p-3.5 flex flex-col justify-between flex-1">
+                      <div>
+                        {/* 5 Star Rating */}
+                        <div className="flex items-center gap-1 text-amber-500">
+                          {[...Array(rev.rating)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={13}
+                              className="fill-amber-400 text-amber-400"
+                            />
+                          ))}
+                        </div>
+
+                        {/* Review Text Quote (Normal Font Weight, Compact) */}
+                        <p className="mt-2 text-xs sm:text-[13px] font-normal text-gray-700 leading-normal line-clamp-3">
+                          {rev.text}
+                        </p>
+                      </div>
+
+                      {/* Card Footer: Reviewer Name + Verified Badge */}
+                      <div className="mt-3 pt-2.5 border-t border-line/50 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-ink truncate pr-2">
+                          {rev.authorName}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-none shrink-0">
+                          <ShieldCheck size={11} className="text-emerald-600" />
+                          Verified
+                        </span>
+                      </div>
                     </div>
-
-                    {/* Review Quote */}
-                    <p className="line-clamp-4 text-xs leading-relaxed text-ink/85">
-                      &ldquo;{rev.text}&rdquo;
-                    </p>
-                  </div>
-
-                  {/* Card Footer: Verified Order + Read on Google */}
-                  <div className="mt-3 pt-2.5 border-t border-line/60 flex items-center justify-between text-[11px]">
-                    <span className="inline-flex items-center gap-0.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                      <CheckCircle2 size={11} className="text-emerald-600" />
-                      Verified Order
-                    </span>
-                    <a
-                      href={rev.googleReviewUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold text-[#80011F] hover:underline"
-                    >
-                      Google Review
-                    </a>
-                  </div>
-                </div>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -28,7 +28,8 @@ export interface GooglePlaceReviewResponse {
 export const TEESZONE_PLACE_ID = "ChIJw5Ftld9ryTsRKGdwzJ7sU_M";
 export const TEESZONE_PLACE_CID = "0xf353ec9ccd766328";
 
-const S3_BASE = "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/reviews";
+// Proxy S3 review media through authenticated Next.js streamer to avoid S3 403 Forbidden errors
+const S3_BASE = "/api/upload/media/reviews";
 
 // Verified genuine Google customer reviews from official Google listing (stored in AWS S3):
 export const VERIFIED_GOOGLE_REVIEWS: GoogleReviewItem[] = [

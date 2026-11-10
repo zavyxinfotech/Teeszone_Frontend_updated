@@ -42,8 +42,8 @@ export const products: Product[] = [
     fit: "Modern regular polo fit with tailored comfort.",
     fabric: "100% Microfiber Poly-Rich Performance Knit",
     gsm: 200,
-    mrp: 649,
-    price: 369,
+    mrp: 971,
+    price: 830,
     colors: [
       { ...c.royal, image: "/products/polo-navy.svg" },
       {
@@ -74,8 +74,8 @@ export const products: Product[] = [
     fit: "Classic executive regular polo fit.",
     fabric: "100% Compact Cotton Heavy Pique (240-250 GSM)",
     gsm: 245,
-    mrp: 799,
-    price: 469,
+    mrp: 1156,
+    price: 925,
     colors: [
       {
         ...c.navy,
@@ -125,8 +125,8 @@ export const products: Product[] = [
     fit: "Structured corporate uniform fit.",
     fabric: "Polycotton EcoBlend Fabric with Jacquard Collar & Contrast Tipping",
     gsm: 240,
-    mrp: 699,
-    price: 399,
+    mrp: 1199,
+    price: 975,
     colors: [
       { ...c.navy, image: "/products/polo-navy.svg" },
       {
