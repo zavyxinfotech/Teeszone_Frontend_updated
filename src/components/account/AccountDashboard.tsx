@@ -15,7 +15,7 @@ import { AccountShell } from "@/components/account/AccountShell";
 import { useAuth } from "@/lib/auth";
 
 interface DashboardCard {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
   title: string;
   text: string;
   href: string;
