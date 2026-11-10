@@ -6,6 +6,7 @@ import { offPct } from "@/lib/pricing";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 import { FaqAccordion } from "@/components/product/FaqAccordion";
 import { ProductCard } from "@/components/product/ProductCard";
+import { CustomerReviewsSection } from "@/components/home/CustomerReviewsSection";
 import { Check } from "lucide-react";
 import { site } from "@/lib/site";
 import { Reveal } from "@/components/ui/Reveal";
@@ -103,6 +104,11 @@ export default async function ProductPage({
           </ul>
         </section>
       </Reveal>
+
+      {/* Customer Reviews Section (Continuous Loop Auto-Scroll) */}
+      <div className="-mx-3 sm:-mx-6">
+        <CustomerReviewsSection />
+      </div>
 
       {/* FAQs */}
       <Reveal delay={80}>

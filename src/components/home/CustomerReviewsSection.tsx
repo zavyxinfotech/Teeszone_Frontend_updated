@@ -212,13 +212,29 @@ export function CustomerReviewsSection({
                 {/* Header: Author + Star Rating + Google Source */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#80011F]/10 text-[#80011F] font-bold text-sm">
-                      {rev.authorName.charAt(0)}
-                    </div>
+                    {rev.authorPhotoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={rev.authorPhotoUrl}
+                        alt={rev.authorName}
+                        className="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200 shadow-2xs"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#80011F]/10 text-[#80011F] font-bold text-sm">
+                        {rev.authorName.charAt(0)}
+                      </div>
+                    )}
                     <div>
-                      <h3 className="text-sm font-bold text-ink leading-tight">
-                        {rev.authorName}
-                      </h3>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="text-sm font-bold text-ink leading-tight">
+                          {rev.authorName}
+                        </h3>
+                        {rev.badge && (
+                          <span className="text-[10px] font-semibold text-amber-900 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded">
+                            {rev.badge}
+                          </span>
+                        )}
+                      </div>
                       <div className="mt-1 flex items-center gap-2 text-[11px] text-gray-500">
                         <span>{rev.relativeTime}</span>
                         {rev.verifiedOrder && (

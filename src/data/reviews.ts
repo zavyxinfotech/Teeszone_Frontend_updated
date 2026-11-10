@@ -5,6 +5,24 @@ export const reviews: Review[] = [
   {
     stars: 5,
     quote:
+      "Just want to tell everyone, product quality, delivery timeline simply awesome.. Mr Shakti and viji maam along with Archana maam are so helpful in every step that I got my package on time... Shakti sir is truly genuine person who try to help us as much as he can and we will love to collaborate with them.",
+    author: "Parthasarathi Majumdar",
+    verified: true,
+    product: "Custom Corporate Apparel & Uniforms",
+    image: "/reviews/parthasarathi-majumdar.jpg",
+  },
+  {
+    stars: 5,
+    quote:
+      "I am writing to express our sincere appreciation for the outstanding apparel you supplied for our recent event. The feedback from participants has been overwhelmingly positive. Many specifically praised the quality of the fabric, noting that it was comfortable, durable, and well-suited for the activities during the event. Several attendees mentioned that the material felt premium and appreciated the attention to detail in the stitching and finish.and Logo printing was perfect\n\nYour commitment to quality has not only enhanced the overall experience for our participants but also reflected very well on our event brand. We truly value your professionalism, timely delivery, and the high standard of products you provided.",
+    author: "Prabhu Balaraman",
+    verified: true,
+    product: "Event Merchandise & Custom Printed Polos",
+    image: "/reviews/prabhu-balaraman.jpg",
+  },
+  {
+    stars: 5,
+    quote:
       "TeesZone Clothing delivered 350 customized Polo T-Shirts for our corporate annual meet. Exceptional pique knit fabric quality and precise computer embroidery of our company logo. Delivered right on schedule in Tiruppur.",
     author: "Senthil Nathan K.",
     verified: true,
@@ -37,17 +55,9 @@ export const reviews: Review[] = [
   {
     stars: 5,
     quote:
-      "Prompt delivery, transparent tiered bulk pricing, and unmatched fabric feel. Their 240 GSM pique knit polo t-shirts have set a new uniform benchmark for our national sales force.",
+      "Prompt delivery, transparent tiered bulk pricing, and unmatched fabric feel. Their 240 GSM pique knit polo t-shirts have set a new benchmark for corporate uniforms.",
     author: "Karthik Subramanian",
     verified: true,
     product: "EcoBlend Polo Neck T-Shirt",
-  },
-  {
-    stars: 5,
-    quote:
-      "We needed urgent batches for our startup launch event. TeesZone dispatched the consignment ahead of the deadline with zero defects across all size distributions. True 5-star service!",
-    author: "Rohan Singhania",
-    verified: true,
-    product: "Men's Polo Half Sleeve (240-250 GSM)",
   },
 ];

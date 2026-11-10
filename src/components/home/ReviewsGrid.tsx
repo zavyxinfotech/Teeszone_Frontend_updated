@@ -52,11 +52,25 @@ export function ReviewsGrid({ reviews }: { reviews: Review[] }) {
               <blockquote className="mt-3.5 text-sm leading-relaxed text-ink/90">
                 “{r.quote}”
               </blockquote>
-              <figcaption className="mt-4 pt-3 border-t border-line/60">
-                <p className="text-xs font-bold text-ink">
-                  {r.author}
-                </p>
-                <p className="mt-0.5 text-xs text-body">{r.product}</p>
+              <figcaption className="mt-4 pt-3 border-t border-line/60 flex items-center gap-3">
+                {r.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={r.image}
+                    alt={r.author}
+                    className="h-9 w-9 rounded-full object-cover border border-slate-200 shrink-0"
+                  />
+                ) : (
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#80011F]/10 text-[#80011F] font-bold text-xs">
+                    {r.author.charAt(0)}
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs font-bold text-ink">
+                    {r.author}
+                  </p>
+                  <p className="mt-0.5 text-xs text-body">{r.product}</p>
+                </div>
               </figcaption>
             </figure>
           </Reveal>
