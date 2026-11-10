@@ -39,7 +39,6 @@ export function CustomerReviewsSection({
   const [data, setData] = useState<GooglePlaceReviewResponse>(
     initialData || FALLBACK_GOOGLE_DATA
   );
-  const [currentIndex, setCurrentIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   // Fetch updated reviews on client if needed
@@ -61,14 +60,55 @@ export function CustomerReviewsSection({
   }, []);
 
   const reviews = data.reviews || FALLBACK_GOOGLE_DATA.reviews;
-  const maxDesktopIndex = Math.max(0, reviews.length - 3);
+  // Duplicate reviews for seamless continuous infinite looping
+  const loopedReviews = [...reviews, ...reviews, ...reviews];
+
+  // Continuous auto-scroll loop with pause on hover/touch
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+
+    let animId: number;
+    let isPaused = false;
+
+    const onEnter = () => { isPaused = true; };
+    const onLeave = () => { isPaused = false; };
+
+    el.addEventListener("mouseenter", onEnter);
+    el.addEventListener("mouseleave", onLeave);
+    el.addEventListener("touchstart", onEnter, { passive: true });
+    el.addEventListener("touchend", onLeave, { passive: true });
+
+    const scrollSpeed = 0.8;
+    const step = () => {
+      if (!isPaused && el) {
+        // Seamlessly reset when reaching halfway
+        if (el.scrollLeft >= el.scrollWidth / 2) {
+          el.scrollLeft = 0;
+        } else {
+          el.scrollLeft += scrollSpeed;
+        }
+      }
+      animId = requestAnimationFrame(step);
+    };
+
+    animId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      el.removeEventListener("mouseenter", onEnter);
+      el.removeEventListener("mouseleave", onLeave);
+      el.removeEventListener("touchstart", onEnter);
+      el.removeEventListener("touchend", onLeave);
+    };
+  }, [reviews]);
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => Math.max(0, prev - 1));
+    carouselRef.current?.scrollBy({ left: -360, behavior: "smooth" });
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => Math.min(maxDesktopIndex, prev + 1));
+    carouselRef.current?.scrollBy({ left: 360, behavior: "smooth" });
   };
 
   return (
@@ -93,7 +133,7 @@ export function CustomerReviewsSection({
             </p>
           </div>
 
-          {/* Official Google Rating Summary Badge */}
+          {/* Official Google Rating Summary Badge (No 21 count mentioned) */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-slate-50/90 rounded-2xl p-4 sm:p-5 border border-slate-200/60 shadow-xs">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs border border-slate-100">
@@ -115,7 +155,7 @@ export function CustomerReviewsSection({
                   </div>
                 </div>
                 <p className="text-xs font-semibold text-gray-600">
-                  Google Overall Rating · {data.userRatingCount} Reviews
+                  Google Overall Rating · Verified Reviews
                 </p>
               </div>
             </div>
@@ -134,44 +174,39 @@ export function CustomerReviewsSection({
         </div>
       </Reveal>
 
-      {/* Carousel Navigation Toolbar for Desktop */}
-      <div className="mt-8 hidden lg:flex items-center justify-between">
+      {/* Carousel Navigation Toolbar */}
+      <div className="mt-8 flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-wider text-body">
-          Showing authentic Google customer feedback from verified clients
+          Authentic customer feedback · Auto-scrolling in continuous loop
         </p>
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
-            disabled={currentIndex === 0}
             aria-label="Previous reviews"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-ink transition-all hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-line bg-white text-ink transition-all hover:bg-slate-50 cursor-pointer shadow-xs hover:scale-105"
           >
             <ChevronLeft size={18} />
           </button>
           <button
             onClick={handleNext}
-            disabled={currentIndex >= maxDesktopIndex}
             aria-label="Next reviews"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-ink transition-all hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-line bg-white text-ink transition-all hover:bg-slate-50 cursor-pointer shadow-xs hover:scale-105"
           >
             <ChevronRight size={18} />
           </button>
         </div>
       </div>
 
-      {/* Desktop Responsive Carousel */}
-      <div className="mt-6 hidden lg:block overflow-hidden">
+      {/* Continuous Loop Auto-Scrolling Carousel (Desktop & Mobile) */}
+      <div className="relative mt-6 overflow-hidden">
         <div
           ref={carouselRef}
-          className="flex transition-transform duration-500 ease-out gap-5"
-          style={{
-            transform: `translateX(-${currentIndex * (100 / 3 + 1.2)}%)`,
-          }}
+          className="flex gap-5 overflow-x-auto scroll-smooth py-2 scrollbar-none"
         >
-          {reviews.map((rev) => (
+          {loopedReviews.map((rev, idx) => (
             <article
-              key={rev.id}
-              className="w-[calc(33.333%-14px)] shrink-0 flex flex-col justify-between rounded-2xl border border-line/80 bg-white p-6 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#80011F]/30"
+              key={`${rev.id}-${idx}`}
+              className="w-[280px] sm:w-[340px] lg:w-[380px] shrink-0 flex flex-col justify-between rounded-2xl border border-line/80 bg-white p-5 sm:p-6 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#80011F]/30"
             >
               <div>
                 {/* Header: Author + Star Rating + Google Source */}
@@ -235,72 +270,7 @@ export function CustomerReviewsSection({
         </div>
       </div>
 
-      {/* Mobile Touch-Friendly Carousel / Stacked Swipe Layout */}
-      <div className="mt-6 lg:hidden">
-        <div className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scrollbar-none px-1">
-          {reviews.map((rev) => (
-            <article
-              key={rev.id}
-              className="min-w-[85%] sm:min-w-[55%] snap-center shrink-0 flex flex-col justify-between rounded-2xl border border-line bg-white p-5 shadow-xs"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#80011F]/10 text-[#80011F] font-bold text-xs">
-                      {rev.authorName.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="text-xs sm:text-sm font-bold text-ink">
-                        {rev.authorName}
-                      </h3>
-                      <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
-                        <span>{rev.relativeTime}</span>
-                        {rev.verifiedOrder && (
-                          <span className="inline-flex items-center gap-0.5 text-emerald-700 font-semibold">
-                            • Verified
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <GoogleGIcon className="w-4 h-4 shrink-0 opacity-80" />
-                </div>
-
-                <div className="mt-3 flex items-center gap-0.5 text-amber-500">
-                  {[...Array(rev.rating)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={13}
-                      className="fill-amber-400 text-amber-400"
-                    />
-                  ))}
-                </div>
-
-                <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-gray-700">
-                  &ldquo;{rev.text}&rdquo;
-                </p>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between">
-                <span className="text-[11px] font-medium text-gray-500">
-                  Google Review
-                </span>
-                <a
-                  href={rev.googleReviewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#80011F]"
-                >
-                  <span>View on Google</span>
-                  <ExternalLink size={11} />
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-
-      {/* Google Attribution & Compliance Footer */}
+      {/* Google Attribution & Compliance Footer (No 21 count) */}
       <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left text-xs text-gray-500">
         <p>
           Ratings and reviews verified through{" "}
@@ -315,7 +285,7 @@ export function CustomerReviewsSection({
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 font-semibold text-[#80011F] hover:underline"
         >
-          <span>See all 21 reviews on Google</span>
+          <span>See Reviews on Google</span>
           <ExternalLink size={12} />
         </a>
       </div>

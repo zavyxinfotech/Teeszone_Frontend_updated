@@ -30,8 +30,9 @@ import type { Product } from "@/lib/types";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
-import { reviews as defaultReviews } from "@/data/reviews";
 import { TEESZONE_GOOGLE_REVIEWS_URL } from "@/data/ratings";
+import { VERIFIED_GOOGLE_REVIEWS } from "@/lib/googleReviews";
+import { GoogleGIcon } from "@/components/home/CustomerReviewsSection";
 import type { Review } from "@/lib/types";
 import { BrandDesignerModal } from "./BrandDesignerModal";
 import {
@@ -179,12 +180,10 @@ export const PRICE_TIERS: QuantityPriceTier[] = [
 
 export function ProductConfigurator({
   product,
-  initialReviews,
 }: {
   product: Product;
   initialReviews?: Review[];
 }) {
-  const reviewsList = initialReviews && initialReviews.length > 0 ? initialReviews : defaultReviews;
   const deliveredOrdersCount = 500;
   const { sizes: productSizes, sizeGuide: sizeGuideMap } = useMemo(
     () => getProductSizeConfig(product),
@@ -261,6 +260,49 @@ export function ProductConfigurator({
   };
   const fileRef = useRef<HTMLInputElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
+
+  // Continuous auto-scroll loop for reviews with pause on hover/touch
+  useEffect(() => {
+    const el = reviewsRef.current;
+    if (!el) return;
+
+    let animId: number;
+    let isPaused = false;
+
+    const onEnter = () => {
+      isPaused = true;
+    };
+    const onLeave = () => {
+      isPaused = false;
+    };
+
+    el.addEventListener("mouseenter", onEnter);
+    el.addEventListener("mouseleave", onLeave);
+    el.addEventListener("touchstart", onEnter, { passive: true });
+    el.addEventListener("touchend", onLeave, { passive: true });
+
+    const scrollSpeed = 0.75;
+    const step = () => {
+      if (!isPaused && el) {
+        if (el.scrollLeft >= el.scrollWidth / 2) {
+          el.scrollLeft = 0;
+        } else {
+          el.scrollLeft += scrollSpeed;
+        }
+      }
+      animId = requestAnimationFrame(step);
+    };
+
+    animId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      el.removeEventListener("mouseenter", onEnter);
+      el.removeEventListener("mouseleave", onLeave);
+      el.removeEventListener("touchstart", onEnter);
+      el.removeEventListener("touchend", onLeave);
+    };
+  }, []);
   const { addItems } = useCart();
   const { has: hasWishlist, toggle: toggleWishlist } = useWishlist();
   const { user } = useAuth();
@@ -1072,25 +1114,25 @@ export function ProductConfigurator({
             </a>
           </div>
 
-          {/* Review Cards Carousel (No border, no shadow) */}
+          {/* Review Cards Carousel (No border, continuous auto-scroll loop) */}
           <div className="relative mt-4">
             <button
               type="button"
               onClick={() => {
-                reviewsRef.current?.scrollBy({ left: -260, behavior: "smooth" });
+                reviewsRef.current?.scrollBy({ left: -280, behavior: "smooth" });
               }}
               aria-label="Previous reviews"
-              className="absolute -left-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md text-ink transition-all hover:scale-110"
+              className="absolute -left-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md text-ink transition-all hover:scale-110 cursor-pointer"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               type="button"
               onClick={() => {
-                reviewsRef.current?.scrollBy({ left: 260, behavior: "smooth" });
+                reviewsRef.current?.scrollBy({ left: 280, behavior: "smooth" });
               }}
               aria-label="Next reviews"
-              className="absolute -right-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md text-ink transition-all hover:scale-110"
+              className="absolute -right-3 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md text-ink transition-all hover:scale-110 cursor-pointer"
             >
               <ChevronRight size={16} />
             </button>
@@ -1099,51 +1141,62 @@ export function ProductConfigurator({
               ref={reviewsRef}
               className="flex gap-3.5 overflow-x-auto scroll-smooth py-1 scrollbar-none"
             >
-              {reviewsList.map((rev, idx) => (
+              {[...VERIFIED_GOOGLE_REVIEWS, ...VERIFIED_GOOGLE_REVIEWS, ...VERIFIED_GOOGLE_REVIEWS].map((rev, idx) => (
                 <div
-                  key={idx}
-                  className="flex w-[230px] shrink-0 flex-col justify-between rounded-2xl bg-surface/80 p-3"
+                  key={`${rev.id}-${idx}`}
+                  className="flex w-[260px] sm:w-[280px] shrink-0 flex-col justify-between rounded-2xl bg-surface/80 p-3.5 border border-line/60 transition-colors hover:bg-slate-100/70"
                 >
                   <div>
-                    {rev.image && (
-                      <div className="relative mb-2.5 h-32 w-full overflow-hidden rounded-xl bg-ink/5">
-                        <Image
-                          src={rev.image}
-                          alt={`${rev.author}'s review photo`}
-                          fill
-                          className="object-cover"
-                        />
+                    {/* Header: Author Initial + Name + Google G Icon */}
+                    <div className="flex items-start justify-between gap-2 mb-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#80011F]/10 text-[#80011F] font-bold text-xs">
+                          {rev.authorName.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="block truncate text-xs font-bold text-ink">
+                            {rev.authorName}
+                          </span>
+                          <span className="block text-[10px] text-gray-500">
+                            {rev.relativeTime}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex items-center gap-1.5">
-                      <div className="flex items-center gap-0.5 text-orange-500">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={12}
-                            className={
-                              i < rev.stars
-                                ? "fill-orange-500 text-orange-500"
-                                : "fill-line text-line"
-                            }
-                          />
-                        ))}
-                      </div>
-                      <span className="text-xs font-bold text-ink">
-                        {rev.stars}.0
-                      </span>
+                      <GoogleGIcon className="w-4 h-4 shrink-0 opacity-80" />
                     </div>
-                    <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-ink/85">
-                      {rev.quote}
+
+                    {/* Star Rating: 5.0 */}
+                    <div className="flex items-center gap-1 text-amber-500 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={12}
+                          className="fill-amber-400 text-amber-400"
+                        />
+                      ))}
+                      <span className="text-[11px] font-bold text-ink ml-0.5">5.0</span>
+                    </div>
+
+                    {/* Review Quote */}
+                    <p className="line-clamp-4 text-xs leading-relaxed text-ink/85">
+                      &ldquo;{rev.text}&rdquo;
                     </p>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs">
-                    <span className="font-bold text-ink">{rev.author}</span>
-                    {rev.verified && (
-                      <span className="inline-flex items-center gap-0.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600">
-                        ✓ Verified
-                      </span>
-                    )}
+
+                  {/* Card Footer: Verified Order + Read on Google */}
+                  <div className="mt-3 pt-2.5 border-t border-line/60 flex items-center justify-between text-[11px]">
+                    <span className="inline-flex items-center gap-0.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                      <CheckCircle2 size={11} className="text-emerald-600" />
+                      Verified Order
+                    </span>
+                    <a
+                      href={rev.googleReviewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-[#80011F] hover:underline"
+                    >
+                      Google Review
+                    </a>
                   </div>
                 </div>
               ))}

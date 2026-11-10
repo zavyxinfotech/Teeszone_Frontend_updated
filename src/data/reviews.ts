@@ -1,6 +1,6 @@
 import type { Review } from "../lib/types";
 
-// Real client Google reviews (5.0 rating from 21 corporate clients)
+// Genuine Google customer reviews (5.0 rating for TeesZone Clothing Private Limited)
 export const reviews: Review[] = [
   {
     stars: 5,
@@ -9,7 +9,6 @@ export const reviews: Review[] = [
     author: "Senthil Nathan K.",
     verified: true,
     product: "Men's Polo Half Sleeve (240-250 GSM)",
-    image: "/reviews/novarix.svg",
   },
   {
     stars: 5,
@@ -18,7 +17,6 @@ export const reviews: Review[] = [
     author: "Praveen Kumar R.",
     verified: true,
     product: "Aerosoft Polo Neck T-Shirt (200 GSM)",
-    image: "/reviews/voyvio.svg",
   },
   {
     stars: 5,
