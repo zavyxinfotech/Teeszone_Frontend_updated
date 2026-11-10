@@ -226,13 +226,23 @@ export function DesignStudioModal({
     [currentElements, selectedElementId]
   );
 
-  // Determine Garment Images
-  const frontGarmentImage = activeColor.image || "/products/polo-black.svg";
-  const backGarmentImage =
-    activeColor.backImage ||
-    activeColor.image4 ||
-    product.colors.find((c) => c.backImage)?.backImage ||
-    frontGarmentImage;
+  // Determine Garment Images (Using 3D transparent front and back images for Black color)
+  const isBlackColor =
+    activeColor.name.toLowerCase().includes("black") ||
+    activeColor.hex.toLowerCase() === "#26282d" ||
+    activeColor.hex.toLowerCase() === "#000000";
+
+  const frontGarmentImage = isBlackColor
+    ? "/products/polo-black-front-3d.png"
+    : activeColor.image || "/products/polo-black-front-3d.png";
+
+  const backGarmentImage = isBlackColor
+    ? "/products/polo-black-back-3d.png"
+    : activeColor.backImage ||
+      activeColor.image4 ||
+      product.colors.find((c) => c.backImage)?.backImage ||
+      "/products/polo-black-back-3d.png";
+
   const currentGarmentImage = activeSide === "front" ? frontGarmentImage : backGarmentImage;
   const currentPrintableBounds = activeSide === "front" ? FRONT_PRINTABLE_BOUNDS : BACK_PRINTABLE_BOUNDS;
 

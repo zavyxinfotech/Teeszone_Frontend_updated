@@ -44,9 +44,23 @@ export default async function ProductPage({
   ]);
   if (!product) redirect("/products");
 
-  // Filter 4 similar products (excluding current product)
+  const isPolo =
+    (product.slug || "").toLowerCase().includes("polo") ||
+    (product.name || "").toLowerCase().includes("polo") ||
+    (product.collections || []).some((c) => c.toLowerCase().includes("polo"));
+
+  if (!isPolo) {
+    redirect("/products?category=polo-t-shirts");
+  }
+
+  // Filter 4 similar polo products (excluding current product)
   const related = allProducts
-    .filter((p) => p.id !== product.id)
+    .filter(
+      (p) =>
+        p.id !== product.id &&
+        ((p.slug || "").toLowerCase().includes("polo") ||
+          (p.name || "").toLowerCase().includes("polo"))
+    )
     .slice(0, 4);
 
   const jsonLd = {
