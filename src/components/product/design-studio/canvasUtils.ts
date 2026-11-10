@@ -229,7 +229,7 @@ export function enhanceLogoCanvas(sourceUrl: string): Promise<string> {
 }
 
 export interface RenderLayerItem {
-  type: "logo" | "text" | "shape";
+  type: "logo" | "text" | "shape" | "image";
   x: number; // percentage of printable area (0 - 100)
   y: number;
   width: number; // percentage of printable area
@@ -245,8 +245,12 @@ export interface RenderLayerItem {
   italic?: boolean;
   underline?: boolean;
   align?: "left" | "center" | "right";
-  shapeType?: "rect" | "circle" | "triangle" | "line";
+  isCurved?: boolean;
+  curvature?: number;
+  shapeType?: "square" | "rounded-rect" | "circle" | "circle-outline" | "triangle" | "line" | "rect";
   fillColor?: string;
+  strokeColor?: string;
+  strokeWidth?: number;
 }
 
 /**
@@ -301,7 +305,7 @@ export async function generateCompositeGarment(
           ctx.translate(-(itemX + itemW / 2), -(itemY + itemH / 2));
         }
 
-        if (item.type === "logo" && item.imageUrl) {
+        if ((item.type === "logo" || item.type === "image") && item.imageUrl) {
           try {
             const logoImg = await loadImage(item.imageUrl);
             ctx.drawImage(logoImg, itemX, itemY, itemW, itemH);
@@ -314,25 +318,83 @@ export async function generateCompositeGarment(
 
           ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
           ctx.fillStyle = item.color || "#FFFFFF";
-          ctx.textAlign = item.align || "center";
-          ctx.textBaseline = "middle";
 
-          const textX = item.align === "left" ? itemX : item.align === "right" ? itemX + itemW : itemX + itemW / 2;
-          const textY = itemY + itemH / 2;
+          if (item.isCurved) {
+            // Render text along an arc
+            const text = item.text;
+            const curvature = item.curvature ?? 35;
+            const radius = Math.max(itemW * 0.9, 120);
+            const centerX = itemX + itemW / 2;
+            const centerY = curvature >= 0 ? itemY + radius : itemY + itemH - radius;
+            const totalAngle = Math.min(Math.PI, (text.length * fontSize * 0.55) / radius);
+            const startAngle = curvature >= 0 ? -Math.PI / 2 - totalAngle / 2 : Math.PI / 2 - totalAngle / 2;
 
-          ctx.fillText(item.text, textX, textY);
-          if (item.underline) {
-            const metrics = ctx.measureText(item.text);
-            const lineX = textX - (item.align === "center" ? metrics.width / 2 : 0);
-            ctx.fillRect(lineX, textY + fontSize / 2, metrics.width, 2);
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            for (let i = 0; i < text.length; i++) {
+              const char = text[i];
+              const charAngle = startAngle + (i / Math.max(1, text.length - 1)) * totalAngle;
+              const charX = centerX + radius * Math.cos(charAngle);
+              const charY = centerY + (curvature >= 0 ? 1 : -1) * radius * Math.sin(charAngle);
+
+              ctx.save();
+              ctx.translate(charX, charY);
+              ctx.rotate(charAngle + (curvature >= 0 ? Math.PI / 2 : -Math.PI / 2));
+              ctx.fillText(char, 0, 0);
+              ctx.restore();
+            }
+          } else {
+            ctx.textAlign = item.align || "center";
+            ctx.textBaseline = "middle";
+
+            const textX = item.align === "left" ? itemX : item.align === "right" ? itemX + itemW : itemX + itemW / 2;
+            const textY = itemY + itemH / 2;
+
+            ctx.fillText(item.text, textX, textY);
+            if (item.underline) {
+              const metrics = ctx.measureText(item.text);
+              const lineX = textX - (item.align === "center" ? metrics.width / 2 : item.align === "right" ? metrics.width : 0);
+              ctx.fillRect(lineX, textY + fontSize / 2, metrics.width, 2);
+            }
           }
         } else if (item.type === "shape") {
           ctx.fillStyle = item.fillColor || "#80011F";
+          ctx.strokeStyle = item.strokeColor || item.fillColor || "#80011F";
+          ctx.lineWidth = item.strokeWidth || 4;
+
           if (item.shapeType === "circle") {
             ctx.beginPath();
             ctx.ellipse(itemX + itemW / 2, itemY + itemH / 2, itemW / 2, itemH / 2, 0, 0, Math.PI * 2);
             ctx.fill();
+          } else if (item.shapeType === "circle-outline") {
+            ctx.beginPath();
+            ctx.ellipse(itemX + itemW / 2, itemY + itemH / 2, Math.max(2, itemW / 2 - 2), Math.max(2, itemH / 2 - 2), 0, 0, Math.PI * 2);
+            ctx.stroke();
+          } else if (item.shapeType === "rounded-rect") {
+            const r = Math.min(itemW, itemH) * 0.18;
+            ctx.beginPath();
+            ctx.moveTo(itemX + r, itemY);
+            ctx.arcTo(itemX + itemW, itemY, itemX + itemW, itemY + itemH, r);
+            ctx.arcTo(itemX + itemW, itemY + itemH, itemX, itemY + itemH, r);
+            ctx.arcTo(itemX, itemY + itemH, itemX, itemY, r);
+            ctx.arcTo(itemX, itemY, itemX + itemW, itemY, r);
+            ctx.closePath();
+            ctx.fill();
+          } else if (item.shapeType === "triangle") {
+            ctx.beginPath();
+            ctx.moveTo(itemX + itemW / 2, itemY);
+            ctx.lineTo(itemX + itemW, itemY + itemH);
+            ctx.lineTo(itemX, itemY + itemH);
+            ctx.closePath();
+            ctx.fill();
+          } else if (item.shapeType === "line") {
+            ctx.beginPath();
+            ctx.moveTo(itemX, itemY + itemH / 2);
+            ctx.lineTo(itemX + itemW, itemY + itemH / 2);
+            ctx.stroke();
           } else {
+            // square / rect
             ctx.fillRect(itemX, itemY, itemW, itemH);
           }
         }

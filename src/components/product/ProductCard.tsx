@@ -9,7 +9,7 @@ import { offPct } from "@/lib/pricing";
 import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
 
-import { getProductRating } from "@/data/ratings";
+import { getProductRating, TEESZONE_GOOGLE_REVIEWS_URL } from "@/data/ratings";
 
 export function isPoloProduct(product: Product): boolean {
   const s = (product.slug || "").toLowerCase();
@@ -132,15 +132,22 @@ export function ProductCard({ product }: { product: Product }) {
           )}
 
           {/* Reviews Line - Desktop only */}
-          <div className="mt-2 hidden sm:flex items-center gap-1.5 text-xs">
+          <a
+            href={TEESZONE_GOOGLE_REVIEWS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="mt-2 hidden sm:flex items-center gap-1.5 text-xs group/rev hover:opacity-90"
+            title="View TeesZone 5.0 Google Reviews"
+          >
             <div className="flex items-center text-amber-500">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} size={12} className="fill-amber-400 text-amber-400" />
               ))}
             </div>
             <span className="font-bold text-ink">{ratingInfo.rating}</span>
-            <span className="text-body">({ratingInfo.reviews} Reviews)</span>
-          </div>
+            <span className="text-body group-hover/rev:underline">({ratingInfo.reviews} Reviews)</span>
+          </a>
 
           {/* Price - Original Price & Selling Price */}
           <div className="mt-1.5 sm:mt-2.5 flex items-baseline gap-1.5">

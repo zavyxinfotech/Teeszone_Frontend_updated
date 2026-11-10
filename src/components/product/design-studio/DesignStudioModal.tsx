@@ -3,14 +3,23 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import {
+  AlertCircle,
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   ArrowLeft,
   ArrowRight,
+  Bold,
   Check,
+  CheckCircle2,
   CloudUpload,
+  Copy,
+  Download,
   Eye,
   EyeOff,
+  Italic,
   Layers,
-  Lock,
+  Loader2,
   Minus,
   Palette,
   Plus,
@@ -21,10 +30,8 @@ import {
   Sparkles,
   Trash2,
   Type,
-  Unlock,
+  Underline,
   Upload,
-  Download,
-  Loader2,
   X,
 } from "lucide-react";
 import type { Product, ProductColor } from "@/lib/types";
@@ -39,7 +46,7 @@ import { generateAndDownloadBrandedMockup } from "@/lib/mockupDownload";
 
 export interface StudioElement {
   id: string;
-  type: "logo" | "text" | "shape";
+  type: "logo" | "text" | "shape" | "image";
   name: string;
   // Position as percentage of printable area (0 - 100)
   x: number;
@@ -50,7 +57,7 @@ export interface StudioElement {
   opacity: number; // 0 - 1
   locked: boolean;
   visible: boolean;
-  // Logo specific
+  // Logo & Image specific
   imageUrl?: string;
   rawUploadedUrl?: string;
   hasRemovedBg?: boolean;
@@ -64,9 +71,13 @@ export interface StudioElement {
   italic?: boolean;
   underline?: boolean;
   align?: "left" | "center" | "right";
+  isCurved?: boolean;
+  curvature?: number; // -60 to +60
   // Shape specific
-  shapeType?: "rect" | "circle" | "triangle" | "line";
+  shapeType?: "square" | "rounded-rect" | "circle" | "circle-outline" | "triangle" | "line" | "rect";
   fillColor?: string;
+  strokeColor?: string;
+  strokeWidth?: number;
 }
 
 export interface CustomDesignResult {
@@ -141,8 +152,19 @@ export function DesignStudioModal({
     initialCustomization?.frontPreviewUrl ? "studio" : "upload"
   );
 
-  // Selected Garment Color
-  const [selectedColorIdx, setSelectedColorIdx] = useState<number>(initialColorIdx);
+  // Selected Garment Color - default to black if polo to ensure 3D garment loads
+  const [selectedColorIdx, setSelectedColorIdx] = useState<number>(() => {
+    const blackIdx = product.colors.findIndex(
+      (c) =>
+        c.name.toLowerCase().includes("black") ||
+        c.hex.toLowerCase() === "#000000" ||
+        c.hex.toLowerCase() === "#26282d"
+    );
+    if (blackIdx !== -1 && (initialColorIdx === undefined || initialColorIdx === 0)) {
+      return blackIdx;
+    }
+    return initialColorIdx ?? 0;
+  });
   const activeColor: ProductColor = product.colors[selectedColorIdx] || product.colors[0];
 
   // Upload Step State
@@ -157,6 +179,19 @@ export function DesignStudioModal({
   );
   const [additionalTextInput, setAdditionalTextInput] = useState<string>("");
   const [isDragOverDropzone, setIsDragOverDropzone] = useState(false);
+
+  // User feedback toast notification
+  const [studioFeedbackToast, setStudioFeedbackToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const showFeedback = useCallback((message: string, type: "success" | "error" = "success") => {
+    setStudioFeedbackToast({ message, type });
+    setTimeout(() => {
+      setStudioFeedbackToast((curr) => (curr?.message === message ? null : curr));
+    }, 3500);
+  }, []);
 
   // Crop Step State
   const [autoRemoveBgInCrop, setAutoRemoveBgInCrop] = useState(true);
@@ -206,6 +241,7 @@ export function DesignStudioModal({
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const customImageInputRef = useRef<HTMLInputElement | null>(null);
   const cropImageRef = useRef<HTMLDivElement | null>(null);
   const printableAreaRef = useRef<HTMLDivElement | null>(null);
   const isDraggingHandleRef = useRef<string | null>(null);
@@ -229,22 +265,27 @@ export function DesignStudioModal({
     [currentElements, selectedElementId]
   );
 
-  // Determine Garment Images (Using 3D transparent front and back images for Black color)
+  // Determine Garment Images (Safely fallback to 3D transparent polo to avoid rendering full body models)
   const isBlackColor =
     activeColor.name.toLowerCase().includes("black") ||
     activeColor.hex.toLowerCase() === "#26282d" ||
     activeColor.hex.toLowerCase() === "#000000";
 
-  const frontGarmentImage = isBlackColor
-    ? "/products/polo-black-front-3d.png"
-    : activeColor.image || "/products/polo-black-front-3d.png";
+  const isModelPhoto = (url?: string) =>
+    Boolean(url && (url.includes("view-") || url.includes("model") || url.includes("localhost:4010")));
 
-  const backGarmentImage = isBlackColor
-    ? "/products/polo-black-back-3d.png"
-    : activeColor.backImage ||
-      activeColor.image4 ||
-      product.colors.find((c) => c.backImage)?.backImage ||
-      "/products/polo-black-back-3d.png";
+  const frontGarmentImage =
+    isBlackColor || isModelPhoto(activeColor.image)
+      ? "/products/polo-black-front-3d.png"
+      : activeColor.image || "/products/polo-black-front-3d.png";
+
+  const backGarmentImage =
+    isBlackColor || isModelPhoto(activeColor.backImage)
+      ? "/products/polo-black-back-3d.png"
+      : activeColor.backImage ||
+        activeColor.image4 ||
+        product.colors.find((c) => c.backImage)?.backImage ||
+        "/products/polo-black-back-3d.png";
 
   const currentGarmentImage = activeSide === "front" ? frontGarmentImage : backGarmentImage;
   const currentPrintableBounds = activeSide === "front" ? FRONT_PRINTABLE_BOUNDS : BACK_PRINTABLE_BOUNDS;
@@ -595,12 +636,16 @@ export function DesignStudioModal({
 
   // Add a new Text element
   const handleAddNewText = (initialString: string = "Your Text") => {
+    if (!initialString.trim()) {
+      showFeedback("Please enter your text.", "error");
+      return;
+    }
     const newText: StudioElement = {
       id: `text_${Date.now()}`,
       type: "text",
       name: `Text: ${initialString}`,
       x: 25,
-      y: 50,
+      y: 45,
       width: 50,
       height: 18,
       rotation: 0,
@@ -615,32 +660,207 @@ export function DesignStudioModal({
       italic: false,
       underline: false,
       align: "center",
+      isCurved: false,
     };
 
     setCurrentElements((prev) => [...prev, newText]);
     setSelectedElementId(newText.id);
+    showFeedback("Text element added to canvas!", "success");
   };
 
-  // Add a shape
-  const handleAddShape = (shapeType: "rect" | "circle" | "line") => {
+  // Add Preset Text element (Heading, Normal, Small, Dots, Phone, Web)
+  const handleAddPresetText = (
+    presetText: string,
+    fontSize: number,
+    bold: boolean,
+    isPhoneOrWeb?: boolean
+  ) => {
+    if (!presetText.trim()) {
+      showFeedback("Please enter your text.", "error");
+      return;
+    }
+    const isDots = presetText.includes("•");
+    const newText: StudioElement = {
+      id: `text_${Date.now()}`,
+      type: "text",
+      name: presetText.length > 18 ? presetText.slice(0, 18) + "..." : presetText,
+      x: 18,
+      y: isDots ? 52 : 36,
+      width: 64,
+      height: Math.max(14, Math.round(fontSize * 0.7)),
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      text: presetText,
+      fontFamily: "Poppins",
+      fontSize,
+      color: "#FFFFFF",
+      bold,
+      italic: false,
+      underline: false,
+      align: "center",
+      isCurved: false,
+    };
+
+    setCurrentElements((prev) => [...prev, newText]);
+    setSelectedElementId(newText.id);
+    showFeedback(
+      isPhoneOrWeb ? `Added editable ${presetText} to canvas!` : `Added "${presetText}" to design!`,
+      "success"
+    );
+  };
+
+  // Add Curved Text
+  const handleAddCurvedText = (
+    initialText: string = "Curved Brand Text",
+    fontSize: number = 22,
+    curvature: number = 35
+  ) => {
+    const newCurved: StudioElement = {
+      id: `curved_${Date.now()}`,
+      type: "text",
+      name: "Curved Text",
+      x: 15,
+      y: 20,
+      width: 70,
+      height: 30,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      text: initialText,
+      fontFamily: "Poppins",
+      fontSize,
+      color: "#FFFFFF",
+      bold: true,
+      italic: false,
+      underline: false,
+      align: "center",
+      isCurved: true,
+      curvature,
+    };
+
+    setCurrentElements((prev) => [...prev, newCurved]);
+    setSelectedElementId(newCurved.id);
+    showFeedback("Added Curved Text along arc!", "success");
+  };
+
+  // Add a shape (Square, Rounded rect, Circle, Outline circle, Triangle, Horizontal line)
+  const handleAddShape = (
+    shapeType: "square" | "rounded-rect" | "circle" | "circle-outline" | "triangle" | "line"
+  ) => {
+    const isLine = shapeType === "line";
+    const label =
+      shapeType === "square"
+        ? "Square"
+        : shapeType === "rounded-rect"
+        ? "Rounded Rect"
+        : shapeType === "circle"
+        ? "Circle"
+        : shapeType === "circle-outline"
+        ? "Outline Circle"
+        : shapeType === "triangle"
+        ? "Triangle"
+        : "Line";
+
     const newShape: StudioElement = {
       id: `shape_${Date.now()}`,
       type: "shape",
-      name: `${shapeType === "circle" ? "Circle" : "Rectangle"} Shape`,
+      name: `${label} Shape`,
       x: 35,
-      y: 40,
-      width: 30,
-      height: shapeType === "line" ? 4 : 25,
+      y: isLine ? 48 : 36,
+      width: isLine ? 36 : 24,
+      height: isLine ? 5 : 24,
       rotation: 0,
       opacity: 1,
       locked: false,
       visible: true,
       shapeType,
       fillColor: "#80011F",
+      strokeColor: "#80011F",
+      strokeWidth: 4,
     };
 
     setCurrentElements((prev) => [...prev, newShape]);
     setSelectedElementId(newShape.id);
+    showFeedback(`Added ${label} shape to design!`, "success");
+  };
+
+  // Duplicate element
+  const handleDuplicateElement = (elementId: string) => {
+    const target = currentElements.find((e) => e.id === elementId);
+    if (!target) return;
+    const cloned: StudioElement = {
+      ...target,
+      id: `${target.type}_${Date.now()}`,
+      name: `${target.name} (Copy)`,
+      x: Math.min(80, target.x + 4),
+      y: Math.min(80, target.y + 4),
+    };
+    setCurrentElements((prev) => [...prev, cloned]);
+    setSelectedElementId(cloned.id);
+    showFeedback("Element duplicated!", "success");
+  };
+
+  // Layer Reordering
+  const handleMoveLayer = (elementId: string, direction: "up" | "down") => {
+    setCurrentElements((prev) => {
+      const idx = prev.findIndex((e) => e.id === elementId);
+      if (idx === -1) return prev;
+      if (direction === "up" && idx < prev.length - 1) {
+        const copy = [...prev];
+        const temp = copy[idx];
+        copy[idx] = copy[idx + 1];
+        copy[idx + 1] = temp;
+        return copy;
+      }
+      if (direction === "down" && idx > 0) {
+        const copy = [...prev];
+        const temp = copy[idx];
+        copy[idx] = copy[idx - 1];
+        copy[idx - 1] = temp;
+        return copy;
+      }
+      return prev;
+    });
+  };
+
+  // Handle Custom Artwork / Image Upload
+  const handleCustomImageUpload = (file: File) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      showFeedback("Please upload an image under the allowed 10 MB file size.", "error");
+      return;
+    }
+    const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml", "image/webp"];
+    if (!validTypes.includes(file.type.toLowerCase()) && !file.name.match(/\.(png|jpe?g|svg|webp)$/i)) {
+      showFeedback("This file format is not supported. Please use PNG, JPG, or SVG.", "error");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const url = ev.target?.result as string;
+      const imgEl: StudioElement = {
+        id: `image_${Date.now()}`,
+        type: "image",
+        name: file.name.replace(/\.[^/.]+$/, "") || "Custom Artwork",
+        imageUrl: url,
+        rawUploadedUrl: url,
+        x: 35,
+        y: 35,
+        width: 30,
+        height: 30,
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+      };
+      setCurrentElements((prev) => [...prev, imgEl]);
+      setSelectedElementId(imgEl.id);
+      showFeedback("Custom image added to design canvas!", "success");
+    };
+    reader.readAsDataURL(file);
   };
 
   // Interactive Drag on Garment Canvas
@@ -910,7 +1130,7 @@ export function DesignStudioModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-0 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200">
-      {/* Hidden file input */}
+      {/* Hidden file input for logo */}
       <input
         ref={fileInputRef}
         type="file"
@@ -923,13 +1143,38 @@ export function DesignStudioModal({
         }}
       />
 
+      {/* Hidden file input for custom artwork/image upload */}
+      <input
+        ref={customImageInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleCustomImageUpload(file);
+          e.target.value = "";
+        }}
+      />
+
+      {/* Subtle notification toast for studio feedback */}
+      {studioFeedbackToast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 rounded-xl bg-[#231F20] text-white px-4 py-2.5 shadow-2xl border border-white/10 animate-in fade-in duration-200">
+          {studioFeedbackToast.type === "error" ? (
+            <AlertCircle size={16} className="text-rose-400 shrink-0" />
+          ) : (
+            <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+          )}
+          <span className="text-xs font-semibold">{studioFeedbackToast.message}</span>
+        </div>
+      )}
+
       {/* ======================================================== */}
       {/* STEP 1: START CUSTOMIZATION MODAL                        */}
       {/* ======================================================== */}
       {currentStep === "upload" && (
-        <div className="relative flex flex-col w-full max-w-4xl max-h-[96vh] rounded-3xl bg-white shadow-2xl overflow-hidden border border-rose-100 animate-in zoom-in-95 duration-200">
+        <div className="relative flex flex-col w-full max-w-xl max-h-[88vh] rounded-3xl bg-white shadow-2xl overflow-hidden border border-rose-100 animate-in zoom-in-95 duration-200">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-rose-100 px-6 py-4 bg-[#FFF9FA]">
+          <div className="flex items-center justify-between border-b border-rose-100 px-6 py-3.5 bg-[#FFF9FA]">
             <div className="flex items-center gap-3">
               <Image src="/logo.webp" alt="TeesZone" width={115} height={30} className="h-6 w-auto object-contain" />
               <span className="hidden sm:inline-block h-4 w-px bg-rose-200" />
@@ -939,117 +1184,97 @@ export function DesignStudioModal({
             </div>
             <button
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-500 hover:text-black hover:bg-rose-50 border border-rose-100 transition-colors cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-500 hover:text-black hover:bg-rose-50 border border-rose-100 transition-colors cursor-pointer"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           </div>
 
-          {/* Body */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 sm:p-8 overflow-y-auto">
-            {/* Left Column: Form & Dropzone */}
-            <div className="flex flex-col justify-between space-y-5">
+          {/* Single Column Body - Clean, balanced, fits within screen height */}
+          <div className="p-6 sm:p-7 space-y-4 overflow-y-auto">
+            {/* Title in exactly 2 lines with regular/semibold weight */}
+            <div>
+              <h2 className="text-xl sm:text-2xl font-semibold text-[#231F20] tracking-tight leading-snug">
+                Design Your Custom {product.name.toLowerCase().includes("polo") ? "Polo T-Shirt" : "T-Shirt"}
+              </h2>
+              <p className="mt-1 text-xs sm:text-sm font-normal text-gray-500">
+                Upload your logo, add text and customize it your way.
+              </p>
+            </div>
+
+            {/* Upload Dropzone */}
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragOverDropzone(true);
+              }}
+              onDragLeave={() => setIsDragOverDropzone(false)}
+              onDrop={handleDropFile}
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed p-5 sm:p-6 text-center cursor-pointer transition-all ${
+                isDragOverDropzone
+                  ? "border-[#80011F] bg-rose-50/80 scale-[1.01]"
+                  : "border-rose-200/90 bg-[#FFFDFC] hover:border-[#80011F] hover:bg-rose-50/50"
+              }`}
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-[#80011F] shadow-xs">
+                <CloudUpload size={24} className="stroke-[2.2]" />
+              </div>
               <div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#231F20] tracking-tight">
-                  Design Your {product.name.replace(/240|T-Shirt|Polo/g, "").trim() || "Polo"} T-Shirt
-                </h2>
-                <p className="mt-1.5 text-xs sm:text-sm text-gray-600">
-                  Upload your logo, add text and customize it your way.
-                </p>
+                <h4 className="text-sm font-bold text-gray-900">Upload Your Logo</h4>
+                <p className="mt-0.5 text-xs text-gray-500 font-medium">PNG, JPG, JPEG, SVG (Max 10 MB)</p>
               </div>
-
-              {/* Upload Dropzone */}
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragOverDropzone(true);
-                }}
-                onDragLeave={() => setIsDragOverDropzone(false)}
-                onDrop={handleDropFile}
-                onClick={() => fileInputRef.current?.click()}
-                className={`flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-6 sm:p-8 text-center cursor-pointer transition-all ${
-                  isDragOverDropzone
-                    ? "border-[#80011F] bg-rose-50/80 scale-[1.01]"
-                    : "border-rose-200/90 bg-[#FFFDFC] hover:border-[#80011F] hover:bg-rose-50/50"
-                }`}
-              >
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 text-[#80011F] shadow-xs">
-                  <CloudUpload size={28} className="stroke-[2.2]" />
-                </div>
-                <div>
-                  <h4 className="text-sm sm:text-base font-bold text-gray-900">Upload Your Logo</h4>
-                  <p className="mt-1 text-xs text-gray-500 font-medium">PNG, JPG, JPEG, SVG (Max 10 MB)</p>
-                </div>
-                <button
-                  type="button"
-                  className="mt-1 rounded-xl bg-white border border-rose-200 px-4 py-2 text-xs font-bold text-[#80011F] shadow-xs hover:bg-rose-50"
-                >
-                  Browse Files
-                </button>
-              </div>
-
-              {/* Company / Brand Name Input */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">Company / Brand Name (Optional)</label>
-                <input
-                  type="text"
-                  value={companyNameInput}
-                  onChange={(e) => setCompanyNameInput(e.target.value)}
-                  placeholder="e.g. Acme Corporation"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80011F] focus:outline-hidden"
-                />
-              </div>
-
-              {/* Add Slogan / Text Option */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">Add Text / Slogan (Optional)</label>
-                <input
-                  type="text"
-                  value={additionalTextInput}
-                  onChange={(e) => setAdditionalTextInput(e.target.value)}
-                  placeholder="e.g. Team Leadership 2026"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80011F] focus:outline-hidden"
-                />
-              </div>
-
-              {/* Action Button */}
               <button
                 type="button"
-                onClick={() => {
-                  if (rawUploadedLogo) {
-                    setCurrentStep("crop");
-                  } else if (companyNameInput.trim() || additionalTextInput.trim()) {
-                    // Directly initialize studio with text
-                    handleAddNewText(companyNameInput.trim() || additionalTextInput.trim());
-                    setCurrentStep("studio");
-                  } else {
-                    fileInputRef.current?.click();
-                  }
-                }}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#80011F] hover:bg-[#680119] py-3.5 text-base font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
+                className="mt-0.5 rounded-xl bg-white border border-rose-200 px-4 py-1.5 text-xs font-bold text-[#80011F] shadow-xs hover:bg-rose-50"
               >
-                <span>Create My Design</span>
-                <ArrowRight size={18} />
+                Browse Files
               </button>
             </div>
 
-            {/* Right Column: Garment 3D Preview */}
-            <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-b from-[#FDF9FA] to-[#F7F0F2] p-6 border border-rose-100/70">
-              <div className="relative w-full aspect-square max-w-[340px] flex items-center justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={frontGarmentImage}
-                  alt={product.name}
-                  className="max-h-full max-w-full object-contain filter drop-shadow-md"
-                />
-                <div className="absolute top-2 right-2 rounded-full bg-white/90 border border-rose-100 px-3 py-1 text-[11px] font-bold text-[#80011F] shadow-xs">
-                  {activeColor.name}
-                </div>
-              </div>
-              <p className="mt-4 text-xs font-semibold text-gray-500 text-center">
-                Ready for Custom Embroidery &amp; Screen Print
-              </p>
+            {/* Company / Brand Name Input */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-700">Company / Brand Name (Optional)</label>
+              <input
+                type="text"
+                value={companyNameInput}
+                onChange={(e) => setCompanyNameInput(e.target.value)}
+                placeholder="e.g. Acme Corporation"
+                className="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80011F] focus:outline-hidden"
+              />
             </div>
+
+            {/* Add Slogan / Text Option */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-700">Add Text / Slogan (Optional)</label>
+              <input
+                type="text"
+                value={additionalTextInput}
+                onChange={(e) => setAdditionalTextInput(e.target.value)}
+                placeholder="e.g. Team Leadership 2026"
+                className="w-full rounded-xl border border-gray-200 px-3.5 py-2 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#80011F] focus:outline-hidden"
+              />
+            </div>
+
+            {/* Action Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (rawUploadedLogo) {
+                  setCurrentStep("crop");
+                } else if (companyNameInput.trim() || additionalTextInput.trim()) {
+                  // Directly initialize studio with text
+                  handleAddNewText(companyNameInput.trim() || additionalTextInput.trim());
+                  setCurrentStep("studio");
+                } else {
+                  fileInputRef.current?.click();
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#80011F] hover:bg-[#680119] py-3 text-sm sm:text-base font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer mt-2"
+            >
+              <span>Create My Design</span>
+              <ArrowRight size={17} />
+            </button>
           </div>
         </div>
       )}
@@ -1307,8 +1532,8 @@ export function DesignStudioModal({
                 </button>
               </div>
 
-              {/* Front / Back Switcher Pill */}
-              <div className="flex items-center rounded-xl bg-white border border-rose-200/80 p-0.5 shadow-xs">
+              {/* Front / Back Switcher Pill (Desktop only in top bar; mobile uses canvas floating pill) */}
+              <div className="hidden md:flex items-center rounded-xl bg-white border border-rose-200/80 p-0.5 shadow-xs">
                 <button
                   type="button"
                   onClick={() => {
@@ -1553,7 +1778,7 @@ export function DesignStudioModal({
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleAddShape("rect")}
+                          onClick={() => handleAddShape("square")}
                           className="flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white hover:bg-rose-50/50 p-2 text-[11px] font-bold text-gray-700 cursor-pointer"
                         >
                           <Scan size={14} className="text-[#80011F]" />
@@ -1575,156 +1800,226 @@ export function DesignStudioModal({
 
               {/* Text & Add Tab Controls */}
               {activeNavTab === "text" && (
-                <div className="space-y-4">
+                <div className="space-y-5">
+                  {/* 1. TEXT PRESETS (Image 1 reference) */}
                   <div>
-                    <label className="text-xs font-bold text-gray-800">Add Text</label>
-                    <div className="mt-1.5 flex gap-1.5">
-                      <input
-                        type="text"
-                        placeholder="Enter text..."
-                        id="new-text-field"
-                        className="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-xs focus:border-[#80011F] focus:outline-hidden"
-                      />
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+                        Text Presets
+                      </label>
+                      <span className="text-[10px] text-gray-400 font-semibold">Tap to add</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {/* Add a Heading */}
                       <button
                         type="button"
-                        onClick={() => {
-                          const el = document.getElementById("new-text-field") as HTMLInputElement;
-                          if (el && el.value.trim()) {
-                            handleAddNewText(el.value.trim());
-                            el.value = "";
-                          }
-                        }}
-                        className="rounded-xl bg-[#80011F] px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#680119] cursor-pointer"
+                        onClick={() => handleAddPresetText("Add a Heading", 30, true)}
+                        className="w-full text-left rounded-xl border border-gray-200/90 bg-[#FFFDFE] hover:border-[#80011F] hover:bg-rose-50/50 p-2.5 transition-all cursor-pointer shadow-2xs group"
                       >
-                        Add
+                        <span className="text-base sm:text-lg font-bold text-[#1E293B] group-hover:text-[#80011F] block">
+                          Add a Heading
+                        </span>
+                      </button>
+
+                      {/* Add Text */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("Add Text", 22, false)}
+                        className="w-full text-left rounded-xl border border-gray-200/90 bg-[#FFFDFE] hover:border-[#80011F] hover:bg-rose-50/50 p-2 transition-all cursor-pointer shadow-2xs group"
+                      >
+                        <span className="text-sm font-normal text-[#1E293B] group-hover:text-[#80011F] block">
+                          Add Text
+                        </span>
+                      </button>
+
+                      {/* Add Small Text */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("Add Small Text", 15, false)}
+                        className="w-full text-left rounded-xl border border-gray-200/90 bg-[#FFFDFE] hover:border-[#80011F] hover:bg-rose-50/50 p-1.5 transition-all cursor-pointer shadow-2xs group"
+                      >
+                        <span className="text-xs text-gray-600 group-hover:text-[#80011F] block">
+                          Add Small Text
+                        </span>
+                      </button>
+
+                      {/* TMT • CEMENT • MATERIAL */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("TMT • CEMENT • MATERIAL", 17, true)}
+                        className="w-full text-left rounded-xl border border-gray-200/90 bg-[#FFFDFE] hover:border-[#80011F] hover:bg-rose-50/50 p-2 transition-all cursor-pointer shadow-2xs group"
+                      >
+                        <span className="text-xs font-bold tracking-wider text-[#1E293B] group-hover:text-[#80011F] block">
+                          TMT • CEMENT • MATERIAL
+                        </span>
+                      </button>
+
+                      {/* +91 98765 43210 */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("+91 98765 43210", 17, true, true)}
+                        className="w-full flex items-center justify-between rounded-xl border border-gray-200/90 bg-[#FFFDFE] hover:border-[#80011F] hover:bg-rose-50/50 p-2 transition-all cursor-pointer shadow-2xs group"
+                      >
+                        <span className="text-xs font-bold text-[#1E293B] group-hover:text-[#80011F]">
+                          +91 98765 43210
+                        </span>
+                        <span className="text-[10px] font-semibold text-gray-400 group-hover:text-[#80011F]">
+                          Phone
+                        </span>
+                      </button>
+
+                      {/* www.yourbrand.com */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("www.yourbrand.com", 16, true, true)}
+                        className="w-full flex items-center justify-between rounded-xl border border-gray-200/90 bg-[#FFFDFE] hover:border-[#80011F] hover:bg-rose-50/50 p-2 transition-all cursor-pointer shadow-2xs group"
+                      >
+                        <span className="text-xs font-bold text-[#1E293B] group-hover:text-[#80011F]">
+                          www.yourbrand.com
+                        </span>
+                        <span className="text-[10px] font-semibold text-gray-400 group-hover:text-[#80011F]">
+                          Website
+                        </span>
                       </button>
                     </div>
                   </div>
 
-                  {/* If text selected, live edit */}
-                  {selectedElement?.type === "text" && (
-                    <div className="space-y-3 pt-3 border-t border-rose-100">
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-600">Font Family</label>
-                        <select
-                          value={selectedElement.fontFamily || "Poppins"}
-                          onChange={(e) =>
-                            setCurrentElements((prev) =>
-                              prev.map((item) =>
-                                item.id === selectedElement.id ? { ...item, fontFamily: e.target.value } : item
-                              )
-                            )
-                          }
-                          className="mt-1 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-semibold focus:border-[#80011F] focus:outline-hidden"
-                        >
-                          {AVAILABLE_FONTS.map((f) => (
-                            <option key={f.name} value={f.name}>
-                              {f.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Style: B, I, U */}
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-600">Style</label>
-                        <div className="flex gap-1.5 mt-1">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setCurrentElements((prev) =>
-                                prev.map((item) =>
-                                  item.id === selectedElement.id ? { ...item, bold: !item.bold } : item
-                                )
-                              )
-                            }
-                            className={`flex-1 rounded-xl border py-1.5 text-xs font-bold cursor-pointer ${
-                              selectedElement.bold ? "bg-[#80011F] text-white" : "bg-white text-gray-700"
-                            }`}
-                          >
-                            B
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setCurrentElements((prev) =>
-                                prev.map((item) =>
-                                  item.id === selectedElement.id ? { ...item, italic: !item.italic } : item
-                                )
-                              )
-                            }
-                            className={`flex-1 rounded-xl border py-1.5 text-xs font-serif italic cursor-pointer ${
-                              selectedElement.italic ? "bg-[#80011F] text-white" : "bg-white text-gray-700"
-                            }`}
-                          >
-                            I
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setCurrentElements((prev) =>
-                                prev.map((item) =>
-                                  item.id === selectedElement.id ? { ...item, underline: !item.underline } : item
-                                )
-                              )
-                            }
-                            className={`flex-1 rounded-xl border py-1.5 text-xs underline cursor-pointer ${
-                              selectedElement.underline ? "bg-[#80011F] text-white" : "bg-white text-gray-700"
-                            }`}
-                          >
-                            U
-                          </button>
+                  {/* 2. ADD ELEMENTS SECTION (Image 1 reference: Logo, Company Name, Curved Text, Upload Image) */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-800 uppercase tracking-wider block mb-2">
+                      Add Elements
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* 1. Logo */}
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/50 p-2.5 text-center transition-all cursor-pointer shadow-2xs group"
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-[#80011F] group-hover:bg-[#80011F] group-hover:text-white transition-colors">
+                          <Upload size={15} />
                         </div>
-                      </div>
+                        <span className="text-xs font-bold text-gray-800 group-hover:text-[#80011F]">Logo</span>
+                        <span className="text-[9px] text-gray-400">Company Logo</span>
+                      </button>
 
-                      {/* Text Colour Palette */}
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-600">Text Colour</label>
-                        <div className="flex flex-wrap gap-1.5 mt-1.5">
-                          {TEXT_COLOR_PALETTE.map((hex) => (
-                            <button
-                              key={hex}
-                              type="button"
-                              onClick={() =>
-                                setCurrentElements((prev) =>
-                                  prev.map((item) =>
-                                    item.id === selectedElement.id ? { ...item, color: hex } : item
-                                  )
-                                )
-                              }
-                              className={`h-6 w-6 rounded-full border transition-transform hover:scale-110 cursor-pointer ${
-                                selectedElement.color === hex ? "ring-2 ring-[#80011F] scale-110" : ""
-                              }`}
-                              style={{ backgroundColor: hex }}
-                            />
-                          ))}
+                      {/* 2. Company Name */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText(companyNameInput.trim() || "Your Company Name", 24, true)}
+                        className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/50 p-2.5 text-center transition-all cursor-pointer shadow-2xs group"
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-[#80011F] group-hover:bg-[#80011F] group-hover:text-white transition-colors">
+                          <Type size={15} />
                         </div>
-                      </div>
+                        <span className="text-xs font-bold text-gray-800 group-hover:text-[#80011F]">Company Name</span>
+                        <span className="text-[9px] text-gray-400">Brand Title</span>
+                      </button>
 
-                      {/* Text Size Slider */}
-                      <div>
-                        <div className="flex justify-between text-[11px] font-bold text-gray-600">
-                          <span>Size</span>
-                          <span>{selectedElement.fontSize || 24}px</span>
+                      {/* 3. Curved Text */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddCurvedText("Curved Brand Text", 22, 35)}
+                        className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/50 p-2.5 text-center transition-all cursor-pointer shadow-2xs group"
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-[#80011F] group-hover:bg-[#80011F] group-hover:text-white transition-colors">
+                          <Sparkles size={15} />
                         </div>
-                        <input
-                          type="range"
-                          min="14"
-                          max="64"
-                          value={selectedElement.fontSize || 24}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value, 10);
-                            setCurrentElements((prev) =>
-                              prev.map((item) =>
-                                item.id === selectedElement.id ? { ...item, fontSize: val } : item
-                              )
-                            )
-                          }}
-                          className="w-full accent-[#80011F] mt-1"
-                        />
-                      </div>
+                        <span className="text-xs font-bold text-gray-800 group-hover:text-[#80011F]">Curved Text</span>
+                        <span className="text-[9px] text-gray-400">Arc Path</span>
+                      </button>
+
+                      {/* 4. Upload Image */}
+                      <button
+                        type="button"
+                        onClick={() => customImageInputRef.current?.click()}
+                        className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/50 p-2.5 text-center transition-all cursor-pointer shadow-2xs group"
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-[#80011F] group-hover:bg-[#80011F] group-hover:text-white transition-colors">
+                          <Scan size={15} />
+                        </div>
+                        <span className="text-xs font-bold text-gray-800 group-hover:text-[#80011F]">Upload Image</span>
+                        <span className="text-[9px] text-gray-400">Custom Art</span>
+                      </button>
                     </div>
-                  )}
+                  </div>
+
+                  {/* 3. SHAPES SECTION (Image 1 reference: Square, Rounded rect, Circle, Outline circle, Triangle, Line) */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-800 uppercase tracking-wider block mb-2">
+                      Shapes
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {/* Square */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("square")}
+                        className="flex flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/40 p-2 transition-all cursor-pointer shadow-2xs group"
+                        title="Square"
+                      >
+                        <div className="h-5 w-5 rounded-xs bg-[#80011F]/85 group-hover:bg-[#80011F]" />
+                        <span className="text-[10px] font-bold text-gray-600">Square</span>
+                      </button>
+
+                      {/* Rounded rectangle */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("rounded-rect")}
+                        className="flex flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/40 p-2 transition-all cursor-pointer shadow-2xs group"
+                        title="Rounded Rectangle"
+                      >
+                        <div className="h-5 w-7 rounded-lg bg-[#80011F]/85 group-hover:bg-[#80011F]" />
+                        <span className="text-[10px] font-bold text-gray-600">Rounded</span>
+                      </button>
+
+                      {/* Circle */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("circle")}
+                        className="flex flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/40 p-2 transition-all cursor-pointer shadow-2xs group"
+                        title="Circle"
+                      >
+                        <div className="h-5 w-5 rounded-full bg-[#80011F]/85 group-hover:bg-[#80011F]" />
+                        <span className="text-[10px] font-bold text-gray-600">Circle</span>
+                      </button>
+
+                      {/* Outline circle */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("circle-outline")}
+                        className="flex flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/40 p-2 transition-all cursor-pointer shadow-2xs group"
+                        title="Outline Circle"
+                      >
+                        <div className="h-5 w-5 rounded-full border-2 border-[#80011F]" />
+                        <span className="text-[10px] font-bold text-gray-600">Outline</span>
+                      </button>
+
+                      {/* Triangle */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("triangle")}
+                        className="flex flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/40 p-2 transition-all cursor-pointer shadow-2xs group"
+                        title="Triangle"
+                      >
+                        <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#80011F] fill-current">
+                          <polygon points="12,3 22,21 2,21" />
+                        </svg>
+                        <span className="text-[10px] font-bold text-gray-600">Triangle</span>
+                      </button>
+
+                      {/* Horizontal line */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("line")}
+                        className="flex flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/40 p-2 transition-all cursor-pointer shadow-2xs group"
+                        title="Horizontal Line"
+                      >
+                        <div className="h-1 w-6 rounded-full bg-[#80011F] my-2" />
+                        <span className="text-[10px] font-bold text-gray-600">Line</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -1784,18 +2079,48 @@ export function DesignStudioModal({
                             : "hover:ring-1 hover:ring-[#80011F]/50"
                         }`}
                       >
-                        {/* Logo Layer */}
-                        {el.type === "logo" && el.imageUrl && (
+                        {/* Logo & Image Layers */}
+                        {(el.type === "logo" || el.type === "image") && el.imageUrl && (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={el.imageUrl}
                             alt={el.name}
-                            className="max-h-full max-w-full object-contain pointer-events-none select-none"
+                            className="max-h-full max-w-full object-contain pointer-events-none select-none drop-shadow-sm"
                           />
                         )}
 
-                        {/* Text Layer */}
-                        {el.type === "text" && (
+                        {/* Curved Text Layer */}
+                        {el.type === "text" && el.isCurved && (
+                          <svg viewBox="0 0 300 120" className="w-full h-full overflow-visible pointer-events-none select-none">
+                            <defs>
+                              <path
+                                id={`path_${el.id}`}
+                                d={
+                                  (el.curvature ?? 35) >= 0
+                                    ? `M 15 85 Q 150 ${85 - (el.curvature ?? 35) * 1.4} 285 85`
+                                    : `M 15 35 Q 150 ${35 - (el.curvature ?? 35) * 1.4} 285 35`
+                                }
+                                fill="none"
+                              />
+                            </defs>
+                            <text
+                              fill={el.color || "#FFFFFF"}
+                              fontSize={Math.max(16, (el.fontSize || 22) * 1.25)}
+                              fontFamily={el.fontFamily || "Poppins"}
+                              fontWeight={el.bold ? "bold" : "normal"}
+                              fontStyle={el.italic ? "italic" : "normal"}
+                              textAnchor="middle"
+                              className="filter drop-shadow-sm"
+                            >
+                              <textPath href={`#path_${el.id}`} startOffset="50%">
+                                {el.text}
+                              </textPath>
+                            </text>
+                          </svg>
+                        )}
+
+                        {/* Normal Text Layer */}
+                        {el.type === "text" && !el.isCurved && (
                           <span
                             style={{
                               fontFamily: el.fontFamily || "Poppins",
@@ -1803,24 +2128,60 @@ export function DesignStudioModal({
                               fontStyle: el.italic ? "italic" : "normal",
                               textDecoration: el.underline ? "underline" : "none",
                               color: el.color || "#FFFFFF",
-                              fontSize: `${Math.max(12, Math.round((el.fontSize || 22) * 0.8))}px`,
+                              fontSize: `${Math.max(12, Math.round((el.fontSize || 22) * 0.85))}px`,
                               textAlign: el.align || "center",
                             }}
-                            className="select-none leading-tight truncate px-1 text-center drop-shadow-sm"
+                            className="select-none leading-tight truncate px-1 text-center drop-shadow-sm w-full block"
                           >
                             {el.text}
                           </span>
                         )}
 
-                        {/* Shape Layer */}
+                        {/* Shape Layers */}
                         {el.type === "shape" && (
-                          <div
-                            style={{
-                              backgroundColor: el.fillColor || "#80011F",
-                              borderRadius: el.shapeType === "circle" ? "9999px" : "4px",
-                            }}
-                            className="w-full h-full"
-                          />
+                          <div className="w-full h-full flex items-center justify-center pointer-events-none">
+                            {el.shapeType === "circle" && (
+                              <div
+                                style={{ backgroundColor: el.fillColor || "#80011F" }}
+                                className="w-full h-full rounded-full shadow-xs"
+                              />
+                            )}
+                            {el.shapeType === "circle-outline" && (
+                              <div
+                                style={{
+                                  borderColor: el.strokeColor || el.fillColor || "#80011F",
+                                  borderWidth: `${el.strokeWidth || 4}px`,
+                                }}
+                                className="w-full h-full rounded-full border-solid bg-transparent shadow-xs"
+                              />
+                            )}
+                            {el.shapeType === "rounded-rect" && (
+                              <div
+                                style={{ backgroundColor: el.fillColor || "#80011F" }}
+                                className="w-full h-full rounded-2xl shadow-xs"
+                              />
+                            )}
+                            {el.shapeType === "triangle" && (
+                              <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xs">
+                                <polygon points="50,5 95,95 5,95" fill={el.fillColor || "#80011F"} />
+                              </svg>
+                            )}
+                            {el.shapeType === "line" && (
+                              <div
+                                style={{
+                                  backgroundColor: el.fillColor || "#80011F",
+                                  height: `${el.strokeWidth || 4}px`,
+                                }}
+                                className="w-full my-auto rounded-full shadow-2xs"
+                              />
+                            )}
+                            {(!el.shapeType || el.shapeType === "square" || el.shapeType === "rect") && (
+                              <div
+                                style={{ backgroundColor: el.fillColor || "#80011F" }}
+                                className="w-full h-full rounded-sm shadow-xs"
+                              />
+                            )}
+                          </div>
                         )}
 
                         {/* Selection Corner Handles (visible when selected) */}
@@ -1876,36 +2237,288 @@ export function DesignStudioModal({
             {/* ---------------------------------------------------- */}
             {/* RIGHT PANEL: Properties & Layers                     */}
             {/* ---------------------------------------------------- */}
-            <div className="hidden md:flex flex-col w-[280px] lg:w-[310px] border-l border-rose-100 bg-[#FFFDFE] p-4 overflow-y-auto space-y-4">
+            <div className="hidden md:flex flex-col w-[280px] lg:w-[320px] border-l border-rose-100 bg-[#FFFDFE] p-4 overflow-y-auto space-y-4">
               {/* If Element Selected: Show Properties */}
               {selectedElement ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-4 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between border-b border-rose-100 pb-2">
                     <span className="text-xs font-extrabold text-gray-900 uppercase tracking-wider">
-                      {selectedElement.type === "logo" ? "Logo Properties" : "Text Properties"}
+                      {selectedElement.type === "logo"
+                        ? "Logo Properties"
+                        : selectedElement.type === "image"
+                        ? "Image Properties"
+                        : selectedElement.type === "shape"
+                        ? `${selectedElement.shapeType || "Shape"} Properties`
+                        : selectedElement.isCurved
+                        ? "Curved Text Properties"
+                        : "Text Properties"}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCurrentElements((prev) => prev.filter((el) => el.id !== selectedElement.id));
-                        setSelectedElementId(null);
-                      }}
-                      className="text-red-500 hover:text-red-700 p-1"
-                      title="Delete Element"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleDuplicateElement(selectedElement.id)}
+                        className="text-gray-500 hover:text-[#80011F] p-1 rounded-md hover:bg-rose-50 cursor-pointer"
+                        title="Duplicate Element"
+                      >
+                        <Copy size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCurrentElements((prev) => prev.filter((el) => el.id !== selectedElement.id));
+                          setSelectedElementId(null);
+                        }}
+                        className="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 cursor-pointer"
+                        title="Delete Element"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Text Edit Input (For Text & Curved Text) */}
+                  {selectedElement.type === "text" && (
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-gray-700">Edit Text</label>
+                      <input
+                        type="text"
+                        value={selectedElement.text || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCurrentElements((prev) =>
+                            prev.map((el) => (el.id === selectedElement.id ? { ...el, text: val } : el))
+                          );
+                        }}
+                        placeholder="Enter text..."
+                        className="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs text-gray-900 focus:border-[#80011F] focus:outline-hidden"
+                      />
+                    </div>
+                  )}
+
+                  {/* Curved Text Arc Curvature Slider */}
+                  {selectedElement.type === "text" && selectedElement.isCurved && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-bold text-gray-700">
+                        <span>Arc Curvature</span>
+                        <span>{selectedElement.curvature ?? 35}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="-60"
+                        max="60"
+                        value={selectedElement.curvature ?? 35}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setCurrentElements((prev) =>
+                            prev.map((el) => (el.id === selectedElement.id ? { ...el, curvature: val } : el))
+                          );
+                        }}
+                        className="w-full accent-[#80011F]"
+                      />
+                      <div className="flex justify-between text-[9px] text-gray-400">
+                        <span>Curve Down</span>
+                        <span>Straight</span>
+                        <span>Curve Up</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Font Family & Styles (For Text) */}
+                  {selectedElement.type === "text" && (
+                    <>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-700">Font Family</label>
+                        <select
+                          value={selectedElement.fontFamily || "Poppins"}
+                          onChange={(e) =>
+                            setCurrentElements((prev) =>
+                              prev.map((item) =>
+                                item.id === selectedElement.id ? { ...item, fontFamily: e.target.value } : item
+                              )
+                            )
+                          }
+                          className="mt-1 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-semibold focus:border-[#80011F] focus:outline-hidden"
+                        >
+                          {AVAILABLE_FONTS.map((f) => (
+                            <option key={f.name} value={f.name}>
+                              {f.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Style: B, I, U, Alignments */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[11px] font-bold text-gray-700 block mb-1">Style</label>
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCurrentElements((prev) =>
+                                  prev.map((item) =>
+                                    item.id === selectedElement.id ? { ...item, bold: !item.bold } : item
+                                  )
+                                )
+                              }
+                              className={`flex-1 rounded-lg border py-1 text-xs font-bold ${
+                                selectedElement.bold ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                              }`}
+                            >
+                              <Bold size={13} className="mx-auto" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCurrentElements((prev) =>
+                                  prev.map((item) =>
+                                    item.id === selectedElement.id ? { ...item, italic: !item.italic } : item
+                                  )
+                                )
+                              }
+                              className={`flex-1 rounded-lg border py-1 text-xs italic ${
+                                selectedElement.italic ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                              }`}
+                            >
+                              <Italic size={13} className="mx-auto" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCurrentElements((prev) =>
+                                  prev.map((item) =>
+                                    item.id === selectedElement.id ? { ...item, underline: !item.underline } : item
+                                  )
+                                )
+                              }
+                              className={`flex-1 rounded-lg border py-1 text-xs underline ${
+                                selectedElement.underline ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                              }`}
+                            >
+                              <Underline size={13} className="mx-auto" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-bold text-gray-700 block mb-1">Align</label>
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCurrentElements((prev) =>
+                                  prev.map((item) =>
+                                    item.id === selectedElement.id ? { ...item, align: "left" } : item
+                                  )
+                                )
+                              }
+                              className={`flex-1 rounded-lg border py-1 text-xs ${
+                                selectedElement.align === "left" ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                              }`}
+                            >
+                              <AlignLeft size={13} className="mx-auto" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCurrentElements((prev) =>
+                                  prev.map((item) =>
+                                    item.id === selectedElement.id ? { ...item, align: "center" } : item
+                                  )
+                                )
+                              }
+                              className={`flex-1 rounded-lg border py-1 text-xs ${
+                                (!selectedElement.align || selectedElement.align === "center")
+                                  ? "bg-[#80011F] text-white border-[#80011F]"
+                                  : "bg-white text-gray-700"
+                              }`}
+                            >
+                              <AlignCenter size={13} className="mx-auto" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCurrentElements((prev) =>
+                                  prev.map((item) =>
+                                    item.id === selectedElement.id ? { ...item, align: "right" } : item
+                                  )
+                                )
+                              }
+                              className={`flex-1 rounded-lg border py-1 text-xs ${
+                                selectedElement.align === "right" ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                              }`}
+                            >
+                              <AlignRight size={13} className="mx-auto" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Text Colour Palette */}
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-700">Text Colour</label>
+                        <div className="flex flex-wrap gap-1.5 mt-1.5">
+                          {TEXT_COLOR_PALETTE.map((hex) => (
+                            <button
+                              key={hex}
+                              type="button"
+                              onClick={() =>
+                                setCurrentElements((prev) =>
+                                  prev.map((item) =>
+                                    item.id === selectedElement.id ? { ...item, color: hex } : item
+                                  )
+                                )
+                              }
+                              className={`h-6 w-6 rounded-full border shadow-2xs transition-transform hover:scale-110 cursor-pointer ${
+                                selectedElement.color === hex ? "ring-2 ring-[#80011F] scale-110" : ""
+                              }`}
+                              style={{ backgroundColor: hex }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Shape Colour Palette (For Shapes) */}
+                  {selectedElement.type === "shape" && (
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-700">Shape Colour</label>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        {TEXT_COLOR_PALETTE.map((hex) => (
+                          <button
+                            key={hex}
+                            type="button"
+                            onClick={() =>
+                              setCurrentElements((prev) =>
+                                prev.map((item) =>
+                                  item.id === selectedElement.id
+                                    ? { ...item, fillColor: hex, strokeColor: hex }
+                                    : item
+                                )
+                              )
+                            }
+                            className={`h-6 w-6 rounded-full border shadow-2xs transition-transform hover:scale-110 cursor-pointer ${
+                              (selectedElement.fillColor === hex || selectedElement.strokeColor === hex)
+                                ? "ring-2 ring-[#80011F] scale-110"
+                                : ""
+                            }`}
+                            style={{ backgroundColor: hex }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Size Slider */}
                   <div>
-                    <div className="flex justify-between text-[11px] font-bold text-gray-600">
-                      <span>Size</span>
-                      <span>{selectedElement.width}% (approx 3.5&quot; wide)</span>
+                    <div className="flex justify-between text-[11px] font-bold text-gray-700">
+                      <span>Size / Scale</span>
+                      <span>{selectedElement.width}%</span>
                     </div>
                     <input
                       type="range"
-                      min="15"
+                      min="10"
                       max="90"
                       value={selectedElement.width}
                       onChange={(e) => {
@@ -1918,9 +2531,30 @@ export function DesignStudioModal({
                     />
                   </div>
 
+                  {/* Rotation Slider */}
+                  <div>
+                    <div className="flex justify-between text-[11px] font-bold text-gray-700">
+                      <span>Rotation</span>
+                      <span>{selectedElement.rotation}°</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="-180"
+                      max="180"
+                      value={selectedElement.rotation}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        setCurrentElements((prev) =>
+                          prev.map((el) => (el.id === selectedElement.id ? { ...el, rotation: val } : el))
+                        );
+                      }}
+                      className="w-full accent-[#80011F] mt-1"
+                    />
+                  </div>
+
                   {/* Position D-Pad */}
                   <div>
-                    <label className="text-[11px] font-bold text-gray-600">Position</label>
+                    <label className="text-[11px] font-bold text-gray-700">Position</label>
                     <div className="mt-2 flex flex-col items-center gap-1">
                       <button
                         type="button"
@@ -2010,7 +2644,7 @@ export function DesignStudioModal({
 
                   {/* Opacity Slider */}
                   <div className="pt-2 border-t border-rose-100">
-                    <div className="flex justify-between text-[11px] font-bold text-gray-600">
+                    <div className="flex justify-between text-[11px] font-bold text-gray-700">
                       <span>Opacity</span>
                       <span>{Math.round(selectedElement.opacity * 100)}%</span>
                     </div>
@@ -2032,7 +2666,7 @@ export function DesignStudioModal({
                 </div>
               ) : (
                 <div className="p-3 text-center text-xs text-gray-500 rounded-xl bg-rose-50/50 border border-rose-100">
-                  Select an element on the T-shirt to edit its size, position, and properties.
+                  Select an element on the T-shirt to edit its size, position, text, and properties.
                 </div>
               )}
 
@@ -2058,10 +2692,38 @@ export function DesignStudioModal({
                         }`}
                       >
                         <div className="flex items-center gap-2 truncate">
-                          {el.type === "logo" ? <Scan size={14} /> : <Type size={14} />}
+                          {el.type === "logo" ? (
+                            <Scan size={14} />
+                          ) : el.type === "image" ? (
+                            <Upload size={14} />
+                          ) : (
+                            <Type size={14} />
+                          )}
                           <span className="truncate">{el.name}</span>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveLayer(el.id, "up");
+                            }}
+                            className="p-1 text-gray-400 hover:text-black"
+                            title="Bring Forward"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveLayer(el.id, "down");
+                            }}
+                            className="p-1 text-gray-400 hover:text-black"
+                            title="Send Backward"
+                          >
+                            ▼
+                          </button>
                           <button
                             type="button"
                             onClick={(e) => {
@@ -2076,20 +2738,6 @@ export function DesignStudioModal({
                           >
                             {el.visible ? <Eye size={13} /> : <EyeOff size={13} />}
                           </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCurrentElements((prev) =>
-                                prev.map((item) =>
-                                  item.id === el.id ? { ...item, locked: !item.locked } : item
-                                )
-                              );
-                            }}
-                            className="p-1 text-gray-400 hover:text-black"
-                          >
-                            {el.locked ? <Lock size={13} /> : <Unlock size={13} />}
-                          </button>
                         </div>
                       </div>
                     );
@@ -2103,35 +2751,129 @@ export function DesignStudioModal({
           {/* MOBILE RESPONSIVE BOTTOM TOOLBAR & TABS (< md)           */}
           {/* ======================================================== */}
           <div className="md:hidden flex flex-col border-t border-rose-100 bg-white shrink-0">
+            {/* If Element Selected on Mobile: Sticky Inline Editor */}
+            {selectedElement && (
+              <div className="p-2.5 bg-rose-50/90 border-b border-rose-200 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 flex-1 min-w-[150px]">
+                  {selectedElement.type === "text" ? (
+                    <input
+                      type="text"
+                      value={selectedElement.text || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCurrentElements((prev) =>
+                          prev.map((el) => (el.id === selectedElement.id ? { ...el, text: val } : el))
+                        );
+                      }}
+                      className="w-full bg-white rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-900 focus:border-[#80011F] focus:outline-hidden"
+                      placeholder="Edit text..."
+                    />
+                  ) : (
+                    <span className="text-xs font-bold text-gray-800 truncate">{selectedElement.name}</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Size - / + */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentElements((prev) =>
+                        prev.map((el) =>
+                          el.id === selectedElement.id
+                            ? { ...el, width: Math.max(10, el.width - 5) }
+                            : el
+                        )
+                      )
+                    }
+                    className="h-7 w-7 rounded-lg bg-white border border-gray-200 text-xs font-bold flex items-center justify-center text-gray-700"
+                    title="Smaller"
+                  >
+                    -
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentElements((prev) =>
+                        prev.map((el) =>
+                          el.id === selectedElement.id
+                            ? { ...el, width: Math.min(90, el.width + 5) }
+                            : el
+                        )
+                      )
+                    }
+                    className="h-7 w-7 rounded-lg bg-white border border-gray-200 text-xs font-bold flex items-center justify-center text-gray-700"
+                    title="Larger"
+                  >
+                    +
+                  </button>
+
+                  {/* Duplicate */}
+                  <button
+                    type="button"
+                    onClick={() => handleDuplicateElement(selectedElement.id)}
+                    className="h-7 w-7 rounded-lg bg-white border border-gray-200 text-[#80011F] flex items-center justify-center"
+                    title="Duplicate"
+                  >
+                    <Copy size={13} />
+                  </button>
+
+                  {/* Delete */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentElements((prev) => prev.filter((el) => el.id !== selectedElement.id));
+                      setSelectedElementId(null);
+                    }}
+                    className="h-7 w-7 rounded-lg bg-white border border-red-200 text-red-600 flex items-center justify-center"
+                    title="Delete"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+
+                  {/* Close Selection */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedElementId(null)}
+                    className="h-7 w-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center"
+                    title="Deselect"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Quick Actions Drawer / Sheet based on mobile tab */}
-            <div className="p-3 bg-rose-50/40 border-b border-rose-100 max-h-[160px] overflow-y-auto">
+            <div className="p-3 bg-white border-b border-rose-100 max-h-[190px] overflow-y-auto">
               {mobileActiveTab === "product" && (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-gray-700">Colour:</span>
-                    <div className="flex gap-1.5">
+                    <span className="text-[11px] font-bold text-gray-700 shrink-0">Colour:</span>
+                    <div className="flex gap-1.5 overflow-x-auto py-0.5">
                       {product.colors.map((c, i) => (
                         <button
                           key={c.name}
                           type="button"
                           onClick={() => setSelectedColorIdx(i)}
-                          className={`h-6 w-6 rounded-full border ${
+                          className={`h-6 w-6 rounded-full border shrink-0 ${
                             selectedColorIdx === i ? "ring-2 ring-[#80011F]" : ""
                           }`}
                           style={{ backgroundColor: c.hex }}
+                          title={c.name}
                         />
                       ))}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-[11px] font-bold text-gray-700">Preset:</span>
                     {(["Left Chest", "Right Chest", "Center Chest"] as const).map((pos) => (
                       <button
                         key={pos}
                         type="button"
                         onClick={() => applyFrontPreset(pos)}
-                        className={`rounded-lg px-2 py-1 text-[10px] font-bold border ${
-                          frontPreset === pos ? "bg-[#80011F] text-white" : "bg-white text-gray-700"
+                        className={`rounded-lg px-2.5 py-1 text-[11px] font-bold border ${
+                          frontPreset === pos ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
                         }`}
                       >
                         {pos}
@@ -2142,37 +2884,181 @@ export function DesignStudioModal({
               )}
 
               {mobileActiveTab === "logo" && (
-                <div className="flex items-center justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-bold text-gray-700"
-                  >
-                    <Upload size={13} />
-                    <span>Upload Logo</span>
-                  </button>
-                  {selectedElement?.type === "logo" && (
+                <div className="flex flex-col gap-2.5">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => handleToggleBgRemoval(selectedElement.id)}
-                      className="px-3 py-1.5 rounded-lg bg-[#80011F] text-white text-xs font-bold"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#80011F] bg-rose-50 text-xs font-bold text-[#80011F]"
                     >
-                      {selectedElement.hasRemovedBg ? "Restore BG" : "Remove BG"}
+                      <Upload size={14} />
+                      <span>Upload Logo</span>
                     </button>
-                  )}
+                    {selectedElement?.type === "logo" && (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleBgRemoval(selectedElement.id)}
+                        className="px-3 py-1.5 rounded-xl bg-[#80011F] text-white text-xs font-bold"
+                      >
+                        {selectedElement.hasRemovedBg ? "Restore BG" : "Remove BG"}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
               {mobileActiveTab === "text" && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleAddNewText("Your Text")}
-                    className="flex items-center gap-1 rounded-lg bg-[#80011F] px-3 py-1.5 text-xs font-bold text-white shadow-xs"
-                  >
-                    <Plus size={13} />
-                    <span>Add Text</span>
-                  </button>
+                <div className="space-y-3">
+                  {/* Text Presets horizontal / grid list */}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider block mb-1">
+                      Text Presets (Tap to Add)
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("Add a Heading", 28, true)}
+                        className="rounded-lg border border-gray-200 bg-rose-50/30 p-1.5 text-left text-xs font-bold text-gray-900 truncate"
+                      >
+                        Heading
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("Add Text", 20, false)}
+                        className="rounded-lg border border-gray-200 bg-rose-50/30 p-1.5 text-left text-xs text-gray-900 truncate"
+                      >
+                        Normal Text
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("Add Small Text", 14, false)}
+                        className="rounded-lg border border-gray-200 bg-rose-50/30 p-1.5 text-left text-[11px] text-gray-700 truncate"
+                      >
+                        Small Text
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("TMT • CEMENT • MATERIAL", 16, true)}
+                        className="rounded-lg border border-gray-200 bg-rose-50/30 p-1.5 text-left text-[11px] font-bold text-gray-900 truncate"
+                      >
+                        Words with dots
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("+91 98765 43210", 16, true, true)}
+                        className="rounded-lg border border-gray-200 bg-rose-50/30 p-1.5 text-left text-[11px] font-bold text-gray-900 truncate"
+                      >
+                        Phone Number
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText("www.yourbrand.com", 15, true, true)}
+                        className="rounded-lg border border-gray-200 bg-rose-50/30 p-1.5 text-left text-[11px] font-bold text-gray-900 truncate"
+                      >
+                        Website URL
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Add Elements 4 options */}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider block mb-1">
+                      Add Elements
+                    </label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white p-2 text-center"
+                      >
+                        <Upload size={14} className="text-[#80011F]" />
+                        <span className="text-[10px] font-bold">Logo</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddPresetText(companyNameInput.trim() || "Company Name", 22, true)}
+                        className="flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white p-2 text-center"
+                      >
+                        <Type size={14} className="text-[#80011F]" />
+                        <span className="text-[10px] font-bold">Company</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddCurvedText("Curved Brand Text", 20, 35)}
+                        className="flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white p-2 text-center"
+                      >
+                        <Sparkles size={14} className="text-[#80011F]" />
+                        <span className="text-[10px] font-bold">Curved</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => customImageInputRef.current?.click()}
+                        className="flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white p-2 text-center"
+                      >
+                        <Scan size={14} className="text-[#80011F]" />
+                        <span className="text-[10px] font-bold">Artwork</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Shapes 6 options */}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider block mb-1">
+                      Shapes
+                    </label>
+                    <div className="flex gap-2 overflow-x-auto py-1">
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("square")}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold shrink-0"
+                      >
+                        <div className="h-3.5 w-3.5 rounded-xs bg-[#80011F]" />
+                        <span>Square</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("rounded-rect")}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold shrink-0"
+                      >
+                        <div className="h-3.5 w-5 rounded-md bg-[#80011F]" />
+                        <span>Rounded</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("circle")}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold shrink-0"
+                      >
+                        <div className="h-3.5 w-3.5 rounded-full bg-[#80011F]" />
+                        <span>Circle</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("circle-outline")}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold shrink-0"
+                      >
+                        <div className="h-3.5 w-3.5 rounded-full border-2 border-[#80011F]" />
+                        <span>Outline</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("triangle")}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold shrink-0"
+                      >
+                        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#80011F] fill-current">
+                          <polygon points="12,3 22,21 2,21" />
+                        </svg>
+                        <span>Triangle</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddShape("line")}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold shrink-0"
+                      >
+                        <div className="h-1 w-5 rounded-full bg-[#80011F]" />
+                        <span>Line</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -2183,13 +3069,16 @@ export function DesignStudioModal({
                       key={el.id}
                       type="button"
                       onClick={() => setSelectedElementId(el.id)}
-                      className={`px-2.5 py-1 rounded-lg border text-xs font-bold whitespace-nowrap ${
-                        selectedElementId === el.id ? "bg-[#80011F] text-white" : "bg-white text-gray-700"
+                      className={`px-3 py-1.5 rounded-lg border text-xs font-bold whitespace-nowrap shrink-0 ${
+                        selectedElementId === el.id ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
                       }`}
                     >
                       {el.name}
                     </button>
                   ))}
+                  {currentElements.length === 0 && (
+                    <span className="text-xs text-gray-400">No elements added yet.</span>
+                  )}
                 </div>
               )}
             </div>
@@ -2224,7 +3113,7 @@ export function DesignStudioModal({
                 }`}
               >
                 <Type size={16} />
-                <span>Text</span>
+                <span>Text &amp; Add</span>
               </button>
               <button
                 type="button"
@@ -2234,7 +3123,7 @@ export function DesignStudioModal({
                 }`}
               >
                 <Layers size={16} />
-                <span>Layers</span>
+                <span>Layers ({currentElements.length})</span>
               </button>
             </div>
           </div>

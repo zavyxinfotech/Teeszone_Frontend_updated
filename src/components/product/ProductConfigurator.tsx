@@ -13,6 +13,7 @@ import {
   ChevronRight,
   CloudUpload,
   Download,
+  ExternalLink,
   Heart,
   Loader2,
   Minus,
@@ -22,6 +23,7 @@ import {
   ShoppingBag,
   Sparkles,
   Star,
+  Trash2,
   X,
 } from "lucide-react";
 import type { Product } from "@/lib/types";
@@ -29,7 +31,7 @@ import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
 import { reviews as defaultReviews } from "@/data/reviews";
-import { getProductRating } from "@/data/ratings";
+import { getProductRating, TEESZONE_GOOGLE_REVIEWS_URL } from "@/data/ratings";
 import type { Review } from "@/lib/types";
 import { BrandDesignerModal } from "./BrandDesignerModal";
 import {
@@ -731,17 +733,23 @@ export function ProductConfigurator({
 
         {/* Rating & Reviews + Orders Delivered (aligned below, larger, no border/bg) */}
         <div className="mt-2.5">
-          <div className="flex items-center gap-2">
+          <a
+            href={TEESZONE_GOOGLE_REVIEWS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 group/rev hover:opacity-90 transition-opacity cursor-pointer"
+            title="Read TeesZone 5.0 Star Reviews on Google"
+          >
             <div className="flex items-center text-amber-500">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} size={18} className="fill-amber-400 text-amber-400" />
               ))}
             </div>
-            <span className="text-base sm:text-lg font-bold text-ink">{ratingInfo.rating}</span>
-            <span className="text-sm sm:text-base font-semibold text-body">
-              ({ratingInfo.reviews.toLocaleString("en-IN")} Reviews)
+            <span className="text-base sm:text-lg font-bold text-ink">5.0</span>
+            <span className="text-sm sm:text-base font-semibold text-body group-hover/rev:text-[#80011F] group-hover/rev:underline">
+              (21 Google Reviews)
             </span>
-          </div>
+          </a>
 
           <div className="mt-1 flex items-center justify-between gap-2 flex-wrap">
             <p className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
@@ -858,9 +866,11 @@ export function ProductConfigurator({
                 <button
                   type="button"
                   onClick={clearCustomDesign}
-                  className="text-xs font-semibold text-gray-400 hover:text-red-600 transition-colors cursor-pointer ml-1"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 hover:text-red-600 transition-colors cursor-pointer ml-1 py-1 px-2 rounded-lg hover:bg-rose-50"
+                  title="Remove Customization and return to design options"
                 >
-                  Remove Design
+                  <Trash2 size={13} />
+                  <span>Remove Customization</span>
                 </button>
               </div>
             </div>
@@ -1005,30 +1015,40 @@ export function ProductConfigurator({
           {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-3">
-                <span className="text-3xl sm:text-4xl font-extrabold text-ink">{ratingInfo.rating}</span>
+              <a
+                href={TEESZONE_GOOGLE_REVIEWS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 group/rev hover:opacity-90 transition-opacity"
+                title="View Google Reviews for TeesZone"
+              >
+                <span className="text-3xl sm:text-4xl font-extrabold text-ink">5.0</span>
                 <div>
                   <div className="flex items-center gap-0.5 text-amber-500">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} size={16} className="fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <p className="mt-0.5 text-sm font-semibold text-body">
-                    {ratingInfo.reviews.toLocaleString("en-IN")} verified reviews
+                  <p className="mt-0.5 text-sm font-semibold text-body group-hover/rev:text-[#80011F] group-hover/rev:underline">
+                    21 Google Reviews (5.0 ★)
                   </p>
                 </div>
-              </div>
+              </a>
               <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-700">
                 <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
                 <span>{deliveredOrdersCount.toLocaleString("en-IN")}+ orders delivered</span>
               </p>
             </div>
-            <button
-              type="button"
-              className="rounded-full border border-line px-3.5 py-1 text-xs font-semibold text-ink transition-colors hover:border-ink hover:text-accent"
+            <a
+              href={TEESZONE_GOOGLE_REVIEWS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 rounded-full border border-line px-3.5 py-1 text-xs font-semibold text-ink transition-colors hover:border-[#80011F] hover:text-[#80011F]"
+              title="View all Google Reviews"
             >
-              See all &gt;
-            </button>
+              <span>See Google Reviews</span>
+              <ExternalLink size={12} />
+            </a>
           </div>
 
           {/* Review Cards Carousel (No border, no shadow) */}
@@ -1175,7 +1195,7 @@ export function ProductConfigurator({
           aria-modal="true"
           aria-label={`${product.name} Size Chart`}
           onClick={() => setSizeChartOpen(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -1232,11 +1252,11 @@ export function ProductConfigurator({
           aria-modal="true"
           aria-label="Customize Logo & Color"
           onClick={() => setCustomizerOpen(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-5 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative flex flex-col w-full max-w-2xl max-h-[92vh] rounded-2xl bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+            className="relative flex flex-col w-full h-full sm:h-auto sm:max-h-[94vh] sm:max-w-4xl md:max-w-5xl sm:rounded-2xl rounded-none bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-line px-5 py-4 bg-surface/50">
