@@ -7,7 +7,8 @@ import {
   type GoogleReviewItem,
 } from "@/lib/googleReviews";
 
-export const revalidate = 3600; // Cache for 1 hour
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   const apiKey =
@@ -19,7 +20,7 @@ export async function GET() {
     // Return verified Google listing reviews cache if API key not provided
     return NextResponse.json(FALLBACK_GOOGLE_DATA, {
       headers: {
-        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+        "Cache-Control": "no-store, max-age=0",
       },
     });
   }

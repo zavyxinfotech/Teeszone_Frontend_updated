@@ -70,23 +70,49 @@ export function CustomerReviewsSection({
 
     let animId: number;
     let isPaused = false;
+    let scrollPos = el.scrollLeft;
 
-    const onEnter = () => { isPaused = true; };
-    const onLeave = () => { isPaused = false; };
+    const onEnter = () => {
+      isPaused = true;
+    };
+    const onLeave = () => {
+      if (el) scrollPos = el.scrollLeft;
+      isPaused = false;
+    };
+    const onTouchStart = () => {
+      isPaused = true;
+    };
+    const onTouchEnd = () => {
+      if (el) scrollPos = el.scrollLeft;
+      isPaused = false;
+    };
+    const onScroll = () => {
+      if (isPaused && el) {
+        scrollPos = el.scrollLeft;
+      }
+    };
 
     el.addEventListener("mouseenter", onEnter);
     el.addEventListener("mouseleave", onLeave);
-    el.addEventListener("touchstart", onEnter, { passive: true });
-    el.addEventListener("touchend", onLeave, { passive: true });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("scroll", onScroll, { passive: true });
 
-    const scrollSpeed = 0.8;
-    const step = () => {
+    let lastTime = performance.now();
+    const speedPxPerSec = 45; // Smooth constant horizontal scroll speed
+
+    const step = (now: number) => {
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
       if (!isPaused && el) {
-        // Seamlessly reset when reaching halfway
-        if (el.scrollLeft >= el.scrollWidth / 2) {
-          el.scrollLeft = 0;
+        scrollPos += speedPxPerSec * dt;
+        const oneThird = el.scrollWidth / 3;
+        if (oneThird > 0 && scrollPos >= oneThird) {
+          scrollPos -= oneThird;
+          el.scrollLeft = scrollPos;
         } else {
-          el.scrollLeft += scrollSpeed;
+          el.scrollLeft = scrollPos;
         }
       }
       animId = requestAnimationFrame(step);
@@ -98,8 +124,9 @@ export function CustomerReviewsSection({
       cancelAnimationFrame(animId);
       el.removeEventListener("mouseenter", onEnter);
       el.removeEventListener("mouseleave", onLeave);
-      el.removeEventListener("touchstart", onEnter);
-      el.removeEventListener("touchend", onLeave);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("scroll", onScroll);
     };
   }, [reviews]);
 
@@ -174,34 +201,29 @@ export function CustomerReviewsSection({
         </div>
       </Reveal>
 
-      {/* Carousel Navigation Toolbar */}
-      <div className="mt-8 flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wider text-body">
-          Authentic customer feedback · Auto-scrolling in continuous loop
-        </p>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrev}
-            aria-label="Previous reviews"
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-line bg-white text-ink transition-all hover:bg-slate-50 cursor-pointer shadow-xs hover:scale-105"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            onClick={handleNext}
-            aria-label="Next reviews"
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-line bg-white text-ink transition-all hover:bg-slate-50 cursor-pointer shadow-xs hover:scale-105"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
+      {/* Carousel Navigation Toolbar (Text removed per user instruction) */}
+      <div className="mt-6 flex items-center justify-end gap-2">
+        <button
+          onClick={handlePrev}
+          aria-label="Previous reviews"
+          className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-line bg-white text-ink transition-all hover:bg-slate-50 cursor-pointer shadow-xs hover:scale-105"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <button
+          onClick={handleNext}
+          aria-label="Next reviews"
+          className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-line bg-white text-ink transition-all hover:bg-slate-50 cursor-pointer shadow-xs hover:scale-105"
+        >
+          <ChevronRight size={18} />
+        </button>
       </div>
 
       {/* Continuous Loop Auto-Scrolling Carousel (Desktop & Mobile) */}
-      <div className="relative mt-6 overflow-hidden">
+      <div className="relative mt-4 overflow-hidden">
         <div
           ref={carouselRef}
-          className="flex gap-5 overflow-x-auto scroll-smooth py-2 scrollbar-none"
+          className="flex gap-5 overflow-x-auto py-2 scrollbar-none select-none"
         >
           {loopedReviews.map((rev, idx) => (
             <article
