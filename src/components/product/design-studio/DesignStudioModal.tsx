@@ -23,6 +23,8 @@ import {
   Type,
   Unlock,
   Upload,
+  Download,
+  Loader2,
   X,
 } from "lucide-react";
 import type { Product, ProductColor } from "@/lib/types";
@@ -33,6 +35,7 @@ import {
   enhanceLogoCanvas,
   generateCompositeGarment,
 } from "./canvasUtils";
+import { generateAndDownloadBrandedMockup } from "@/lib/mockupDownload";
 
 export interface StudioElement {
   id: string;
@@ -816,6 +819,40 @@ export function DesignStudioModal({
   };
 
   // ========================================================
+  // Download Mockup Feature
+  // ========================================================
+  const [isDownloadingMockup, setIsDownloadingMockup] = useState(false);
+
+  const handleStudioDownloadMockup = async () => {
+    setIsDownloadingMockup(true);
+    try {
+      const frontComposite = await generateCompositeGarment(
+        frontGarmentImage,
+        FRONT_PRINTABLE_BOUNDS,
+        frontElements.filter((el) => el.visible)
+      );
+
+      const backComposite = await generateCompositeGarment(
+        backGarmentImage,
+        BACK_PRINTABLE_BOUNDS,
+        backElements.filter((el) => el.visible)
+      );
+
+      await generateAndDownloadBrandedMockup({
+        productName: product.name,
+        frontImageUrl: frontComposite,
+        backImageUrl: backComposite,
+        colorName: activeColor.name,
+        companyName: companyNameInput || frontElements.find((el) => el.type === "text")?.text || "",
+      });
+    } catch {
+      alert("Could not generate mockup. Please try again.");
+    } finally {
+      setIsDownloadingMockup(false);
+    }
+  };
+
+  // ========================================================
   // STEP 7: Save & Done Action
   // ========================================================
   const [isSavingDone, setIsSavingDone] = useState(false);
@@ -1322,8 +1359,23 @@ export function DesignStudioModal({
               </div>
             </div>
 
-            {/* Right: Live Price & Done Button */}
+            {/* Right: Live Price, Download Mockup & Done Button */}
             <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={handleStudioDownloadMockup}
+                disabled={isDownloadingMockup}
+                className="flex items-center gap-1.5 rounded-xl border border-rose-200/90 bg-white hover:bg-rose-50 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold text-gray-700 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                title="Download Mockup"
+              >
+                {isDownloadingMockup ? (
+                  <Loader2 size={14} className="animate-spin text-[#80011F]" />
+                ) : (
+                  <Download size={14} className="text-[#80011F]" />
+                )}
+                <span className="hidden sm:inline">Download Mockup</span>
+              </button>
+
               <div className="hidden sm:flex flex-col text-right">
                 <span className="text-[11px] font-semibold text-gray-500">2 pcs • ₹724.50 ea</span>
                 <span className="text-sm font-extrabold text-[#80011F]">₹1,449</span>

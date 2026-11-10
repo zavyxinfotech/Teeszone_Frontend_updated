@@ -12,7 +12,9 @@ import {
   ChevronLeft,
   ChevronRight,
   CloudUpload,
+  Download,
   Heart,
+  Loader2,
   Minus,
   Pencil,
   Plus,
@@ -34,6 +36,7 @@ import {
   DesignStudioModal,
   CustomDesignResult,
 } from "./design-studio/DesignStudioModal";
+import { generateAndDownloadBrandedMockup } from "@/lib/mockupDownload";
 
 /**
  * Dynamically determines the customized apparel option label based on the product category.
@@ -222,6 +225,39 @@ export function ProductConfigurator({
     }
   }, [product.slug, setSavedCustomDesign, setLogoPreview, setLogoName]);
   const [justAdded, setJustAdded] = useState(false);
+  const [isDownloadingMockup, setIsDownloadingMockup] = useState(false);
+  const [downloadSuccessToast, setDownloadSuccessToast] = useState(false);
+
+  const handleDownloadMockup = async () => {
+    setIsDownloadingMockup(true);
+    try {
+      const frontSrc =
+        savedCustomDesign?.frontPreviewUrl ||
+        color.image ||
+        "/products/polo-black-front-3d.png";
+
+      const backSrc =
+        savedCustomDesign?.backPreviewUrl ||
+        color.backImage ||
+        color.image4 ||
+        "/products/polo-black-back-3d.png";
+
+      await generateAndDownloadBrandedMockup({
+        productName: product.name,
+        frontImageUrl: frontSrc,
+        backImageUrl: backSrc,
+        colorName: savedCustomDesign?.colorName || color.name,
+        companyName: savedCustomDesign?.companyName,
+      });
+
+      setDownloadSuccessToast(true);
+      setTimeout(() => setDownloadSuccessToast(false), 3000);
+    } catch {
+      alert("Could not generate mockup. Please try again.");
+    } finally {
+      setIsDownloadingMockup(false);
+    }
+  };
   const fileRef = useRef<HTMLInputElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
   const { addItems } = useCart();
@@ -567,6 +603,26 @@ export function ProductConfigurator({
                     }`}
                 />
 
+                {/* Download Mockup Floating Icon Button with Tooltip */}
+                <button
+                  type="button"
+                  onClick={handleDownloadMockup}
+                  disabled={isDownloadingMockup}
+                  title="Download Mockup"
+                  aria-label="Download Mockup"
+                  className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-30 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/95 text-[#80011F] hover:bg-[#80011F] hover:text-white shadow-md border border-rose-100 transition-all hover:scale-110 cursor-pointer disabled:opacity-50 group/download"
+                >
+                  {isDownloadingMockup ? (
+                    <Loader2 size={16} className="animate-spin text-[#80011F]" />
+                  ) : (
+                    <Download size={16} className="transition-transform group-hover/download:-translate-y-0.5" />
+                  )}
+                  {/* Tooltip */}
+                  <span className="pointer-events-none absolute -bottom-7 right-0 whitespace-nowrap rounded-md bg-gray-900 px-2 py-0.5 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover/download:opacity-100 shadow-sm z-40">
+                    Download Mockup
+                  </span>
+                </button>
+
                 {/* Left / Right chevron navigation on image */}
                 {displayImages.length > 1 && (
                   <>
@@ -784,13 +840,29 @@ export function ProductConfigurator({
                   Your Customised Design
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={clearCustomDesign}
-                className="text-xs font-semibold text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
-              >
-                Remove Design
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadMockup}
+                  disabled={isDownloadingMockup}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 hover:bg-[#80011F] text-[#80011F] hover:text-white border border-rose-200/90 px-2.5 py-1 text-xs font-bold transition-all cursor-pointer shadow-2xs group/btn"
+                  title="Download Mockup"
+                >
+                  {isDownloadingMockup ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Download size={13} className="transition-transform group-hover/btn:-translate-y-0.5" />
+                  )}
+                  <span>Download Mockup</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={clearCustomDesign}
+                  className="text-xs font-semibold text-gray-400 hover:text-red-600 transition-colors cursor-pointer ml-1"
+                >
+                  Remove Design
+                </button>
+              </div>
             </div>
 
             {/* Dual Front & Back Previews */}
@@ -1540,6 +1612,16 @@ export function ProductConfigurator({
           +1
         </div>
       ))}
+
+      {/* Mockup Download Success Toast */}
+      {downloadSuccessToast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-2xl bg-[#231F20] text-white px-5 py-3 shadow-2xl border border-white/10 animate-in slide-in-from-bottom-5 duration-200">
+          <CheckCircle2 size={18} className="text-emerald-400" />
+          <span className="text-xs sm:text-sm font-bold">
+            High-resolution mockup downloaded successfully!
+          </span>
+        </div>
+      )}
     </div>
   );
 }
