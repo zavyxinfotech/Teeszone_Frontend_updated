@@ -126,7 +126,15 @@ export function Footer({ segments }: { segments: Segment[] }) {
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-[1320px] flex-col items-center justify-between gap-2 px-4 py-5 text-sm md:text-xs font-normal text-body sm:flex-row sm:px-6 text-center sm:text-left">
           <p>
-            © {new Date().getFullYear()} {site.legalName}. All rights reserved.
+            © {new Date().getFullYear()} {site.legalName}. All rights reserved. Developed with ❤️ by{" "}
+            <a
+              href="https://zavyx.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-ink hover:text-accent transition-colors hover:underline"
+            >
+              ZAVYX InfoTech
+            </a>
           </p>
           <p>Manufactured with pride in Tiruppur, Tamil Nadu.</p>
         </div>
