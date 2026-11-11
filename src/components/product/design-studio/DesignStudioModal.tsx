@@ -140,8 +140,8 @@ const TEXT_COLOR_PALETTE = [
 const FRONT_PRINTABLE_BOUNDS = { leftPct: 28, topPct: 22, widthPct: 44, heightPct: 54 };
 const BACK_PRINTABLE_BOUNDS = { leftPct: 26, topPct: 18, widthPct: 48, heightPct: 58 };
 
-// Specific 3D Garment Models for AeroSoft Polo 200 Customization
-export const AEROSOFT_3D_COLORS: ProductColor[] = [
+// Specific 3D Garment Models for Polo Customization
+export const POLO_3D_COLORS: ProductColor[] = [
   {
     name: "Black",
     hex: "#26282D",
@@ -167,6 +167,66 @@ export const AEROSOFT_3D_COLORS: ProductColor[] = [
     backImage: "/products/polo-light-grey-back-3d.png",
   },
 ];
+export const AEROSOFT_3D_COLORS = POLO_3D_COLORS;
+
+export function getPolo3DModel(colorName?: string, colorHex?: string): { front: string; back: string } {
+  const name = (colorName || "").toLowerCase().trim();
+  const hex = (colorHex || "").toLowerCase().trim();
+
+  // 1. White
+  if (
+    name.includes("white") ||
+    hex === "#ffffff" ||
+    hex === "#f1f2f4" ||
+    hex === "#f8fafc" ||
+    hex === "#fafafa" ||
+    hex === "#f5f5f5"
+  ) {
+    return {
+      front: "/products/polo-white-front-3d.png",
+      back: "/products/polo-white-back-3d.png",
+    };
+  }
+
+  // 2. True Navy / Navy Blue / Royal Blue
+  if (
+    name.includes("navy") ||
+    name.includes("royal") ||
+    name.includes("blue") ||
+    hex === "#3f5277" ||
+    hex === "#1e3a5f" ||
+    hex === "#2749c9" ||
+    hex === "#1e3a8a" ||
+    hex === "#0f172a"
+  ) {
+    return {
+      front: "/products/polo-true-navy-front-3d.png",
+      back: "/products/polo-true-navy-back-3d.png",
+    };
+  }
+
+  // 3. Light Grey Melange / Grey Melange
+  if (
+    name.includes("grey") ||
+    name.includes("gray") ||
+    name.includes("melange") ||
+    hex === "#cccac9" ||
+    hex === "#9aa0a8" ||
+    hex === "#d1d5db" ||
+    hex === "#e5e7eb"
+  ) {
+    return {
+      front: "/products/polo-light-grey-front-3d.png",
+      back: "/products/polo-light-grey-back-3d.png",
+    };
+  }
+
+  // 4. Black / Charcoal / Dark default
+  return {
+    front: "/products/polo-black-front-3d.png",
+    back: "/products/polo-black-back-3d.png",
+  };
+}
 
 export function DesignStudioModal({
   isOpen,
@@ -177,6 +237,10 @@ export function DesignStudioModal({
   initialCustomization,
 }: DesignStudioModalProps) {
   const isAerosoftPolo = product.slug === "aerosoft-polo-200";
+  const isPolo =
+    product.slug.includes("polo") ||
+    product.name.toLowerCase().includes("polo") ||
+    (Array.isArray(product.collections) && product.collections.includes("polo-t-shirts"));
 
   const availableColors: ProductColor[] = useMemo(() => {
     if (isAerosoftPolo) {
@@ -190,7 +254,7 @@ export function DesignStudioModal({
     initialCustomization?.frontPreviewUrl ? "studio" : "upload"
   );
 
-  // Selected Garment Color - default to black if polo to ensure 3D garment loads
+  // Selected Garment Color
   const [selectedColorIdx, setSelectedColorIdx] = useState<number>(() => {
     if (initialCustomization?.colorName) {
       const matchIdx = availableColors.findIndex(
@@ -198,16 +262,10 @@ export function DesignStudioModal({
       );
       if (matchIdx !== -1) return matchIdx;
     }
-    const blackIdx = availableColors.findIndex(
-      (c) =>
-        c.name.toLowerCase().includes("black") ||
-        c.hex.toLowerCase() === "#000000" ||
-        c.hex.toLowerCase() === "#26282d"
-    );
-    if (blackIdx !== -1 && (initialColorIdx === undefined || initialColorIdx === 0)) {
-      return blackIdx;
+    if (initialColorIdx !== undefined && initialColorIdx >= 0 && initialColorIdx < availableColors.length) {
+      return initialColorIdx;
     }
-    return initialColorIdx ?? 0;
+    return 0;
   });
   const activeColor: ProductColor = availableColors[selectedColorIdx] || availableColors[0];
 
@@ -309,42 +367,60 @@ export function DesignStudioModal({
     [currentElements, selectedElementId]
   );
 
-  // Determine Garment Images (Dynamic 3D Model Mapping for AeroSoft Polo 200)
+  // Determine Garment Images (Dynamic 3D Model Mapping for Polo Customization)
   const frontGarmentImage = useMemo(() => {
-    if (isAerosoftPolo) {
-      const cName = (activeColor.name || "").toLowerCase();
-      const cHex = (activeColor.hex || "").toLowerCase();
-      if (cName.includes("white") || cHex === "#ffffff") {
-        return "/products/polo-white-front-3d.png";
-      }
-      if (cName.includes("navy") || cHex === "#3f5277") {
-        return "/products/polo-true-navy-front-3d.png";
-      }
-      if (cName.includes("grey") || cName.includes("gray") || cHex === "#cccac9") {
-        return "/products/polo-light-grey-front-3d.png";
-      }
-      return "/products/polo-black-front-3d.png";
+    // 1. Explicit 3D image model on activeColor
+    if (activeColor?.image && activeColor.image.includes("-3d.png")) {
+      return activeColor.image;
     }
-    return "/products/polo-black-front-3d.png";
-  }, [isAerosoftPolo, activeColor]);
+
+    // 2. All polo products dynamically switch between 3D models (White, Navy, Grey Melange, Black)
+    if (isPolo) {
+      return getPolo3DModel(activeColor?.name, activeColor?.hex).front;
+    }
+
+    // 3. Fallback: check if color name matches 3D models anyway
+    const cName = (activeColor?.name || "").toLowerCase();
+    const cHex = (activeColor?.hex || "").toLowerCase();
+    if (cName.includes("white") || cHex === "#ffffff" || cHex === "#f1f2f4") {
+      return "/products/polo-white-front-3d.png";
+    }
+    if (cName.includes("navy") || cHex === "#3f5277" || cHex === "#1e3a5f") {
+      return "/products/polo-true-navy-front-3d.png";
+    }
+    if (cName.includes("grey") || cName.includes("gray") || cHex === "#cccac9" || cHex === "#9aa0a8") {
+      return "/products/polo-light-grey-front-3d.png";
+    }
+
+    return activeColor?.image || product.colors?.[0]?.image || "/products/polo-black-front-3d.png";
+  }, [isPolo, activeColor, product.colors]);
 
   const backGarmentImage = useMemo(() => {
-    if (isAerosoftPolo) {
-      const cName = (activeColor.name || "").toLowerCase();
-      const cHex = (activeColor.hex || "").toLowerCase();
-      if (cName.includes("white") || cHex === "#ffffff") {
-        return "/products/polo-white-back-3d.png";
-      }
-      if (cName.includes("navy") || cHex === "#3f5277") {
-        return "/products/polo-true-navy-back-3d.png";
-      }
-      if (cName.includes("grey") || cName.includes("gray") || cHex === "#cccac9") {
-        return "/products/polo-light-grey-back-3d.png";
-      }
-      return "/products/polo-black-back-3d.png";
+    // 1. Explicit 3D backImage model on activeColor
+    if (activeColor?.backImage && activeColor.backImage.includes("-3d.png")) {
+      return activeColor.backImage;
     }
-    return "/products/polo-black-back-3d.png";
-  }, [isAerosoftPolo, activeColor]);
+
+    // 2. All polo products dynamically switch between 3D models (White, Navy, Grey Melange, Black)
+    if (isPolo) {
+      return getPolo3DModel(activeColor?.name, activeColor?.hex).back;
+    }
+
+    // 3. Fallback: check if color name matches 3D models anyway
+    const cName = (activeColor?.name || "").toLowerCase();
+    const cHex = (activeColor?.hex || "").toLowerCase();
+    if (cName.includes("white") || cHex === "#ffffff" || cHex === "#f1f2f4") {
+      return "/products/polo-white-back-3d.png";
+    }
+    if (cName.includes("navy") || cHex === "#3f5277" || cHex === "#1e3a5f") {
+      return "/products/polo-true-navy-back-3d.png";
+    }
+    if (cName.includes("grey") || cName.includes("gray") || cHex === "#cccac9" || cHex === "#9aa0a8") {
+      return "/products/polo-light-grey-back-3d.png";
+    }
+
+    return activeColor?.backImage || activeColor?.image || product.colors?.[0]?.backImage || "/products/polo-black-back-3d.png";
+  }, [isPolo, activeColor, product.colors]);
 
   const currentGarmentImage = activeSide === "front" ? frontGarmentImage : backGarmentImage;
   const currentPrintableBounds = activeSide === "front" ? FRONT_PRINTABLE_BOUNDS : BACK_PRINTABLE_BOUNDS;

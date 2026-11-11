@@ -39,6 +39,7 @@ import { BrandDesignerModal } from "./BrandDesignerModal";
 import {
   DesignStudioModal,
   CustomDesignResult,
+  getPolo3DModel,
 } from "./design-studio/DesignStudioModal";
 import { generateAndDownloadBrandedMockup } from "@/lib/mockupDownload";
 
@@ -253,13 +254,14 @@ export function ProductConfigurator({
   const handleDownloadMockup = async () => {
     setIsDownloadingMockup(true);
     try {
+      const fallback3D = getPolo3DModel(color.name, color.hex);
       const frontSrc =
         savedCustomDesign?.frontPreviewUrl ||
-        "/products/polo-black-front-3d.png";
+        fallback3D.front;
 
       const backSrc =
         savedCustomDesign?.backPreviewUrl ||
-        "/products/polo-black-back-3d.png";
+        fallback3D.back;
 
       await generateAndDownloadBrandedMockup({
         productName: product.name,
