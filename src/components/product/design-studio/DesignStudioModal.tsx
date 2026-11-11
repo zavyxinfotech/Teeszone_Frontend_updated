@@ -140,6 +140,34 @@ const TEXT_COLOR_PALETTE = [
 const FRONT_PRINTABLE_BOUNDS = { leftPct: 28, topPct: 22, widthPct: 44, heightPct: 54 };
 const BACK_PRINTABLE_BOUNDS = { leftPct: 26, topPct: 18, widthPct: 48, heightPct: 58 };
 
+// Specific 3D Garment Models for AeroSoft Polo 200 Customization
+export const AEROSOFT_3D_COLORS: ProductColor[] = [
+  {
+    name: "Black",
+    hex: "#26282D",
+    image: "/products/polo-black-front-3d.png",
+    backImage: "/products/polo-black-back-3d.png",
+  },
+  {
+    name: "White",
+    hex: "#FFFFFF",
+    image: "/products/polo-white-front-3d.png",
+    backImage: "/products/polo-white-back-3d.png",
+  },
+  {
+    name: "True Navy",
+    hex: "#3F5277",
+    image: "/products/polo-true-navy-front-3d.png",
+    backImage: "/products/polo-true-navy-back-3d.png",
+  },
+  {
+    name: "Light Grey Melange",
+    hex: "#CCCAC9",
+    image: "/products/polo-light-grey-front-3d.png",
+    backImage: "/products/polo-light-grey-back-3d.png",
+  },
+];
+
 export function DesignStudioModal({
   isOpen,
   onClose,
@@ -148,6 +176,15 @@ export function DesignStudioModal({
   onSaveCustomization,
   initialCustomization,
 }: DesignStudioModalProps) {
+  const isAerosoftPolo = product.slug === "aerosoft-polo-200";
+
+  const availableColors: ProductColor[] = useMemo(() => {
+    if (isAerosoftPolo) {
+      return AEROSOFT_3D_COLORS;
+    }
+    return product.colors;
+  }, [isAerosoftPolo, product.colors]);
+
   // Step state
   const [currentStep, setCurrentStep] = useState<StudioStep>(() =>
     initialCustomization?.frontPreviewUrl ? "studio" : "upload"
@@ -155,7 +192,13 @@ export function DesignStudioModal({
 
   // Selected Garment Color - default to black if polo to ensure 3D garment loads
   const [selectedColorIdx, setSelectedColorIdx] = useState<number>(() => {
-    const blackIdx = product.colors.findIndex(
+    if (initialCustomization?.colorName) {
+      const matchIdx = availableColors.findIndex(
+        (c) => c.name.toLowerCase() === initialCustomization.colorName.toLowerCase()
+      );
+      if (matchIdx !== -1) return matchIdx;
+    }
+    const blackIdx = availableColors.findIndex(
       (c) =>
         c.name.toLowerCase().includes("black") ||
         c.hex.toLowerCase() === "#000000" ||
@@ -166,7 +209,7 @@ export function DesignStudioModal({
     }
     return initialColorIdx ?? 0;
   });
-  const activeColor: ProductColor = product.colors[selectedColorIdx] || product.colors[0];
+  const activeColor: ProductColor = availableColors[selectedColorIdx] || availableColors[0];
 
   // Upload Step State
   const [rawUploadedLogo, setRawUploadedLogo] = useState<string | null>(
@@ -266,31 +309,42 @@ export function DesignStudioModal({
     [currentElements, selectedElementId]
   );
 
-  // Determine Garment Images (Safely fallback to 3D transparent polo to avoid rendering full body models)
-  const isBlackColor =
-    activeColor.name.toLowerCase().includes("black") ||
-    activeColor.hex.toLowerCase() === "#26282d" ||
-    activeColor.hex.toLowerCase() === "#000000";
+  // Determine Garment Images (Dynamic 3D Model Mapping for AeroSoft Polo 200)
+  const frontGarmentImage = useMemo(() => {
+    if (isAerosoftPolo) {
+      const cName = (activeColor.name || "").toLowerCase();
+      const cHex = (activeColor.hex || "").toLowerCase();
+      if (cName.includes("white") || cHex === "#ffffff") {
+        return "/products/polo-white-front-3d.png";
+      }
+      if (cName.includes("navy") || cHex === "#3f5277") {
+        return "/products/polo-true-navy-front-3d.png";
+      }
+      if (cName.includes("grey") || cName.includes("gray") || cHex === "#cccac9") {
+        return "/products/polo-light-grey-front-3d.png";
+      }
+      return "/products/polo-black-front-3d.png";
+    }
+    return "/products/polo-black-front-3d.png";
+  }, [isAerosoftPolo, activeColor]);
 
-  const isModelPhoto = (url?: string) =>
-    Boolean(
-      !url ||
-      url.includes("view-") ||
-      url.includes("model") ||
-      url.includes("localhost:4010") ||
-      url.includes("/api/upload/media/") ||
-      url.includes("teeszone/")
-    );
-
-  const frontGarmentImage =
-    isBlackColor || isModelPhoto(activeColor.image)
-      ? "/products/polo-black-front-3d.png"
-      : "/products/polo-black-front-3d.png";
-
-  const backGarmentImage =
-    isBlackColor || isModelPhoto(activeColor.backImage)
-      ? "/products/polo-black-back-3d.png"
-      : "/products/polo-black-back-3d.png";
+  const backGarmentImage = useMemo(() => {
+    if (isAerosoftPolo) {
+      const cName = (activeColor.name || "").toLowerCase();
+      const cHex = (activeColor.hex || "").toLowerCase();
+      if (cName.includes("white") || cHex === "#ffffff") {
+        return "/products/polo-white-back-3d.png";
+      }
+      if (cName.includes("navy") || cHex === "#3f5277") {
+        return "/products/polo-true-navy-back-3d.png";
+      }
+      if (cName.includes("grey") || cName.includes("gray") || cHex === "#cccac9") {
+        return "/products/polo-light-grey-back-3d.png";
+      }
+      return "/products/polo-black-back-3d.png";
+    }
+    return "/products/polo-black-back-3d.png";
+  }, [isAerosoftPolo, activeColor]);
 
   const currentGarmentImage = activeSide === "front" ? frontGarmentImage : backGarmentImage;
   const currentPrintableBounds = activeSide === "front" ? FRONT_PRINTABLE_BOUNDS : BACK_PRINTABLE_BOUNDS;
@@ -1669,7 +1723,7 @@ export function DesignStudioModal({
                       T-shirt Colour
                     </label>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {product.colors.map((c, i) => (
+                      {availableColors.map((c, i) => (
                         <button
                           key={c.name}
                           type="button"
@@ -2836,7 +2890,7 @@ export function DesignStudioModal({
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-bold text-gray-700 shrink-0">Colour:</span>
                     <div className="flex gap-1.5 overflow-x-auto py-0.5">
-                      {product.colors.map((c, i) => (
+                      {availableColors.map((c, i) => (
                         <button
                           key={c.name}
                           type="button"

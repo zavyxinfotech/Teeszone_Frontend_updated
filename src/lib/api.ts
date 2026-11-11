@@ -6,9 +6,53 @@ import type {
   Fabric,
   HomeContent,
   Product,
+  ProductColorModel,
   Review,
   Segment,
 } from "@/lib/types";
+
+export const DEFAULT_AEROSOFT_3D_MODELS: ProductColorModel[] = [
+  {
+    id: "pcm-aerosoft-black",
+    productId: "p-aerosoft-polo-200",
+    colorName: "Black",
+    colorHex: "#26282D",
+    frontModelUrl: "/products/polo-black-front-3d.png",
+    backModelUrl: "/products/polo-black-back-3d.png",
+    s3ObjectKey: "products/aerosoft-polo-200/3d-models/black/front.png",
+    isActive: true,
+  },
+  {
+    id: "pcm-aerosoft-white",
+    productId: "p-aerosoft-polo-200",
+    colorName: "White",
+    colorHex: "#FFFFFF",
+    frontModelUrl: "/products/polo-white-front-3d.png",
+    backModelUrl: "/products/polo-white-back-3d.png",
+    s3ObjectKey: "products/aerosoft-polo-200/3d-models/white/front.png",
+    isActive: true,
+  },
+  {
+    id: "pcm-aerosoft-true-navy",
+    productId: "p-aerosoft-polo-200",
+    colorName: "True Navy",
+    colorHex: "#3F5277",
+    frontModelUrl: "/products/polo-true-navy-front-3d.png",
+    backModelUrl: "/products/polo-true-navy-back-3d.png",
+    s3ObjectKey: "products/aerosoft-polo-200/3d-models/true-navy/front.png",
+    isActive: true,
+  },
+  {
+    id: "pcm-aerosoft-light-grey",
+    productId: "p-aerosoft-polo-200",
+    colorName: "Light Grey Melange",
+    colorHex: "#CCCAC9",
+    frontModelUrl: "/products/polo-light-grey-front-3d.png",
+    backModelUrl: "/products/polo-light-grey-back-3d.png",
+    s3ObjectKey: "products/aerosoft-polo-200/3d-models/light-grey-melange/front.png",
+    isActive: true,
+  },
+];
 
 const SERVER_API_URL =
   process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4010/api";
@@ -73,12 +117,18 @@ function fixProduct(p: Product): Product {
     offerPct = 23;
   }
 
+  const colorModels =
+    p.slug === "aerosoft-polo-200"
+      ? (p.colorModels && p.colorModels.length > 0 ? p.colorModels : DEFAULT_AEROSOFT_3D_MODELS)
+      : p.colorModels;
+
   return {
     ...p,
     name,
     price,
     mrp,
     offerPct,
+    colorModels,
     colors: p.colors.map((c) => ({
       ...c,
       image: fixImageUrl(c.image),
@@ -89,6 +139,24 @@ function fixProduct(p: Product): Product {
       image5: c.image5 ? fixImageUrl(c.image5) : undefined,
     })),
   };
+}
+
+export async function getProduct3DModels(slug: string): Promise<ProductColorModel[]> {
+  try {
+    const res = await fetch(`${SERVER_API_URL}/products/${encodeURIComponent(slug)}/3d-models`, {
+      next: { revalidate: 0 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json.data) && json.data.length > 0) {
+        return json.data;
+      }
+    }
+  } catch {}
+  if (slug === "aerosoft-polo-200") {
+    return DEFAULT_AEROSOFT_3D_MODELS;
+  }
+  return [];
 }
 
 export async function getProducts(): Promise<Product[]> {

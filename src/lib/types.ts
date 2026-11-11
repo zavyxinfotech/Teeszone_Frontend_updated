@@ -32,6 +32,18 @@ export interface QtyDiscount {
   offPct: number;
 }
 
+export interface ProductColorModel {
+  id?: string;
+  productId?: string;
+  productColorId?: string;
+  colorName: string;
+  colorHex: string;
+  frontModelUrl: string;
+  backModelUrl: string;
+  s3ObjectKey?: string;
+  isActive?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -44,6 +56,7 @@ export interface Product {
   mrp: number; // struck-through list price
   price: number; // selling price shown
   colors: ProductColor[];
+  colorModels?: ProductColorModel[];
   sizes: string[];
   qtyDiscounts: QtyDiscount[];
   features: string[];
