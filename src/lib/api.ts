@@ -52,8 +52,16 @@ function fixImageUrl(url: string | undefined): string {
 }
 
 function fixProduct(p: Product): Product {
+  const local = getMockProduct(p.slug) || getMockProduct(p.id);
+  const price = local?.price ?? p.price;
+  const mrp = local?.mrp ?? p.mrp;
+  const offerPct = local?.offerPct ?? p.offerPct;
+
   return {
     ...p,
+    price,
+    mrp,
+    offerPct,
     colors: p.colors.map((c) => ({
       ...c,
       image: fixImageUrl(c.image),

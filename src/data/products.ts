@@ -157,8 +157,6 @@ export const products: Product[] = [
         backImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-2.webp",
         chestImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-3.webp",
         detailImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-4.webp",
-        image4: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-1.webp",
-        image5: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-6.webp",
       },
       {
         ...c.black,
@@ -166,8 +164,6 @@ export const products: Product[] = [
         backImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-1.webp",
         chestImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-3.webp",
         detailImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-4.webp",
-        image4: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-5.webp",
-        image5: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-6.webp",
       },
       {
         ...c.grey,
@@ -175,8 +171,6 @@ export const products: Product[] = [
         backImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-2.webp",
         chestImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-3.webp",
         detailImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-1.webp",
-        image4: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-5.webp",
-        image5: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-6.webp",
       },
     ],
     sizes: ADULT,
