@@ -35,7 +35,7 @@ export const products: Product[] = [
   // 1. Aerosoft Polo T-Shirt - 200 GSM
   {
     id: "p-aerosoft-polo-200",
-    name: "Men's AeroSoft Polo T-Shirt (200 GSM) | 100% Microfiber Quick-Dry Performance Corporate Polo",
+    name: "Customized Men's AeroSoft Polo T-Shirt (200 GSM) | 100% Microfiber Quick-Dry Performance Corporate Polo",
     slug: "aerosoft-polo-200",
     collections: ["aerosoft-polo-200", "men", "best-sellers", "polo-t-shirts"],
     description: "Engineered 200 GSM Aerosoft knit polo t-shirt. Ultra-soft breathable texture with moisture-wicking technology and anti-wrinkle performance, ideal for corporate uniforms, staff apparel, and daily workwear.",
@@ -88,7 +88,7 @@ export const products: Product[] = [
   // 2. Mens Polo Half Sleeve - 240-250 GSM
   {
     id: "p-mens-polo-half-sleeve-240",
-    name: "Men's Polo Half Sleeve T-Shirt (240-250 GSM) | 100% Compact Cotton Pique Knit Premium Corporate Polo",
+    name: "Customized Men's Polo Half Sleeve T-Shirt (240-250 GSM) | 100% Compact Cotton Pique Knit Premium Corporate Polo",
     slug: "mens-polo-half-sleeve-240",
     collections: ["mens-polo-half-sleeve-240", "men", "best-sellers", "polo-t-shirts"],
     description: "Executive 240-250 GSM heavyweight compact cotton pique polo t-shirt. Features superior stitch density, anti-curl ribbed collar, and smooth hand-feel tailored for corporate teams and luxury brand merchandise.",
@@ -140,7 +140,7 @@ export const products: Product[] = [
   // 3. Ecoblend Polo Neck - 240 GSM
   {
     id: "p-ecoblend-polo-neck-240",
-    name: "Men's Ecoblend Polo T-Shirt (240 GSM) | Polycotton EcoBlend Fabric, Jacquard Collar with Contrast Tipping",
+    name: "Customized Men's Ecoblend Polo T-Shirt (240 GSM) | Polycotton EcoBlend Fabric, Jacquard Collar with Contrast Tipping",
     slug: "ecoblend-polo-neck-240",
     collections: ["ecoblend-polo-neck-240", "men", "best-sellers", "polo-t-shirts"],
     description: "Eco-conscious 240 GSM polycotton Ecoblend polo shirt featuring a stylish jacquard collar with contrast tipping. Built for durability, premium comfort, and industrial uniform longevity.",
@@ -157,6 +157,8 @@ export const products: Product[] = [
         backImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-2.webp",
         chestImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-3.webp",
         detailImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-4.webp",
+        image4: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-1.webp",
+        image5: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-6.webp",
       },
       {
         ...c.black,
@@ -164,6 +166,8 @@ export const products: Product[] = [
         backImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-1.webp",
         chestImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-3.webp",
         detailImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-4.webp",
+        image4: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-5.webp",
+        image5: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-6.webp",
       },
       {
         ...c.grey,
@@ -171,6 +175,8 @@ export const products: Product[] = [
         backImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-2.webp",
         chestImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-3.webp",
         detailImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-1.webp",
+        image4: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-5.webp",
+        image5: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/white/view-6.webp",
       },
     ],
     sizes: ADULT,
@@ -190,7 +196,7 @@ export const products: Product[] = [
   // 4. Mens Round Neck Half Sleeve - 180 GSM
   {
     id: "p-mens-rn-half-180",
-    name: "Men's Round Neck Half Sleeve T-Shirt (180 GSM) | 100% Bio-Washed Combed Cotton Custom Printed T-Shirt",
+    name: "Customized Men's Round Neck Half Sleeve T-Shirt (180 GSM) | 100% Bio-Washed Combed Cotton Custom Printed T-Shirt",
     slug: "mens-rn-half-180",
     collections: ["mens-rn-half-180", "men"],
     description: "Essential 180 GSM 100% bio-washed combed cotton half-sleeve crew neck t-shirt. Pre-shrunk, ultra-soft, breathable drape perfect for events, startups, and everyday branded apparel.",
@@ -218,7 +224,7 @@ export const products: Product[] = [
   // 5. Mens Round Neck Half Sleeve - 200 GSM (Lycra)
   {
     id: "p-mens-rn-half-200-lycra",
-    name: "Men's Round Neck Half Sleeve T-Shirt 200 GSM | 95% Compact Cotton 5% Spandex Lycra Jersey",
+    name: "Customized Men's Round Neck Half Sleeve T-Shirt 200 GSM | 95% Compact Cotton 5% Spandex Lycra Jersey",
     slug: "mens-rn-half-200-lycra",
     collections: ["mens-rn-half-200-lycra", "men"],
     description: "High-performance 200 GSM cotton-Lycra elastane round neck t-shirt. Delivers 4-way elastic stretch, remarkable shape recovery, and body contouring for athletic teams, fitness trainers, and modern corporate workwear.",
@@ -249,7 +255,7 @@ export const products: Product[] = [
   // 6. Mens Oversize Half Sleeve - 240-250 GSM (French Terry)
   {
     id: "p-mens-oversize-french-terry-240",
-    name: "Men's Oversize Half Sleeve T-Shirt (240-250 GSM) | 100% Compact Cotton French Terry Drop-Shoulder Streetwear T-Shirt",
+    name: "Customized Men's Oversize Half Sleeve T-Shirt (240-250 GSM) | 100% Compact Cotton French Terry Drop-Shoulder Streetwear T-Shirt",
     slug: "mens-oversize-french-terry-240",
     collections: ["mens-oversize-french-terry-240", "men"],
     description: "Urban luxury 240-250 GSM French Terry compact cotton oversized half sleeve t-shirt. Styled with dropped shoulders, structured boxy silhouette, and loopback cotton interior for authentic modern streetwear merch.",
@@ -287,7 +293,7 @@ export const products: Product[] = [
   // 7. Hoodies with Zip - 320 GSM
   {
     id: "p-hoodie-with-zip-320",
-    name: "Hoodies with Zip (320 GSM) | Cotton Rich Fabric, Biowashed Softness, Modern Fit & Premium Finish",
+    name: "Customized Hoodies with Zip (320 GSM) | Cotton Rich Fabric, Biowashed Softness, Modern Fit & Premium Finish",
     slug: "hoodie-with-zip-320",
     collections: ["hoodie-with-zip-320", "hoodies"],
     description: "Comfortable 320 GSM cotton-rich brushed fleece full-zip hoodie. Features biowashed softness, modern tailored fit, antique-finish metal zipper, split kangaroo pockets, and double-layered warm hood.",
@@ -338,7 +344,7 @@ export const products: Product[] = [
   // 8. Hoodies without Zip - 320 GSM
   {
     id: "p-hoodie-without-zip-320",
-    name: "Hoodies without Zip (320 GSM) | Cotton Rich Fabric, Biowashed Softness, Modern Fit & Premium Finish",
+    name: "Customized Hoodies without Zip (320 GSM) | Cotton Rich Fabric, Biowashed Softness, Modern Fit & Premium Finish",
     slug: "hoodie-without-zip-320",
     collections: ["hoodie-without-zip-320", "hoodies"],
     description: "Classic 320 GSM pullover hoodie constructed in heavy cotton-rich fleece. Features biowashed softness, modern relaxed fit, spacious front kangaroo pocket, double-layer drawstring hood, and stretch-ribbed trims.",
@@ -388,7 +394,7 @@ export const products: Product[] = [
   // 9. Unisex Hoodies - 325 GSM
   {
     id: "p-unisex-hoodie-325",
-    name: "Unisex Hoodies (325 GSM) | 100% Combed Cotton Brushed Fleece Heavyweight Winter Hoodie",
+    name: "Customized Unisex Hoodies (325 GSM) | 100% Combed Cotton Brushed Fleece Heavyweight Winter Hoodie",
     slug: "unisex-hoodie-325",
     collections: ["unisex-hoodie-325", "hoodies"],
     description: "Plush 325 GSM 100% combed cotton brushed fleece unisex hoodie. Versatile contemporary styling suited for both men and women, featuring clean flatlock stitching and vibrant printing/embroidery surfaces.",
@@ -439,7 +445,7 @@ export const products: Product[] = [
   // 10. Unisex Hoodies - (360 - 370 GSM)
   {
     id: "p-unisex-hoodie-360",
-    name: "Unisex Hoodies (360-370 GSM) | 80% Cotton 20% Polyester Premium Brushed Fleece Heavy Winter Hoodie",
+    name: "Customized Unisex Hoodies (360-370 GSM) | 80% Cotton 20% Polyester Premium Brushed Fleece Heavy Winter Hoodie",
     slug: "unisex-hoodie-360",
     collections: ["unisex-hoodie-360", "hoodies"],
     description: "Ultra-heavy 360-370 GSM 80% cotton 20% polyester premium brushed fleece unisex hoodie. Built for extreme winter cold, high durability, and luxury heavyweight hand-feel with shape retention that never sags.",
@@ -494,7 +500,7 @@ export const products: Product[] = [
   // 11. Women's Round Neck Half Sleeve - 180 GSM (100% Cotton)
   {
     id: "p-womens-rn-half-180",
-    name: "Women's Round Neck Half Sleeve T-Shirt (180 GSM) | 100% Compact Cotton Single Jersey",
+    name: "Customized Women's Round Neck Half Sleeve T-Shirt (180 GSM) | 100% Compact Cotton Single Jersey",
     slug: "womens-rn-half-180",
     collections: ["womens-rn-half-180", "women"],
     description: "Tailored women's round neck tee in 180 GSM 100% compact cotton single jersey. Slim sleeves and gentle waist contouring.",
@@ -533,7 +539,7 @@ export const products: Product[] = [
   // 12. Kids Round Neck Half Sleeve - 180 GSM (100% Cotton)
   {
     id: "p-kids-rn-half-180",
-    name: "Kids Round Neck Half Sleeve T-Shirt (180 GSM) | 100% Compact Cotton Single Jersey",
+    name: "Customized Kids Round Neck Half Sleeve T-Shirt (180 GSM) | 100% Compact Cotton Single Jersey",
     slug: "kids-rn-half-180",
     collections: ["kids-rn-half-180", "kids"],
     description: "Soft, skin-safe 180 GSM 100% compact cotton single jersey kids tee. Tested for playground durability and vibrant color retention.",

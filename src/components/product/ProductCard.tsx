@@ -28,51 +28,47 @@ export function ProductCard({ product }: { product: Product }) {
 
   // Collect reference preview images for this product (Excluding plain customization mockups)
   const cardImages = useMemo(() => {
-    // If the product is Aerosoft Polo, cycle strictly through its own reference angle images!
-    if (product.slug === "aerosoft-polo-200") {
-      const primaryColor = product.colors?.[0];
-      if (primaryColor) {
-        const angles = [
-          primaryColor.image,
-          primaryColor.backImage,
-          primaryColor.chestImage,
-          primaryColor.detailImage,
-          primaryColor.image4,
-          primaryColor.image5,
-        ].filter(Boolean) as string[];
+    // If the primary color has reference angle images (as shown in product details page),
+    // alternate strictly through the reference images of this product!
+    const primaryColor = product.colors?.[0];
+    if (primaryColor) {
+      const angles = [
+        primaryColor.image,
+        primaryColor.backImage,
+        primaryColor.chestImage,
+        primaryColor.detailImage,
+        primaryColor.image4,
+        primaryColor.image5,
+      ].filter(Boolean) as string[];
 
-        const validAngles = angles.filter((img) => {
-          const lower = img.toLowerCase();
-          return (
-            !lower.endsWith(".svg") &&
-            !lower.includes("-3d.png") &&
-            !lower.includes("mockup") &&
-            !lower.includes("view-1.webp") // strictly never the golfer image
-          );
-        });
+      const validAngles = angles.filter((img) => {
+        const lower = img.toLowerCase();
+        return (
+          !lower.endsWith(".svg") &&
+          !lower.includes("-3d.png") &&
+          !lower.includes("mockup")
+        );
+      });
 
-        const uniqueAngles = Array.from(new Set(validAngles));
-        if (uniqueAngles.length > 1) {
-          return uniqueAngles.map((src, idx) => ({
-            src,
-            name: `${primaryColor.name} Angle ${idx + 1}`,
-            hex: primaryColor.hex,
-          }));
-        }
+      const uniqueAngles = Array.from(new Set(validAngles));
+      if (uniqueAngles.length > 1) {
+        return uniqueAngles.map((src, idx) => ({
+          src,
+          name: `${primaryColor.name} Angle ${idx + 1}`,
+          hex: primaryColor.hex,
+        }));
       }
     }
 
-    // For EcoBlend and other products: show ONLY their own color variation images, NEVER other products' angles or golfer!
     const list: { src: string; name: string; hex: string }[] = [];
     (product.colors || []).forEach((c) => {
       if (!c.image) return;
       const lower = c.image.toLowerCase();
-      // Strict filter: Exclude plain mockup SVGs, 3D mockup assets, and any golfer image
+      // Strict filter: Exclude plain mockup SVGs and 3D mockup assets from product listing cards
       const isMockup =
         lower.endsWith(".svg") ||
         lower.includes("-3d.png") ||
-        lower.includes("mockup") ||
-        lower.includes("view-1.webp");
+        lower.includes("mockup");
       if (!isMockup && !list.some((item) => item.src === c.image)) {
         list.push({ src: c.image, name: c.name, hex: c.hex });
       }

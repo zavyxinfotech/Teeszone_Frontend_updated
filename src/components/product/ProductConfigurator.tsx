@@ -405,6 +405,7 @@ export function ProductConfigurator({
   );
 
   const [sizeError, setSizeError] = useState<string | null>(null);
+  const [customizationError, setCustomizationError] = useState<string | null>(null);
 
   // 4-Tier Pricing Structure computed dynamically from single t-shirt selling price (MOQ: 5 pcs)
   const pricingTiers = useMemo(() => {
@@ -487,6 +488,7 @@ export function ProductConfigurator({
 
   const onLogoChange = (file: File | undefined) => {
     if (!file) return;
+    setCustomizationError(null);
     setLogoName(file.name);
     setLogoPreview((old) => {
       if (old) URL.revokeObjectURL(old);
@@ -563,16 +565,19 @@ export function ProductConfigurator({
       setCustomizerOpen(true);
       return;
     }
-    const isCustomized = Boolean(savedCustomDesign || logoName || printText);
+    const isCustomized = Boolean(savedCustomDesign || logoName || (printText && printText.trim().length > 0));
+    if (!isCustomized) {
+      setCustomizationError("Please add your custom logo, design in 3D studio, or specify custom text/embroidery notes. TeesZone accepts only customized apparel orders (blank apparel is not available).");
+      setCustomizerOpen(true);
+      return;
+    }
     const note = savedCustomDesign
       ? `Customized: ${savedCustomDesign.companyName || product.name} | Front: ${savedCustomDesign.frontPositionPreset} | Back: ${savedCustomDesign.backPositionPreset} | Color: ${savedCustomDesign.colorName}`
-      : isCustomized
-        ? logoName
-          ? `Customized — Logo: ${logoName} (will share on WhatsApp)`
-          : printText
-            ? `Customized — Print text: "${printText}"`
-            : "Customized Apparel"
-        : undefined;
+      : logoName
+        ? `Customized — Logo: ${logoName} (will share on WhatsApp)`
+        : printText
+          ? `Customized — Print text: "${printText}"`
+          : "Customized Apparel";
     addItems(lines, note || undefined);
     setJustAdded(true);
     setCustomizerOpen(false);
@@ -581,6 +586,12 @@ export function ProductConfigurator({
   const handleBuyNow = () => {
     if (!user) {
       router.push(`/login?next=${encodeURIComponent(pathname || `/products/${product.slug}`)}`);
+      return;
+    }
+    const isCustomized = Boolean(savedCustomDesign || logoName || (printText && printText.trim().length > 0));
+    if (!isCustomized) {
+      setCustomizationError("Please add your custom logo, design in 3D studio, or specify custom text/embroidery notes. TeesZone accepts only customized apparel orders (blank apparel is not available).");
+      setCustomizerOpen(true);
       return;
     }
     if (totalQty < 5) {
@@ -799,10 +810,15 @@ export function ProductConfigurator({
           </div>
         </div>
 
-        {/* Price Range & MOQ Header (Matches Product Details Design) */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-3">
+        {/* Single Price & MOQ Header (Matches Product Card) */}
+        <div className="mt-4 flex flex-wrap items-baseline gap-2 sm:gap-3">
+          {product.mrp > product.price && (
+            <span className="text-sm sm:text-base text-body line-through">
+              ₹{product.mrp.toLocaleString("en-IN")}
+            </span>
+          )}
           <span className="text-2xl sm:text-3xl font-extrabold text-accent tracking-tight">
-            ₹{pricingTiers[3].pricePerPc} – ₹{pricingTiers[0].pricePerPc}
+            ₹{product.price.toLocaleString("en-IN")}
           </span>
           <span className="text-xs sm:text-sm text-body font-medium">per piece</span>
           <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-0.5 text-xs font-bold text-slate-700 border border-slate-200">
@@ -1061,6 +1077,16 @@ export function ProductConfigurator({
               <span>Add Custom Text / Embroidery Notes</span>
             </button>
           </>
+        )}
+
+        {customizationError && (
+          <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-rose-300 bg-rose-50 p-3.5 text-xs text-rose-900 shadow-xs animate-in fade-in">
+            <AlertCircle size={16} className="text-rose-700 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-bold">Customization Required</p>
+              <p className="mt-0.5">{customizationError}</p>
+            </div>
+          </div>
         )}
 
         {/* Direct Add to Cart when sizes are configured */}
@@ -1491,17 +1517,16 @@ export function ProductConfigurator({
                 </div>
               </div>
 
-              {/* Step 3: Custom Logo / Artwork (Optional) */}
+              {/* Step 3: Custom Logo / Artwork (Required - Customized Apparel Only) */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-xs font-bold uppercase tracking-wider text-ink">
-                    3. Logo / Branding (Optional)
+                    3. Logo / Branding (Required)
                   </span>
-                  <span className="text-[11px] text-body">Leave blank for plain apparel</span>
+                  <span className="text-[11px] font-semibold text-[#80011F]">* Customization required</span>
                 </div>
                 <p className="text-xs text-body leading-relaxed mb-3">
-                  If you upload a logo, this item will be treated as <strong>Customized Apparel</strong>.
-                  If no logo is added, it will be processed as <strong>Blank Apparel</strong>.
+                  TeesZone creates <strong>customized apparel only</strong>. Please upload your logo/artwork or enter custom embroidery notes below to proceed with your order (no blank apparel orders are accepted).
                 </p>
 
                 {logoPreview ? (
@@ -1563,17 +1588,27 @@ export function ProductConfigurator({
                 {/* Print instructions or custom text */}
                 <div className="mt-3">
                   <label htmlFor="modal-print-text" className="block text-xs font-semibold text-ink mb-1">
-                    Placement / Branding Notes (Optional)
+                    Placement / Branding Notes &amp; Custom Text
                   </label>
                   <input
                     id="modal-print-text"
                     type="text"
                     value={printText}
-                    onChange={(e) => setPrintText(e.target.value)}
+                    onChange={(e) => {
+                      if (customizationError) setCustomizationError(null);
+                      setPrintText(e.target.value);
+                    }}
                     placeholder="e.g. Left chest embroidery, 3-inch wide, back team name..."
                     className="w-full rounded-xl border border-line bg-surface/40 px-3.5 py-2.5 text-xs sm:text-sm text-ink placeholder:text-body/60 focus:border-accent focus:bg-white focus:outline-hidden"
                   />
                 </div>
+
+                {customizationError && (
+                  <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose-300 bg-rose-50 p-3 text-xs text-rose-900">
+                    <AlertCircle size={15} className="text-rose-700 shrink-0 mt-0.5" />
+                    <span>{customizationError}</span>
+                  </div>
+                )}
               </div>
             </div>
 

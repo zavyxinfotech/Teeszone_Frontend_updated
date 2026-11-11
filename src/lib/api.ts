@@ -52,13 +52,30 @@ function fixImageUrl(url: string | undefined): string {
 }
 
 function fixProduct(p: Product): Product {
-  const local = getMockProduct(p.slug) || getMockProduct(p.id);
-  const price = local?.price ?? p.price;
-  const mrp = local?.mrp ?? p.mrp;
-  const offerPct = local?.offerPct ?? p.offerPct;
+  const rawName = p.name || "";
+  const name = rawName.startsWith("Customized ") ? rawName : `Customized ${rawName}`;
+
+  let price = p.price;
+  let mrp = p.mrp;
+  let offerPct = p.offerPct;
+
+  if (p.slug === "aerosoft-polo-200") {
+    price = 830;
+    mrp = 1999;
+    offerPct = 17;
+  } else if (p.slug === "mens-polo-half-sleeve-240") {
+    price = 925;
+    mrp = 2399;
+    offerPct = 23;
+  } else if (p.slug === "ecoblend-polo-neck-240") {
+    price = 975;
+    mrp = 1199;
+    offerPct = 23;
+  }
 
   return {
     ...p,
+    name,
     price,
     mrp,
     offerPct,
