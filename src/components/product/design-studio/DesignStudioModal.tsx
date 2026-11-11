@@ -275,11 +275,11 @@ export function DesignStudioModal({
   const isModelPhoto = (url?: string) =>
     Boolean(
       !url ||
-        url.includes("view-") ||
-        url.includes("model") ||
-        url.includes("localhost:4010") ||
-        url.includes("/api/upload/media/") ||
-        url.includes("teeszone/")
+      url.includes("view-") ||
+      url.includes("model") ||
+      url.includes("localhost:4010") ||
+      url.includes("/api/upload/media/") ||
+      url.includes("teeszone/")
     );
 
   const frontGarmentImage =
@@ -421,7 +421,7 @@ export function DesignStudioModal({
     if (target && "setPointerCapture" in target) {
       try {
         target.setPointerCapture(e.pointerId);
-      } catch {}
+      } catch { }
     }
 
     const startX = e.clientX;
@@ -483,7 +483,7 @@ export function DesignStudioModal({
       if (target && "releasePointerCapture" in target) {
         try {
           target.releasePointerCapture(upEvt.pointerId);
-        } catch {}
+        } catch { }
       }
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
@@ -767,14 +767,14 @@ export function DesignStudioModal({
       shapeType === "square"
         ? "Square"
         : shapeType === "rounded-rect"
-        ? "Rounded Rect"
-        : shapeType === "circle"
-        ? "Circle"
-        : shapeType === "circle-outline"
-        ? "Outline Circle"
-        : shapeType === "triangle"
-        ? "Triangle"
-        : "Line";
+          ? "Rounded Rect"
+          : shapeType === "circle"
+            ? "Circle"
+            : shapeType === "circle-outline"
+              ? "Outline Circle"
+              : shapeType === "triangle"
+                ? "Triangle"
+                : "Line";
 
     const newShape: StudioElement = {
       id: `shape_${Date.now()}`,
@@ -1223,11 +1223,10 @@ export function DesignStudioModal({
               onDragLeave={() => setIsDragOverDropzone(false)}
               onDrop={handleDropFile}
               onClick={() => fileInputRef.current?.click()}
-              className={`flex flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed p-5 sm:p-6 text-center cursor-pointer transition-all ${
-                isDragOverDropzone
+              className={`flex flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed p-5 sm:p-6 text-center cursor-pointer transition-all ${isDragOverDropzone
                   ? "border-[#80011F] bg-rose-50/80 scale-[1.01]"
                   : "border-rose-200/90 bg-[#FFFDFC] hover:border-[#80011F] hover:bg-rose-50/50"
-              }`}
+                }`}
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-[#80011F] shadow-xs">
                 <CloudUpload size={24} className="stroke-[2.2]" />
@@ -1358,14 +1357,12 @@ export function DesignStudioModal({
                 <button
                   type="button"
                   onClick={() => setAutoRemoveBgInCrop((prev) => !prev)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                    autoRemoveBgInCrop ? "bg-[#80011F]" : "bg-gray-300"
-                  }`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${autoRemoveBgInCrop ? "bg-[#80011F]" : "bg-gray-300"
+                    }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      autoRemoveBgInCrop ? "translate-x-6" : "translate-x-1"
-                    }`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoRemoveBgInCrop ? "translate-x-6" : "translate-x-1"
+                      }`}
                   />
                 </button>
               </div>
@@ -1552,9 +1549,8 @@ export function DesignStudioModal({
                     setActiveSide("front");
                     setSelectedElementId(null);
                   }}
-                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
-                    activeSide === "front" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-600 hover:text-black"
-                  }`}
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${activeSide === "front" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-600 hover:text-black"
+                    }`}
                 >
                   Front
                 </button>
@@ -1568,9 +1564,8 @@ export function DesignStudioModal({
                       applyBackPreset("Upper Back");
                     }
                   }}
-                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
-                    activeSide === "back" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-600 hover:text-black"
-                  }`}
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${activeSide === "back" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-600 hover:text-black"
+                    }`}
                 >
                   Back
                 </button>
@@ -1649,9 +1644,8 @@ export function DesignStudioModal({
                 <button
                   type="button"
                   onClick={() => setActiveNavTab("product")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    activeNavTab === "product" ? "bg-white text-[#80011F] shadow-xs" : "text-gray-600 hover:text-black"
-                  }`}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeNavTab === "product" ? "bg-white text-[#80011F] shadow-xs" : "text-gray-600 hover:text-black"
+                    }`}
                 >
                   <Palette size={14} />
                   <span>Product</span>
@@ -1659,9 +1653,8 @@ export function DesignStudioModal({
                 <button
                   type="button"
                   onClick={() => setActiveNavTab("text")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    activeNavTab === "text" ? "bg-white text-[#80011F] shadow-xs" : "text-gray-600 hover:text-black"
-                  }`}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeNavTab === "text" ? "bg-white text-[#80011F] shadow-xs" : "text-gray-600 hover:text-black"
+                    }`}
                 >
                   <Type size={14} />
                   <span>Text &amp; Add</span>
@@ -1682,11 +1675,10 @@ export function DesignStudioModal({
                           type="button"
                           onClick={() => setSelectedColorIdx(i)}
                           title={c.name}
-                          className={`relative flex h-8 w-8 items-center justify-center rounded-full border transition-all hover:scale-110 cursor-pointer ${
-                            selectedColorIdx === i
+                          className={`relative flex h-8 w-8 items-center justify-center rounded-full border transition-all hover:scale-110 cursor-pointer ${selectedColorIdx === i
                               ? "border-[#80011F] ring-2 ring-[#80011F] ring-offset-2 shadow-xs"
                               : "border-black/15 opacity-80 hover:opacity-100"
-                          }`}
+                            }`}
                           style={{ backgroundColor: c.hex }}
                         >
                           {selectedColorIdx === i && (
@@ -1721,11 +1713,10 @@ export function DesignStudioModal({
                               key={pos}
                               type="button"
                               onClick={() => applyFrontPreset(pos)}
-                              className={`rounded-xl border py-2 text-[11px] font-bold transition-all cursor-pointer ${
-                                frontPreset === pos
+                              className={`rounded-xl border py-2 text-[11px] font-bold transition-all cursor-pointer ${frontPreset === pos
                                   ? "bg-[#80011F] text-white border-[#80011F] shadow-xs"
                                   : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
-                              }`}
+                                }`}
                             >
                               {pos}
                             </button>
@@ -1742,11 +1733,10 @@ export function DesignStudioModal({
                               key={pos}
                               type="button"
                               onClick={() => applyBackPreset(pos)}
-                              className={`rounded-xl border py-2 text-[11px] font-bold transition-all cursor-pointer ${
-                                backPreset === pos
+                              className={`rounded-xl border py-2 text-[11px] font-bold transition-all cursor-pointer ${backPreset === pos
                                   ? "bg-[#80011F] text-white border-[#80011F] shadow-xs"
                                   : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
-                              }`}
+                                }`}
                             >
                               {pos}
                             </button>
@@ -1764,11 +1754,10 @@ export function DesignStudioModal({
                             key={pt}
                             type="button"
                             onClick={() => setPrintType(pt)}
-                            className={`rounded-xl border py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
-                              printType === pt
+                            className={`rounded-xl border py-1.5 text-[11px] font-bold transition-all cursor-pointer ${printType === pt
                                 ? "bg-[#80011F] text-white border-[#80011F] shadow-xs"
                                 : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
-                            }`}
+                              }`}
                           >
                             {pt}
                           </button>
@@ -2085,11 +2074,10 @@ export function DesignStudioModal({
                           opacity: el.opacity,
                           transform: el.rotation ? `rotate(${el.rotation}deg)` : undefined,
                         }}
-                        className={`absolute flex items-center justify-center cursor-move transition-shadow ${
-                          isSelected
+                        className={`absolute flex items-center justify-center cursor-move transition-shadow ${isSelected
                             ? "ring-2 ring-[#80011F] ring-offset-1 bg-[#80011F]/5 shadow-lg rounded"
                             : "hover:ring-1 hover:ring-[#80011F]/50"
-                        }`}
+                          }`}
                       >
                         {/* Logo & Image Layers */}
                         {(el.type === "logo" || el.type === "image") && el.imageUrl && (
@@ -2228,18 +2216,16 @@ export function DesignStudioModal({
                 <button
                   type="button"
                   onClick={() => setActiveSide("front")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    activeSide === "front" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700 hover:bg-rose-50"
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeSide === "front" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700 hover:bg-rose-50"
+                    }`}
                 >
                   <span>Front</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveSide("back")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    activeSide === "back" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700 hover:bg-rose-50"
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeSide === "back" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700 hover:bg-rose-50"
+                    }`}
                 >
                   <span>Back</span>
                 </button>
@@ -2258,12 +2244,12 @@ export function DesignStudioModal({
                       {selectedElement.type === "logo"
                         ? "Logo Properties"
                         : selectedElement.type === "image"
-                        ? "Image Properties"
-                        : selectedElement.type === "shape"
-                        ? `${selectedElement.shapeType || "Shape"} Properties`
-                        : selectedElement.isCurved
-                        ? "Curved Text Properties"
-                        : "Text Properties"}
+                          ? "Image Properties"
+                          : selectedElement.type === "shape"
+                            ? `${selectedElement.shapeType || "Shape"} Properties`
+                            : selectedElement.isCurved
+                              ? "Curved Text Properties"
+                              : "Text Properties"}
                     </span>
                     <div className="flex items-center gap-1">
                       <button
@@ -2373,9 +2359,8 @@ export function DesignStudioModal({
                                   )
                                 )
                               }
-                              className={`flex-1 rounded-lg border py-1 text-xs font-bold ${
-                                selectedElement.bold ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
-                              }`}
+                              className={`flex-1 rounded-lg border py-1 text-xs font-bold ${selectedElement.bold ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                                }`}
                             >
                               <Bold size={13} className="mx-auto" />
                             </button>
@@ -2388,9 +2373,8 @@ export function DesignStudioModal({
                                   )
                                 )
                               }
-                              className={`flex-1 rounded-lg border py-1 text-xs italic ${
-                                selectedElement.italic ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
-                              }`}
+                              className={`flex-1 rounded-lg border py-1 text-xs italic ${selectedElement.italic ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                                }`}
                             >
                               <Italic size={13} className="mx-auto" />
                             </button>
@@ -2403,9 +2387,8 @@ export function DesignStudioModal({
                                   )
                                 )
                               }
-                              className={`flex-1 rounded-lg border py-1 text-xs underline ${
-                                selectedElement.underline ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
-                              }`}
+                              className={`flex-1 rounded-lg border py-1 text-xs underline ${selectedElement.underline ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                                }`}
                             >
                               <Underline size={13} className="mx-auto" />
                             </button>
@@ -2424,9 +2407,8 @@ export function DesignStudioModal({
                                   )
                                 )
                               }
-                              className={`flex-1 rounded-lg border py-1 text-xs ${
-                                selectedElement.align === "left" ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
-                              }`}
+                              className={`flex-1 rounded-lg border py-1 text-xs ${selectedElement.align === "left" ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                                }`}
                             >
                               <AlignLeft size={13} className="mx-auto" />
                             </button>
@@ -2439,11 +2421,10 @@ export function DesignStudioModal({
                                   )
                                 )
                               }
-                              className={`flex-1 rounded-lg border py-1 text-xs ${
-                                (!selectedElement.align || selectedElement.align === "center")
+                              className={`flex-1 rounded-lg border py-1 text-xs ${(!selectedElement.align || selectedElement.align === "center")
                                   ? "bg-[#80011F] text-white border-[#80011F]"
                                   : "bg-white text-gray-700"
-                              }`}
+                                }`}
                             >
                               <AlignCenter size={13} className="mx-auto" />
                             </button>
@@ -2456,9 +2437,8 @@ export function DesignStudioModal({
                                   )
                                 )
                               }
-                              className={`flex-1 rounded-lg border py-1 text-xs ${
-                                selectedElement.align === "right" ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
-                              }`}
+                              className={`flex-1 rounded-lg border py-1 text-xs ${selectedElement.align === "right" ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                                }`}
                             >
                               <AlignRight size={13} className="mx-auto" />
                             </button>
@@ -2481,9 +2461,8 @@ export function DesignStudioModal({
                                   )
                                 )
                               }
-                              className={`h-6 w-6 rounded-full border shadow-2xs transition-transform hover:scale-110 cursor-pointer ${
-                                selectedElement.color === hex ? "ring-2 ring-[#80011F] scale-110" : ""
-                              }`}
+                              className={`h-6 w-6 rounded-full border shadow-2xs transition-transform hover:scale-110 cursor-pointer ${selectedElement.color === hex ? "ring-2 ring-[#80011F] scale-110" : ""
+                                }`}
                               style={{ backgroundColor: hex }}
                             />
                           ))}
@@ -2510,11 +2489,10 @@ export function DesignStudioModal({
                                 )
                               )
                             }
-                            className={`h-6 w-6 rounded-full border shadow-2xs transition-transform hover:scale-110 cursor-pointer ${
-                              (selectedElement.fillColor === hex || selectedElement.strokeColor === hex)
+                            className={`h-6 w-6 rounded-full border shadow-2xs transition-transform hover:scale-110 cursor-pointer ${(selectedElement.fillColor === hex || selectedElement.strokeColor === hex)
                                 ? "ring-2 ring-[#80011F] scale-110"
                                 : ""
-                            }`}
+                              }`}
                             style={{ backgroundColor: hex }}
                           />
                         ))}
@@ -2620,14 +2598,12 @@ export function DesignStudioModal({
                           type="button"
                           disabled={isProcessingBg}
                           onClick={() => handleToggleBgRemoval(selectedElement.id)}
-                          className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors cursor-pointer ${
-                            selectedElement.hasRemovedBg ? "bg-[#80011F]" : "bg-gray-300"
-                          }`}
+                          className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors cursor-pointer ${selectedElement.hasRemovedBg ? "bg-[#80011F]" : "bg-gray-300"
+                            }`}
                         >
                           <span
-                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                              selectedElement.hasRemovedBg ? "translate-x-5" : "translate-x-1"
-                            }`}
+                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${selectedElement.hasRemovedBg ? "translate-x-5" : "translate-x-1"
+                              }`}
                           />
                         </button>
                       </div>
@@ -2640,14 +2616,12 @@ export function DesignStudioModal({
                         <button
                           type="button"
                           onClick={() => handleToggleEnhance(selectedElement.id)}
-                          className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors cursor-pointer ${
-                            selectedElement.isEnhanced ? "bg-[#80011F]" : "bg-gray-300"
-                          }`}
+                          className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors cursor-pointer ${selectedElement.isEnhanced ? "bg-[#80011F]" : "bg-gray-300"
+                            }`}
                         >
                           <span
-                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                              selectedElement.isEnhanced ? "translate-x-5" : "translate-x-1"
-                            }`}
+                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${selectedElement.isEnhanced ? "translate-x-5" : "translate-x-1"
+                              }`}
                           />
                         </button>
                       </div>
@@ -2697,11 +2671,10 @@ export function DesignStudioModal({
                       <div
                         key={el.id}
                         onClick={() => setSelectedElementId(el.id)}
-                        className={`flex items-center justify-between gap-2 p-2 rounded-xl border text-xs cursor-pointer transition-all ${
-                          isSelected
+                        className={`flex items-center justify-between gap-2 p-2 rounded-xl border text-xs cursor-pointer transition-all ${isSelected
                             ? "bg-rose-50 border-[#80011F] font-bold text-[#80011F]"
                             : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-2 truncate">
                           {el.type === "logo" ? (
@@ -2868,9 +2841,8 @@ export function DesignStudioModal({
                           key={c.name}
                           type="button"
                           onClick={() => setSelectedColorIdx(i)}
-                          className={`h-6 w-6 rounded-full border shrink-0 ${
-                            selectedColorIdx === i ? "ring-2 ring-[#80011F]" : ""
-                          }`}
+                          className={`h-6 w-6 rounded-full border shrink-0 ${selectedColorIdx === i ? "ring-2 ring-[#80011F]" : ""
+                            }`}
                           style={{ backgroundColor: c.hex }}
                           title={c.name}
                         />
@@ -2884,9 +2856,8 @@ export function DesignStudioModal({
                         key={pos}
                         type="button"
                         onClick={() => applyFrontPreset(pos)}
-                        className={`rounded-lg px-2.5 py-1 text-[11px] font-bold border ${
-                          frontPreset === pos ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
-                        }`}
+                        className={`rounded-lg px-2.5 py-1 text-[11px] font-bold border ${frontPreset === pos ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                          }`}
                       >
                         {pos}
                       </button>
@@ -3081,9 +3052,8 @@ export function DesignStudioModal({
                       key={el.id}
                       type="button"
                       onClick={() => setSelectedElementId(el.id)}
-                      className={`px-3 py-1.5 rounded-lg border text-xs font-bold whitespace-nowrap shrink-0 ${
-                        selectedElementId === el.id ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg border text-xs font-bold whitespace-nowrap shrink-0 ${selectedElementId === el.id ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                        }`}
                     >
                       {el.name}
                     </button>
@@ -3100,9 +3070,8 @@ export function DesignStudioModal({
               <button
                 type="button"
                 onClick={() => setMobileActiveTab("product")}
-                className={`flex flex-col items-center gap-1 py-1 rounded-xl text-[10px] font-bold ${
-                  mobileActiveTab === "product" ? "text-[#80011F]" : "text-gray-500"
-                }`}
+                className={`flex flex-col items-center gap-1 py-1 rounded-xl text-[10px] font-bold ${mobileActiveTab === "product" ? "text-[#80011F]" : "text-gray-500"
+                  }`}
               >
                 <Palette size={16} />
                 <span>Product</span>
@@ -3110,9 +3079,8 @@ export function DesignStudioModal({
               <button
                 type="button"
                 onClick={() => setMobileActiveTab("logo")}
-                className={`flex flex-col items-center gap-1 py-1 rounded-xl text-[10px] font-bold ${
-                  mobileActiveTab === "logo" ? "text-[#80011F]" : "text-gray-500"
-                }`}
+                className={`flex flex-col items-center gap-1 py-1 rounded-xl text-[10px] font-bold ${mobileActiveTab === "logo" ? "text-[#80011F]" : "text-gray-500"
+                  }`}
               >
                 <Scan size={16} />
                 <span>Logo</span>
@@ -3120,9 +3088,8 @@ export function DesignStudioModal({
               <button
                 type="button"
                 onClick={() => setMobileActiveTab("text")}
-                className={`flex flex-col items-center gap-1 py-1 rounded-xl text-[10px] font-bold ${
-                  mobileActiveTab === "text" ? "text-[#80011F]" : "text-gray-500"
-                }`}
+                className={`flex flex-col items-center gap-1 py-1 rounded-xl text-[10px] font-bold ${mobileActiveTab === "text" ? "text-[#80011F]" : "text-gray-500"
+                  }`}
               >
                 <Type size={16} />
                 <span>Text &amp; Add</span>
@@ -3130,9 +3097,8 @@ export function DesignStudioModal({
               <button
                 type="button"
                 onClick={() => setMobileActiveTab("layers")}
-                className={`flex flex-col items-center gap-1 py-1 rounded-xl text-[10px] font-bold ${
-                  mobileActiveTab === "layers" ? "text-[#80011F]" : "text-gray-500"
-                }`}
+                className={`flex flex-col items-center gap-1 py-1 rounded-xl text-[10px] font-bold ${mobileActiveTab === "layers" ? "text-[#80011F]" : "text-gray-500"
+                  }`}
               >
                 <Layers size={16} />
                 <span>Layers ({currentElements.length})</span>

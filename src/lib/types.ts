@@ -50,6 +50,7 @@ export interface Product {
   isNew?: boolean;
   bestSeller?: boolean;
   megaSale?: boolean;
+  offerPct?: number;
   ordersDelivered?: number;
   sizeChartImage?: string | null;
 }

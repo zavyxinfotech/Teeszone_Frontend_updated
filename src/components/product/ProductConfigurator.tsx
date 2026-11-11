@@ -243,7 +243,7 @@ export function ProductConfigurator({
       fetch(`${backendUrl}/custom-designs/${product.slug}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }, [customDesignStorageKey, product.slug, token]);
   const [justAdded, setJustAdded] = useState(false);
@@ -1671,7 +1671,7 @@ export function ProductConfigurator({
                 printLocation: `${result.frontPositionPreset} + ${result.backPositionPreset}`,
                 embroideryNotes: result.companyName || null,
               }),
-            }).catch(() => {});
+            }).catch(() => { });
           }
 
           logCustomerActivity({

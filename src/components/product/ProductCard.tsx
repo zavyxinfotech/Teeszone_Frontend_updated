@@ -26,8 +26,40 @@ export function ProductCard({ product }: { product: Product }) {
   const sellingPrice = product.price.toLocaleString("en-IN");
   const discount = offPct(product);
 
-  // Collect all available color preview images for this product (Excluding plain customization mockups)
+  // Collect reference preview images for this product (Excluding plain customization mockups)
   const cardImages = useMemo(() => {
+    // If the primary color has reference angle images (as shown in product details page),
+    // alternate strictly through the reference images of this product!
+    const primaryColor = product.colors?.[0];
+    if (primaryColor) {
+      const angles = [
+        primaryColor.image,
+        primaryColor.backImage,
+        primaryColor.chestImage,
+        primaryColor.detailImage,
+        primaryColor.image4,
+        primaryColor.image5,
+      ].filter(Boolean) as string[];
+
+      const validAngles = angles.filter((img) => {
+        const lower = img.toLowerCase();
+        return (
+          !lower.endsWith(".svg") &&
+          !lower.includes("-3d.png") &&
+          !lower.includes("mockup")
+        );
+      });
+
+      const uniqueAngles = Array.from(new Set(validAngles));
+      if (uniqueAngles.length > 1) {
+        return uniqueAngles.map((src, idx) => ({
+          src,
+          name: `${primaryColor.name} Angle ${idx + 1}`,
+          hex: primaryColor.hex,
+        }));
+      }
+    }
+
     const list: { src: string; name: string; hex: string }[] = [];
     (product.colors || []).forEach((c) => {
       if (!c.image) return;
@@ -37,10 +69,11 @@ export function ProductCard({ product }: { product: Product }) {
         lower.endsWith(".svg") ||
         lower.includes("-3d.png") ||
         lower.includes("mockup");
-      if (!isMockup) {
+      if (!isMockup && !list.some((item) => item.src === c.image)) {
         list.push({ src: c.image, name: c.name, hex: c.hex });
       }
     });
+
     return list.length > 0
       ? list
       : [

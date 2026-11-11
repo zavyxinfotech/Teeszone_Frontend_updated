@@ -42,18 +42,10 @@ export const products: Product[] = [
     fit: "Modern regular polo fit with tailored comfort.",
     fabric: "100% Microfiber Poly-Rich Performance Knit",
     gsm: 200,
-    mrp: 971,
+    mrp: 1999,
     price: 830,
+    offerPct: 17,
     colors: [
-      {
-        ...c.royal,
-        image: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-5.webp",
-        backImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-2.webp",
-        chestImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-3.webp",
-        detailImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-4.webp",
-        image4: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-1.webp",
-        image5: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-6.webp",
-      },
       {
         ...c.black,
         image: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-2.webp",
@@ -62,6 +54,15 @@ export const products: Product[] = [
         detailImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-4.webp",
         image4: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-5.webp",
         image5: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-6.webp",
+      },
+      {
+        ...c.royal,
+        image: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-5.webp",
+        backImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-2.webp",
+        chestImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-3.webp",
+        detailImage: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-4.webp",
+        image4: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-1.webp",
+        image5: "http://localhost:4010/api/upload/media/teeszone/mens-polo-half-sleeve-240/navy-blue/view-6.webp",
       },
       {
         ...c.white,
@@ -94,8 +95,9 @@ export const products: Product[] = [
     fit: "Classic executive regular polo fit.",
     fabric: "100% Compact Cotton Heavy Pique (240-250 GSM)",
     gsm: 245,
-    mrp: 1156,
+    mrp: 2399,
     price: 925,
+    offerPct: 23,
     colors: [
       {
         ...c.navy,
@@ -147,6 +149,7 @@ export const products: Product[] = [
     gsm: 240,
     mrp: 1199,
     price: 975,
+    offerPct: 23,
     colors: [
       {
         ...c.navy,
