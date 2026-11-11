@@ -140,91 +140,77 @@ const TEXT_COLOR_PALETTE = [
 const FRONT_PRINTABLE_BOUNDS = { leftPct: 28, topPct: 22, widthPct: 44, heightPct: 54 };
 const BACK_PRINTABLE_BOUNDS = { leftPct: 26, topPct: 18, widthPct: 48, heightPct: 58 };
 
-// Specific 3D Garment Models for Polo Customization
-export const POLO_3D_COLORS: ProductColor[] = [
-  {
-    name: "Black",
-    hex: "#26282D",
-    image: "/products/polo-black-front-3d.png",
-    backImage: "/products/polo-black-back-3d.png",
-  },
-  {
-    name: "White",
-    hex: "#FFFFFF",
-    image: "/products/polo-white-front-3d.png",
-    backImage: "/products/polo-white-back-3d.png",
-  },
-  {
-    name: "True Navy",
-    hex: "#3F5277",
-    image: "/products/polo-true-navy-front-3d.png",
-    backImage: "/products/polo-true-navy-back-3d.png",
-  },
-  {
-    name: "Light Grey Melange",
-    hex: "#CCCAC9",
-    image: "/products/polo-light-grey-front-3d.png",
-    backImage: "/products/polo-light-grey-back-3d.png",
-  },
-];
-export const AEROSOFT_3D_COLORS = POLO_3D_COLORS;
+import customizationColorsData from "@/data/customizationColors.json";
+
+// Specific 3D Garment Models for Customization (all colors from Google Sheet)
+export const SPREADSHEET_3D_COLORS: ProductColor[] = (customizationColorsData as Array<{
+  name: string;
+  slug: string;
+  hex: string;
+  frontModelUrl: string;
+  backModelUrl: string;
+  s3FrontUrl: string;
+  s3BackUrl: string;
+}>).map((c) => ({
+  name: c.name,
+  hex: c.hex,
+  image: c.frontModelUrl || c.s3FrontUrl,
+  backImage: c.backModelUrl || c.s3BackUrl,
+}));
+
+export const POLO_3D_COLORS = SPREADSHEET_3D_COLORS;
+export const AEROSOFT_3D_COLORS = SPREADSHEET_3D_COLORS;
 
 export function getPolo3DModel(colorName?: string, colorHex?: string): { front: string; back: string } {
   const name = (colorName || "").toLowerCase().trim();
   const hex = (colorHex || "").toLowerCase().trim();
 
-  // 1. White
-  if (
-    name.includes("white") ||
-    hex === "#ffffff" ||
-    hex === "#f1f2f4" ||
-    hex === "#f8fafc" ||
-    hex === "#fafafa" ||
-    hex === "#f5f5f5"
-  ) {
+  // 1. Direct match by exact or partial name in spreadsheet colors
+  const byName = SPREADSHEET_3D_COLORS.find(
+    (c) =>
+      c.name.toLowerCase() === name ||
+      (name.length > 2 && c.name.toLowerCase().includes(name)) ||
+      (name.length > 2 && name.includes(c.name.toLowerCase()))
+  );
+  if (byName) {
     return {
-      front: "/products/polo-white-front-3d.png",
-      back: "/products/polo-white-back-3d.png",
+      front: byName.image,
+      back: byName.backImage || byName.image,
     };
   }
 
-  // 2. True Navy / Navy Blue / Royal Blue
-  if (
-    name.includes("navy") ||
-    name.includes("royal") ||
-    name.includes("blue") ||
-    hex === "#3f5277" ||
-    hex === "#1e3a5f" ||
-    hex === "#2749c9" ||
-    hex === "#1e3a8a" ||
-    hex === "#0f172a"
-  ) {
+  // 2. Direct match by HEX code
+  const byHex = SPREADSHEET_3D_COLORS.find((c) => c.hex.toLowerCase() === hex);
+  if (byHex) {
     return {
-      front: "/products/polo-true-navy-front-3d.png",
-      back: "/products/polo-true-navy-back-3d.png",
+      front: byHex.image,
+      back: byHex.backImage || byHex.image,
     };
   }
 
-  // 3. Light Grey Melange / Grey Melange
-  if (
-    name.includes("grey") ||
-    name.includes("gray") ||
-    name.includes("melange") ||
-    hex === "#cccac9" ||
-    hex === "#9aa0a8" ||
-    hex === "#d1d5db" ||
-    hex === "#e5e7eb"
-  ) {
+  // 3. Fallbacks
+  if (name.includes("white") || hex === "#ffffff" || hex === "#f1f2f4") {
     return {
-      front: "/products/polo-light-grey-front-3d.png",
-      back: "/products/polo-light-grey-back-3d.png",
+      front: "/customization/tshirts/white/front.png",
+      back: "/customization/tshirts/white/back.png",
+    };
+  }
+  if (name.includes("navy") || hex === "#3f5277" || hex === "#1e3a5f" || hex === "#28334a") {
+    return {
+      front: "/customization/tshirts/navy-melange/front.png",
+      back: "/customization/tshirts/navy-melange/back.png",
+    };
+  }
+  if (name.includes("grey") || name.includes("gray") || hex === "#cccac9" || hex === "#767873") {
+    return {
+      front: "/customization/tshirts/light-grey-melange/front.png",
+      back: "/customization/tshirts/light-grey-melange/back.png",
     };
   }
 
-  // 4. Black / Charcoal / Dark default
   return {
-    front: "/products/polo-black-front-3d.png",
-    back: "/products/polo-black-back-3d.png",
+    front: "/customization/tshirts/black/front.png",
+    back: "/customization/tshirts/black/back.png",
   };
 }
 
@@ -243,11 +229,8 @@ export function DesignStudioModal({
     (Array.isArray(product.collections) && product.collections.includes("polo-t-shirts"));
 
   const availableColors: ProductColor[] = useMemo(() => {
-    if (isAerosoftPolo) {
-      return AEROSOFT_3D_COLORS;
-    }
-    return product.colors;
-  }, [isAerosoftPolo, product.colors]);
+    return SPREADSHEET_3D_COLORS;
+  }, []);
 
   // Step state
   const [currentStep, setCurrentStep] = useState<StudioStep>(() =>
@@ -262,8 +245,16 @@ export function DesignStudioModal({
       );
       if (matchIdx !== -1) return matchIdx;
     }
-    if (initialColorIdx !== undefined && initialColorIdx >= 0 && initialColorIdx < availableColors.length) {
-      return initialColorIdx;
+    const selectedProdColor = product.colors?.[initialColorIdx ?? 0];
+    if (selectedProdColor) {
+      const matchIdx = availableColors.findIndex(
+        (c) =>
+          c.name.toLowerCase() === selectedProdColor.name.toLowerCase() ||
+          c.hex.toLowerCase() === selectedProdColor.hex.toLowerCase() ||
+          selectedProdColor.name.toLowerCase().includes(c.name.toLowerCase()) ||
+          c.name.toLowerCase().includes(selectedProdColor.name.toLowerCase())
+      );
+      if (matchIdx !== -1) return matchIdx;
     }
     return 0;
   });
@@ -367,60 +358,20 @@ export function DesignStudioModal({
     [currentElements, selectedElementId]
   );
 
-  // Determine Garment Images (Dynamic 3D Model Mapping for Polo Customization)
+  // Determine Garment Images (Dynamic 3D Model Mapping for Customization)
   const frontGarmentImage = useMemo(() => {
-    // 1. Explicit 3D image model on activeColor
-    if (activeColor?.image && activeColor.image.includes("-3d.png")) {
+    if (activeColor?.image) {
       return activeColor.image;
     }
-
-    // 2. All polo products dynamically switch between 3D models (White, Navy, Grey Melange, Black)
-    if (isPolo) {
-      return getPolo3DModel(activeColor?.name, activeColor?.hex).front;
-    }
-
-    // 3. Fallback: check if color name matches 3D models anyway
-    const cName = (activeColor?.name || "").toLowerCase();
-    const cHex = (activeColor?.hex || "").toLowerCase();
-    if (cName.includes("white") || cHex === "#ffffff" || cHex === "#f1f2f4") {
-      return "/products/polo-white-front-3d.png";
-    }
-    if (cName.includes("navy") || cHex === "#3f5277" || cHex === "#1e3a5f") {
-      return "/products/polo-true-navy-front-3d.png";
-    }
-    if (cName.includes("grey") || cName.includes("gray") || cHex === "#cccac9" || cHex === "#9aa0a8") {
-      return "/products/polo-light-grey-front-3d.png";
-    }
-
-    return activeColor?.image || product.colors?.[0]?.image || "/products/polo-black-front-3d.png";
-  }, [isPolo, activeColor, product.colors]);
+    return getPolo3DModel(activeColor?.name, activeColor?.hex).front;
+  }, [activeColor]);
 
   const backGarmentImage = useMemo(() => {
-    // 1. Explicit 3D backImage model on activeColor
-    if (activeColor?.backImage && activeColor.backImage.includes("-3d.png")) {
+    if (activeColor?.backImage) {
       return activeColor.backImage;
     }
-
-    // 2. All polo products dynamically switch between 3D models (White, Navy, Grey Melange, Black)
-    if (isPolo) {
-      return getPolo3DModel(activeColor?.name, activeColor?.hex).back;
-    }
-
-    // 3. Fallback: check if color name matches 3D models anyway
-    const cName = (activeColor?.name || "").toLowerCase();
-    const cHex = (activeColor?.hex || "").toLowerCase();
-    if (cName.includes("white") || cHex === "#ffffff" || cHex === "#f1f2f4") {
-      return "/products/polo-white-back-3d.png";
-    }
-    if (cName.includes("navy") || cHex === "#3f5277" || cHex === "#1e3a5f") {
-      return "/products/polo-true-navy-back-3d.png";
-    }
-    if (cName.includes("grey") || cName.includes("gray") || cHex === "#cccac9" || cHex === "#9aa0a8") {
-      return "/products/polo-light-grey-back-3d.png";
-    }
-
-    return activeColor?.backImage || activeColor?.image || product.colors?.[0]?.backImage || "/products/polo-black-back-3d.png";
-  }, [isPolo, activeColor, product.colors]);
+    return getPolo3DModel(activeColor?.name, activeColor?.hex).back;
+  }, [activeColor]);
 
   const currentGarmentImage = activeSide === "front" ? frontGarmentImage : backGarmentImage;
   const currentPrintableBounds = activeSide === "front" ? FRONT_PRINTABLE_BOUNDS : BACK_PRINTABLE_BOUNDS;
@@ -1795,26 +1746,30 @@ export function DesignStudioModal({
                 <>
                   {/* T-Shirt Colour Swatches */}
                   <div>
-                    <label className="text-xs font-bold text-gray-800 uppercase tracking-wider">
-                      T-shirt Colour
+                    <label className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center justify-between">
+                      <span>T-shirt Colour</span>
+                      <span className="text-[11px] font-semibold text-[#80011F] normal-case truncate max-w-[150px]">
+                        {activeColor.name}
+                      </span>
                     </label>
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="mt-2 flex flex-wrap gap-2 max-h-[145px] overflow-y-auto pr-1">
                       {availableColors.map((c, i) => (
                         <button
                           key={c.name}
                           type="button"
                           onClick={() => setSelectedColorIdx(i)}
-                          title={c.name}
-                          className={`relative flex h-8 w-8 items-center justify-center rounded-full border transition-all hover:scale-110 cursor-pointer ${selectedColorIdx === i
+                          title={`${c.name} (${c.hex})`}
+                          className={`relative flex h-7 w-7 items-center justify-center rounded-full border transition-all hover:scale-110 cursor-pointer ${
+                            selectedColorIdx === i
                               ? "border-[#80011F] ring-2 ring-[#80011F] ring-offset-2 shadow-xs"
                               : "border-black/15 opacity-80 hover:opacity-100"
-                            }`}
+                          }`}
                           style={{ backgroundColor: c.hex }}
                         >
                           {selectedColorIdx === i && (
                             <Check
-                              size={13}
-                              className={["#FFFFFF", "#F1F2F4"].includes(c.hex) ? "text-black" : "text-white"}
+                              size={12}
+                              className={["#FFFFFF", "#F1F2F4", "#FFA700", "#CCCAC9", "#848789", "#3EB489"].includes(c.hex.toUpperCase()) ? "text-black" : "text-white"}
                             />
                           )}
                         </button>
@@ -2963,19 +2918,32 @@ export function DesignStudioModal({
             <div className="p-3 bg-white border-b border-rose-100 max-h-[190px] overflow-y-auto">
               {mobileActiveTab === "product" && (
                 <div className="flex flex-col gap-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-gray-700 shrink-0">Colour:</span>
-                    <div className="flex gap-1.5 overflow-x-auto py-0.5">
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-gray-700 shrink-0">Colour:</span>
+                      <span className="text-[10px] font-semibold text-[#80011F] truncate max-w-[160px]">
+                        {activeColor.name} ({activeColor.hex})
+                      </span>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto py-1">
                       {availableColors.map((c, i) => (
                         <button
                           key={c.name}
                           type="button"
                           onClick={() => setSelectedColorIdx(i)}
-                          className={`h-6 w-6 rounded-full border shrink-0 ${selectedColorIdx === i ? "ring-2 ring-[#80011F]" : ""
-                            }`}
+                          className={`h-7 w-7 rounded-full border shrink-0 relative flex items-center justify-center ${
+                            selectedColorIdx === i ? "ring-2 ring-[#80011F] ring-offset-1" : "border-black/15"
+                          }`}
                           style={{ backgroundColor: c.hex }}
-                          title={c.name}
-                        />
+                          title={`${c.name} (${c.hex})`}
+                        >
+                          {selectedColorIdx === i && (
+                            <Check
+                              size={11}
+                              className={["#FFFFFF", "#F1F2F4", "#FFA700", "#CCCAC9", "#848789", "#3EB489"].includes(c.hex.toUpperCase()) ? "text-black" : "text-white"}
+                            />
+                          )}
+                        </button>
                       ))}
                     </div>
                   </div>

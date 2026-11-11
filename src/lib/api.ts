@@ -3,6 +3,7 @@ import type {
   AddressInput,
   AuthUser,
   Collection,
+  CustomizationColorModel,
   Fabric,
   HomeContent,
   Product,
@@ -10,6 +11,20 @@ import type {
   Review,
   Segment,
 } from "@/lib/types";
+import defaultCustomizationColors from "@/data/customizationColors.json";
+
+export const DEFAULT_CUSTOMIZATION_COLORS: CustomizationColorModel[] = defaultCustomizationColors.map((c, i) => ({
+  id: `ccm-${c.slug}`,
+  colorName: c.name,
+  colorSlug: c.slug,
+  colorHex: c.hex,
+  modelImageUrl: c.frontModelUrl || c.s3FrontUrl,
+  modelBackImageUrl: c.backModelUrl || c.s3BackUrl,
+  s3FrontKey: c.s3FrontKey,
+  s3BackKey: c.s3BackKey,
+  isActive: c.isActive !== false,
+  sortOrder: i,
+}));
 
 export const DEFAULT_AEROSOFT_3D_MODELS: ProductColorModel[] = [
   {
@@ -410,3 +425,15 @@ export const addressApi = {
   remove: (token: string, id: string) =>
     request<{ deleted: boolean }>(`/addresses/${id}`, { method: "DELETE", token }),
 };
+
+export async function getCustomization3DModels(): Promise<CustomizationColorModel[]> {
+  try {
+    const data = await request<CustomizationColorModel[]>("/customization/3d-models");
+    if (Array.isArray(data) && data.length > 0) {
+      return data;
+    }
+  } catch {
+    // Fall back to default colors
+  }
+  return DEFAULT_CUSTOMIZATION_COLORS;
+}

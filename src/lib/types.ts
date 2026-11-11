@@ -44,6 +44,19 @@ export interface ProductColorModel {
   isActive?: boolean;
 }
 
+export interface CustomizationColorModel {
+  id: string;
+  colorName: string;
+  colorSlug: string;
+  colorHex: string;
+  modelImageUrl: string;
+  modelBackImageUrl?: string | null;
+  s3FrontKey?: string | null;
+  s3BackKey?: string | null;
+  isActive: boolean;
+  sortOrder?: number;
+}
+
 export interface Product {
   id: string;
   name: string;
