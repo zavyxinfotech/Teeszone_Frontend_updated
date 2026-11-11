@@ -26,15 +26,30 @@ export function ProductCard({ product }: { product: Product }) {
   const sellingPrice = product.price.toLocaleString("en-IN");
   const discount = offPct(product);
 
-  // Collect all available color preview images for this product
+  // Collect all available color preview images for this product (Excluding plain customization mockups)
   const cardImages = useMemo(() => {
     const list: { src: string; name: string; hex: string }[] = [];
     (product.colors || []).forEach((c) => {
-      if (c.image) list.push({ src: c.image, name: c.name, hex: c.hex });
+      if (!c.image) return;
+      const lower = c.image.toLowerCase();
+      // Strict filter: Exclude plain mockup SVGs and 3D mockup assets from product listing cards
+      const isMockup =
+        lower.endsWith(".svg") ||
+        lower.includes("-3d.png") ||
+        lower.includes("mockup");
+      if (!isMockup) {
+        list.push({ src: c.image, name: c.name, hex: c.hex });
+      }
     });
     return list.length > 0
       ? list
-      : [{ src: "/products/crew-white.svg", name: "Default", hex: "#CCCCCC" }];
+      : [
+          {
+            src: "/api/upload/media/teeszone/mens-polo-half-sleeve-240/black/view-2.webp",
+            name: "Black",
+            hex: "#26282D",
+          },
+        ];
   }, [product]);
 
   const [activeIdx, setActiveIdx] = useState(0);

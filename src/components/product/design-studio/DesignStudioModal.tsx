@@ -273,20 +273,24 @@ export function DesignStudioModal({
     activeColor.hex.toLowerCase() === "#000000";
 
   const isModelPhoto = (url?: string) =>
-    Boolean(url && (url.includes("view-") || url.includes("model") || url.includes("localhost:4010")));
+    Boolean(
+      !url ||
+        url.includes("view-") ||
+        url.includes("model") ||
+        url.includes("localhost:4010") ||
+        url.includes("/api/upload/media/") ||
+        url.includes("teeszone/")
+    );
 
   const frontGarmentImage =
     isBlackColor || isModelPhoto(activeColor.image)
       ? "/products/polo-black-front-3d.png"
-      : activeColor.image || "/products/polo-black-front-3d.png";
+      : "/products/polo-black-front-3d.png";
 
   const backGarmentImage =
     isBlackColor || isModelPhoto(activeColor.backImage)
       ? "/products/polo-black-back-3d.png"
-      : activeColor.backImage ||
-        activeColor.image4 ||
-        product.colors.find((c) => c.backImage)?.backImage ||
-        "/products/polo-black-back-3d.png";
+      : "/products/polo-black-back-3d.png";
 
   const currentGarmentImage = activeSide === "front" ? frontGarmentImage : backGarmentImage;
   const currentPrintableBounds = activeSide === "front" ? FRONT_PRINTABLE_BOUNDS : BACK_PRINTABLE_BOUNDS;

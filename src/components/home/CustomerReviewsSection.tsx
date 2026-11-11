@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Star, ChevronLeft, ChevronRight, ExternalLink, ShieldCheck } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 import {
   type GooglePlaceReviewResponse,
   FALLBACK_GOOGLE_DATA,
 } from "@/lib/googleReviews";
+import { CustomerReviewCard } from "@/components/reviews/CustomerReviewCard";
 
 export function GoogleGIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
@@ -223,66 +224,16 @@ export function CustomerReviewsSection({
       <div className="relative mt-4 overflow-hidden">
         <div
           ref={carouselRef}
-          className="flex gap-4 overflow-x-auto py-2 scrollbar-none select-none"
+          className="flex gap-4 sm:gap-5 overflow-x-auto py-3 scrollbar-none select-none items-stretch"
         >
-          {loopedReviews.map((rev, idx) => {
-            const cardImg = rev.apparelImageUrl || rev.authorPhotoUrl;
-            return (
-              <article
-                key={`${rev.id}-${idx}`}
-                className="w-[210px] sm:w-[240px] lg:w-[260px] shrink-0 flex flex-col justify-between rounded-none border border-line bg-white shadow-none transition-colors hover:border-[#80011F]/50 overflow-hidden"
-              >
-                {/* Top: Customer / Apparel Photo from AWS S3 Backend */}
-                {cardImg && (
-                  <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-slate-100 rounded-none border-b border-line/60">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={cardImg}
-                      alt={rev.authorName}
-                      loading="lazy"
-                      decoding="async"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLElement).style.display = "none";
-                      }}
-                      className="h-full w-full object-cover object-center rounded-none"
-                    />
-                  </div>
-                )}
-
-                {/* Card Body */}
-                <div className="p-3 sm:p-3.5 flex flex-col justify-between flex-1">
-                  <div>
-                    {/* 5 Star Rating */}
-                    <div className="flex items-center gap-1 text-amber-500">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star
-                          key={i}
-                          size={13}
-                          className="fill-amber-400 text-amber-400"
-                        />
-                      ))}
-                    </div>
-
-                    {/* Review Text Quote (Normal Font Weight, Compact) */}
-                    <p className="mt-2 text-xs sm:text-[13px] font-normal text-gray-700 leading-normal line-clamp-3">
-                      {rev.text}
-                    </p>
-                  </div>
-
-                  {/* Card Footer: Reviewer Name + Verified Badge */}
-                  <div className="mt-3 pt-2.5 border-t border-line/50 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-ink truncate pr-2">
-                      {rev.authorName}
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-none shrink-0">
-                      <ShieldCheck size={11} className="text-emerald-600" />
-                      Verified
-                    </span>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
+          {loopedReviews.map((rev, idx) => (
+            <div
+              key={`${rev.id}-${idx}`}
+              className="w-[280px] sm:w-[320px] lg:w-[340px] shrink-0 flex"
+            >
+              <CustomerReviewCard review={rev} className="w-full" />
+            </div>
+          ))}
         </div>
       </div>
 

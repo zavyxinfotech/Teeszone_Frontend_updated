@@ -6,6 +6,7 @@ export interface GoogleReviewItem {
   authorName: string;
   authorPhotoUrl?: string;
   apparelImageUrl?: string;
+  apparelImages?: string[];
   rating: number;
   text: string;
   relativeTime: string;
@@ -73,7 +74,6 @@ export const VERIFIED_GOOGLE_REVIEWS: GoogleReviewItem[] = [
     id: "g-rev-arun",
     authorName: "Arun Sundhar",
     authorPhotoUrl: `${S3_BASE}/arun-sundhar.jpg`,
-    apparelImageUrl: `${S3_BASE}/arun-sundhar.jpg`,
     rating: 5,
     text: "Very nice... Good service...All the Best...",
     relativeTime: "3 months ago",
@@ -85,7 +85,6 @@ export const VERIFIED_GOOGLE_REVIEWS: GoogleReviewItem[] = [
     id: "g-rev-taj",
     authorName: "Taj Taj",
     authorPhotoUrl: `${S3_BASE}/taj-taj.jpg`,
-    apparelImageUrl: `${S3_BASE}/taj-taj.jpg`,
     rating: 5,
     text: "Thank you for the T shirt it’s comfortable and nice ❤️✨",
     relativeTime: "4 weeks ago",
@@ -97,7 +96,6 @@ export const VERIFIED_GOOGLE_REVIEWS: GoogleReviewItem[] = [
     id: "g-rev-rk",
     authorName: "RK ACADEMY",
     authorPhotoUrl: `${S3_BASE}/rk-academy.jpg`,
-    apparelImageUrl: `${S3_BASE}/rk-academy.jpg`,
     rating: 5,
     text: "Too Good in both service and quality of materials",
     relativeTime: "6 months ago",
@@ -109,7 +107,6 @@ export const VERIFIED_GOOGLE_REVIEWS: GoogleReviewItem[] = [
     id: "g-rev-riswah",
     authorName: "Riswah Na",
     authorPhotoUrl: `${S3_BASE}/riswah-na.jpg`,
-    apparelImageUrl: `${S3_BASE}/riswah-na.jpg`,
     rating: 5,
     text: "Great job, team! Your commitment to quality and timeline has produced excellent results. Keep up the good work.",
     relativeTime: "3 months ago",
@@ -121,7 +118,6 @@ export const VERIFIED_GOOGLE_REVIEWS: GoogleReviewItem[] = [
     id: "g-rev-majumdar",
     authorName: "Parthasarathi Majumdar",
     authorPhotoUrl: `${S3_BASE}/parthasarathi-majumdar.jpg`,
-    apparelImageUrl: `${S3_BASE}/parthasarathi-majumdar.jpg`,
     badge: "Local Guide",
     rating: 5,
     text: "Just want to tell everyone, product quality, delivery timeline simply awesome.. Mr Shakti and viji maam along with Archana maam are so helpful in every step that I got my package on time... Shakti sir is truly genuine person who try to help us as much as he can and we will love to collaborate with them.",
@@ -134,7 +130,6 @@ export const VERIFIED_GOOGLE_REVIEWS: GoogleReviewItem[] = [
     id: "g-rev-balaraman",
     authorName: "Prabhu Balaraman",
     authorPhotoUrl: `${S3_BASE}/prabhu-balaraman.jpg`,
-    apparelImageUrl: `${S3_BASE}/prabhu-balaraman.jpg`,
     rating: 5,
     text: "I am writing to express our sincere appreciation for the outstanding apparel you supplied for our recent event. The feedback from participants has been overwhelmingly positive. Many specifically praised the quality of the fabric, noting that it was comfortable, durable, and well-suited for the activities during the event. Several attendees mentioned that the material felt premium and appreciated the attention to detail in the stitching and finish.and Logo printing was perfect.",
     relativeTime: "a month ago",

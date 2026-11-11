@@ -42,7 +42,11 @@ function fixImageUrl(url: string | undefined): string {
   if (!url) return "";
   if (url.includes("teeszone-catalogue-images-2026") || url.includes("s3.ap-southeast-2.amazonaws.com")) {
     const key = url.replace(/^https?:\/\/[^\/]+\//, "");
-    return `${CLIENT_API_URL}/upload/media/${key}`;
+    return `/api/upload/media/${key}`;
+  }
+  if (url.includes("/api/upload/media/")) {
+    const idx = url.indexOf("/api/upload/media/");
+    return url.slice(idx);
   }
   return url;
 }
@@ -76,7 +80,7 @@ export async function getProducts(): Promise<Product[]> {
   } catch {
     // Fall back to local mock products
   }
-  return products;
+  return products.map(fixProduct);
 }
 
 export async function getProductsByCollection(slug: string): Promise<Product[]> {
@@ -93,7 +97,7 @@ export async function getProductsByCollection(slug: string): Promise<Product[]> 
   } catch {
     // Fall back to local mock products
   }
-  return getMockProductsByCollection(slug);
+  return getMockProductsByCollection(slug).map(fixProduct);
 }
 
 export async function getProduct(slug: string): Promise<Product | null> {
@@ -110,7 +114,8 @@ export async function getProduct(slug: string): Promise<Product | null> {
   } catch {
     // Fall back to local mock product
   }
-  return getMockProduct(slug) || null;
+  const p = getMockProduct(slug);
+  return p ? fixProduct(p) : null;
 }
 
 export async function getCollections(): Promise<Collection[]> {

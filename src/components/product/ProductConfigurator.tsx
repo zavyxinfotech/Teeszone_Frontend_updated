@@ -20,7 +20,6 @@ import {
   Pencil,
   Plus,
   Ruler,
-  ShieldCheck,
   ShoppingBag,
   Sparkles,
   Star,
@@ -34,7 +33,7 @@ import { useAuth } from "@/lib/auth";
 import { logCustomerActivity } from "@/lib/activity";
 import { TEESZONE_GOOGLE_REVIEWS_URL } from "@/data/ratings";
 import { VERIFIED_GOOGLE_REVIEWS } from "@/lib/googleReviews";
-import { GoogleGIcon } from "@/components/home/CustomerReviewsSection";
+import { CustomerReviewCard } from "@/components/reviews/CustomerReviewCard";
 import type { Review } from "@/lib/types";
 import { BrandDesignerModal } from "./BrandDesignerModal";
 import {
@@ -256,13 +255,10 @@ export function ProductConfigurator({
     try {
       const frontSrc =
         savedCustomDesign?.frontPreviewUrl ||
-        color.image ||
         "/products/polo-black-front-3d.png";
 
       const backSrc =
         savedCustomDesign?.backPreviewUrl ||
-        color.backImage ||
-        color.image4 ||
         "/products/polo-black-back-3d.png";
 
       await generateAndDownloadBrandedMockup({
@@ -1162,66 +1158,16 @@ export function ProductConfigurator({
 
             <div
               ref={reviewsRef}
-              className="flex gap-4 overflow-x-auto scroll-smooth py-1 scrollbar-none select-none"
+              className="flex gap-4 overflow-x-auto scroll-smooth py-2 scrollbar-none select-none items-stretch"
             >
-              {[...VERIFIED_GOOGLE_REVIEWS, ...VERIFIED_GOOGLE_REVIEWS, ...VERIFIED_GOOGLE_REVIEWS].map((rev, idx) => {
-                const cardImg = rev.apparelImageUrl || rev.authorPhotoUrl;
-                return (
-                  <article
-                    key={`${rev.id}-${idx}`}
-                    className="w-[210px] sm:w-[240px] shrink-0 flex flex-col justify-between rounded-none border border-line bg-white shadow-none transition-colors hover:border-[#80011F]/50 overflow-hidden"
-                  >
-                    {/* Top: Customer / Apparel Photo from AWS S3 Backend */}
-                    {cardImg && (
-                      <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-slate-100 rounded-none border-b border-line/60">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={cardImg}
-                          alt={rev.authorName}
-                          loading="lazy"
-                          decoding="async"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLElement).style.display = "none";
-                          }}
-                          className="h-full w-full object-cover object-center rounded-none"
-                        />
-                      </div>
-                    )}
-
-                    {/* Card Body */}
-                    <div className="p-3 sm:p-3.5 flex flex-col justify-between flex-1">
-                      <div>
-                        {/* 5 Star Rating */}
-                        <div className="flex items-center gap-1 text-amber-500">
-                          {[...Array(rev.rating)].map((_, i) => (
-                            <Star
-                              key={i}
-                              size={13}
-                              className="fill-amber-400 text-amber-400"
-                            />
-                          ))}
-                        </div>
-
-                        {/* Review Text Quote (Normal Font Weight, Compact) */}
-                        <p className="mt-2 text-xs sm:text-[13px] font-normal text-gray-700 leading-normal line-clamp-3">
-                          {rev.text}
-                        </p>
-                      </div>
-
-                      {/* Card Footer: Reviewer Name + Verified Badge */}
-                      <div className="mt-3 pt-2.5 border-t border-line/50 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-ink truncate pr-2">
-                          {rev.authorName}
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-none shrink-0">
-                          <ShieldCheck size={11} className="text-emerald-600" />
-                          Verified
-                        </span>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
+              {[...VERIFIED_GOOGLE_REVIEWS, ...VERIFIED_GOOGLE_REVIEWS].map((rev, idx) => (
+                <div
+                  key={`${rev.id}-${idx}`}
+                  className="w-[260px] sm:w-[280px] shrink-0 flex"
+                >
+                  <CustomerReviewCard review={rev} compact className="w-full" />
+                </div>
+              ))}
             </div>
           </div>
         </div>
