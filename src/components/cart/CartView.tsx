@@ -7,6 +7,7 @@ import {
   ArrowRight,
   CheckCircle2,
   CreditCard,
+  MessageCircle,
   Minus,
   Plus,
   ShieldCheck,
@@ -19,6 +20,7 @@ import type { Product } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { logCustomerActivity } from "@/lib/activity";
+import { waLink } from "@/lib/site";
 
 interface PricedLine extends CartItem {
   unitPrice: number;
@@ -35,6 +37,8 @@ export function CartView({ products }: { products: Product[] }) {
   const [paymentSuccess, setPaymentSuccess] = useState<{
     payment_id: string;
     order_id: string;
+    amount?: number;
+    itemsCount?: number;
   } | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -98,9 +102,9 @@ export function CartView({ products }: { products: Product[] }) {
       },
       onSuccess: ({ payment_id, order_id }) => {
         setIsPaying(false);
-        setPaymentSuccess({ payment_id, order_id });
+        setPaymentSuccess({ payment_id, order_id, amount: subtotal, itemsCount: totalItems });
 
-        // Persist order associated with user
+        // Persist order associated with user & trigger backend notifications
         const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4010/api";
         fetch(`${backendUrl}/orders`, {
           method: "POST",
@@ -118,6 +122,11 @@ export function CartView({ products }: { products: Product[] }) {
               qty: p.qty,
               unitPrice: p.unitPrice,
               customNote: p.customNote || note,
+              frontPreviewUrl: p.frontPreviewUrl,
+              backPreviewUrl: p.backPreviewUrl,
+              frontLogoUrl: p.frontLogoUrl,
+              backLogoUrl: p.backLogoUrl,
+              customDesign: p.customDesign,
             })),
             razorpayOrderId: order_id,
             razorpayPaymentId: payment_id,
@@ -172,6 +181,34 @@ export function CartView({ products }: { products: Product[] }) {
             <span className="text-body">Payment ID: </span>
             <span className="font-bold">{paymentSuccess.payment_id}</span>
           </div>
+        </div>
+
+        {/* Email & WhatsApp Instant Notification Status */}
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-800 shadow-2xs">
+            <CheckCircle2 size={15} className="text-emerald-600" />
+            <span>Order summary &amp; manufacturing specs dispatched to info@teeszone.in</span>
+          </div>
+
+          <a
+            href={waLink([
+              "🛍️ *NEW TEESZONE ORDER CONFIRMATION*",
+              "",
+              `*Order ID:* ${paymentSuccess.order_id}`,
+              `*Payment ID:* ${paymentSuccess.payment_id}`,
+              paymentSuccess.amount ? `*Amount Paid:* ₹${paymentSuccess.amount.toLocaleString("en-IN")}` : "",
+              paymentSuccess.itemsCount ? `*Quantity:* ${paymentSuccess.itemsCount} pcs` : "",
+              `*Customer:* ${user?.name || "Customer"}${user?.phone ? ` (${user.phone})` : ""}`,
+              "",
+              "I have placed an order and would like production updates & digital mockup approval on WhatsApp.",
+            ].filter(Boolean).join("\n"))}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-[#20ba5a] hover:shadow-lg cursor-pointer"
+          >
+            <MessageCircle size={18} />
+            <span>Send Order Confirmation to Admin on WhatsApp</span>
+          </a>
         </div>
 
         <Link
