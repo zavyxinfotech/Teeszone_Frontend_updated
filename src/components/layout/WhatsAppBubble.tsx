@@ -7,7 +7,7 @@ export function WhatsAppBubble() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with TeesZone on WhatsApp"
-      className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#80011F] text-white shadow-xl transition-all duration-300 hover:scale-110 hover:bg-[#680119] hover:shadow-2xl active:scale-95 focus:outline-hidden focus:ring-4 focus:ring-[#80011F]/30"
+      className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition-all duration-300 hover:scale-110 hover:bg-[#20ba5a] hover:shadow-2xl active:scale-95 focus:outline-hidden focus:ring-4 focus:ring-[#25D366]/30"
     >
       <svg
         viewBox="0 0 24 24"

@@ -119,9 +119,9 @@ function fixProduct(p: Product): Product {
   let offerPct = p.offerPct;
 
   if (p.slug === "aerosoft-polo-200") {
-    price = 830;
-    mrp = 1999;
-    offerPct = 17;
+    price = 549;
+    mrp = 1499;
+    offerPct = 63.38;
   } else if (p.slug === "mens-polo-half-sleeve-240") {
     price = 925;
     mrp = 2399;

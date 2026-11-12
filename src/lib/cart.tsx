@@ -27,6 +27,11 @@ export interface CartItem {
   size: string;
   qty: number;
   customNote?: string;
+  frontPreviewUrl?: string;
+  backPreviewUrl?: string;
+  frontLogoUrl?: string | null;
+  backLogoUrl?: string | null;
+  customDesign?: any;
 }
 
 interface CartState {

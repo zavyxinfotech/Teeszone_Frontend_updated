@@ -137,8 +137,8 @@ const TEXT_COLOR_PALETTE = [
 ];
 
 // Printable Area on front & back polo/t-shirt (Percentage of garment canvas)
-const FRONT_PRINTABLE_BOUNDS = { leftPct: 28, topPct: 22, widthPct: 44, heightPct: 54 };
-const BACK_PRINTABLE_BOUNDS = { leftPct: 26, topPct: 18, widthPct: 48, heightPct: 58 };
+const FRONT_PRINTABLE_BOUNDS = { leftPct: 26, topPct: 20, widthPct: 48, heightPct: 58 };
+const BACK_PRINTABLE_BOUNDS = { leftPct: 24, topPct: 16, widthPct: 52, heightPct: 62 };
 
 import customizationColorsData from "@/data/customizationColors.json";
 
@@ -272,6 +272,7 @@ export function DesignStudioModal({
   );
   const [additionalTextInput, setAdditionalTextInput] = useState<string>("");
   const [isDragOverDropzone, setIsDragOverDropzone] = useState(false);
+  const [uploadTargetSide, setUploadTargetSide] = useState<"both" | "front" | "back">("both");
 
   // User feedback toast notification
   const [studioFeedbackToast, setStudioFeedbackToast] = useState<{
@@ -590,13 +591,13 @@ export function DesignStudioModal({
         finalLogoUrl = await removeBackgroundCanvas(croppedUrl, 35);
       }
 
-      // Initialize logo element on the front side
-      const logoEl: StudioElement = {
-        id: `logo_${Date.now()}`,
+      // 1. Initialize logo element on the front side (Left Chest default)
+      const frontLogoEl: StudioElement = {
+        id: `logo_front_${Date.now()}`,
         type: "logo",
         name: uploadedLogoName || "Uploaded Logo",
         x: 60, // Left Chest default (wearer's left = viewer's right)
-        y: 26,
+        y: 24,
         width: 32,
         height: 28,
         rotation: 0,
@@ -609,10 +610,46 @@ export function DesignStudioModal({
         isEnhanced: false,
       };
 
-      const newFront = [logoEl];
+      // 2. Initialize logo element on the back side as well (Upper Back center default)
+      const backLogoEl: StudioElement = {
+        id: `logo_back_${Date.now() + 1}`,
+        type: "logo",
+        name: uploadedLogoName || "Uploaded Logo",
+        x: 25, // Upper Back center default
+        y: 14,
+        width: 50,
+        height: 26,
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+        imageUrl: finalLogoUrl,
+        rawUploadedUrl: rawUploadedLogo,
+        hasRemovedBg: autoRemoveBgInCrop,
+        isEnhanced: false,
+      };
+
+      let newFront = [...frontElements];
+      let newBack = [...backElements];
+
+      if (uploadTargetSide === "back") {
+        newBack = [...newBack.filter((e) => e.type !== "logo"), backLogoEl];
+        setSelectedElementId(backLogoEl.id);
+      } else if (uploadTargetSide === "front") {
+        newFront = [...newFront.filter((e) => e.type !== "logo"), frontLogoEl];
+        if (!newBack.some((e) => e.type === "logo")) {
+          newBack.push(backLogoEl);
+        }
+        setSelectedElementId(frontLogoEl.id);
+      } else {
+        // "both" (default on first upload)
+        newFront = [...newFront.filter((e) => e.type !== "logo"), frontLogoEl];
+        newBack = [...newBack.filter((e) => e.type !== "logo"), backLogoEl];
+        setSelectedElementId(activeSide === "front" ? frontLogoEl.id : backLogoEl.id);
+      }
 
       // Add company name text if provided in Step 1
-      if (companyNameInput.trim()) {
+      if (companyNameInput.trim() && !newFront.some((e) => e.type === "text" && e.name === "Company Name")) {
         const textEl: StudioElement = {
           id: `text_${Date.now()}`,
           type: "text",
@@ -636,8 +673,8 @@ export function DesignStudioModal({
       }
 
       setFrontElements(newFront);
-      setSelectedElementId(logoEl.id);
-      recordHistory(newFront, backElements);
+      setBackElements(newBack);
+      recordHistory(newFront, newBack);
 
       // Smooth realistic transition after processing
       setTimeout(() => {
@@ -647,6 +684,63 @@ export function DesignStudioModal({
       setCurrentStep("studio");
     }
   };
+
+  // Dedicated side-switching function that preserves independent elements and synchronizes logo
+  const handleSwitchSide = useCallback(
+    (targetSide: "front" | "back") => {
+      setActiveSide(targetSide);
+      setSelectedElementId(null);
+
+      if (targetSide === "back") {
+        setBackElements((prevBack) => {
+          const hasBackLogo = prevBack.some((el) => el.type === "logo");
+          if (hasBackLogo) return prevBack;
+
+          const frontLogo = frontElements.find((el) => el.type === "logo");
+          if (frontLogo) {
+            const syncedBackLogo: StudioElement = {
+              ...frontLogo,
+              id: `logo_back_${Date.now()}`,
+              x: 25,
+              y: 14,
+              width: 50,
+              height: 26,
+              rotation: 0,
+              opacity: frontLogo.opacity ?? 1,
+              locked: false,
+              visible: true,
+            };
+            return [...prevBack, syncedBackLogo];
+          }
+          return prevBack;
+        });
+      } else {
+        setFrontElements((prevFront) => {
+          const hasFrontLogo = prevFront.some((el) => el.type === "logo");
+          if (hasFrontLogo) return prevFront;
+
+          const backLogo = backElements.find((el) => el.type === "logo");
+          if (backLogo) {
+            const syncedFrontLogo: StudioElement = {
+              ...backLogo,
+              id: `logo_front_${Date.now()}`,
+              x: 60,
+              y: 24,
+              width: 32,
+              height: 28,
+              rotation: 0,
+              opacity: backLogo.opacity ?? 1,
+              locked: false,
+              visible: true,
+            };
+            return [...prevFront, syncedFrontLogo];
+          }
+          return prevFront;
+        });
+      }
+    },
+    [frontElements, backElements]
+  );
 
   // ========================================================
   // STEP 4 & 5: Quick Design Presets
@@ -681,14 +775,14 @@ export function DesignStudioModal({
   const applyBackPreset = (preset: "Upper Back" | "Center Back" | "Full Back" | "None") => {
     setBackPreset(preset);
     if (preset === "None") {
-      setBackElements([]);
+      setBackElements((prev) => prev.filter((el) => el.type !== "logo"));
       return;
     }
 
     let targetX = 25;
-    let targetY = 16;
+    let targetY = 14;
     let targetW = 50;
-    let targetH = 28;
+    let targetH = 26;
 
     if (preset === "Center Back") {
       targetX = 20;
@@ -697,9 +791,9 @@ export function DesignStudioModal({
       targetH = 36;
     } else if (preset === "Full Back") {
       targetX = 12;
-      targetY = 18;
+      targetY = 14;
       targetW = 76;
-      targetH = 64;
+      targetH = 68;
     }
 
     // If back has logo, adjust it; if empty, reuse front logo
@@ -715,7 +809,7 @@ export function DesignStudioModal({
       if (frontLogo) {
         const cloned: StudioElement = {
           ...frontLogo,
-          id: `back_logo_${Date.now()}`,
+          id: `logo_back_${Date.now()}`,
           x: targetX,
           y: targetY,
           width: targetW,
@@ -1588,7 +1682,13 @@ export function DesignStudioModal({
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setCurrentStep("crop")}
+                onClick={() => {
+                  if (rawUploadedLogo) {
+                    setCurrentStep("crop");
+                  } else {
+                    onClose();
+                  }
+                }}
                 className="flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#80011F] cursor-pointer"
               >
                 <ArrowLeft size={16} />
@@ -1626,10 +1726,7 @@ export function DesignStudioModal({
               <div className="hidden md:flex items-center rounded-xl bg-white border border-rose-200/80 p-0.5 shadow-xs">
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveSide("front");
-                    setSelectedElementId(null);
-                  }}
+                  onClick={() => handleSwitchSide("front")}
                   className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${activeSide === "front" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-600 hover:text-black"
                     }`}
                 >
@@ -1637,14 +1734,7 @@ export function DesignStudioModal({
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveSide("back");
-                    setSelectedElementId(null);
-                    // auto trigger back preset if empty
-                    if (backElements.length === 0) {
-                      applyBackPreset("Upper Back");
-                    }
-                  }}
+                  onClick={() => handleSwitchSide("back")}
                   className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${activeSide === "back" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-600 hover:text-black"
                     }`}
                 >
@@ -1752,7 +1842,7 @@ export function DesignStudioModal({
                         {activeColor.name}
                       </span>
                     </label>
-                    <div className="mt-2 flex flex-wrap gap-2 max-h-[145px] overflow-y-auto pr-1">
+                    <div className="mt-2 flex flex-wrap gap-2.5 max-h-[160px] overflow-y-auto p-1.5 pt-2.5 pb-2">
                       {availableColors.map((c, i) => (
                         <button
                           key={c.name}
@@ -1856,7 +1946,10 @@ export function DesignStudioModal({
                       <div className="grid grid-cols-3 gap-1.5 mt-1.5">
                         <button
                           type="button"
-                          onClick={() => fileInputRef.current?.click()}
+                          onClick={() => {
+                            setUploadTargetSide(activeSide);
+                            fileInputRef.current?.click();
+                          }}
                           className="flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white hover:bg-rose-50/50 p-2 text-[11px] font-bold text-gray-700 cursor-pointer"
                         >
                           <Upload size={14} className="text-[#80011F]" />
@@ -1980,7 +2073,10 @@ export function DesignStudioModal({
                       {/* 1. Logo */}
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => {
+                          setUploadTargetSide(activeSide);
+                          fileInputRef.current?.click();
+                        }}
                         className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white hover:border-[#80011F] hover:bg-rose-50/50 p-2.5 text-center transition-all cursor-pointer shadow-2xs group"
                       >
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-[#80011F] group-hover:bg-[#80011F] group-hover:text-white transition-colors">
@@ -2113,22 +2209,22 @@ export function DesignStudioModal({
             {/* ---------------------------------------------------- */}
             {/* CENTER PANEL: Large Interactive 3D Garment Canvas   */}
             {/* ---------------------------------------------------- */}
-            <div className="flex-1 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#FAF5F6] to-[#F5ECEE] relative overflow-hidden select-none">
-              {/* Garment Preview Container scaled with zoom */}
+            <div className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2.5 md:p-3.5 bg-gradient-to-b from-[#FAF5F6] to-[#F5ECEE] relative overflow-hidden select-none min-h-0">
+              {/* Garment Preview Container scaled with zoom, occupying 65-75% of central workspace */}
               <div
                 style={{
                   transform: `scale(${canvasZoom / 100})`,
                   transformOrigin: "center center",
                   transition: "transform 150ms ease-out",
                 }}
-                className="relative w-full max-w-[420px] aspect-[4/5] flex items-center justify-center"
+                className="relative flex items-center justify-center w-full aspect-[1024/935] max-w-[96%] max-h-[86%] sm:max-w-[620px] sm:max-h-[82vh] md:max-w-[720px] md:max-h-[84vh] lg:max-w-[820px] lg:max-h-[86vh] xl:max-w-[920px] xl:max-h-[88vh] 2xl:max-w-[1040px] 2xl:max-h-[90vh] transition-all"
               >
                 {/* Garment Base Image */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={currentGarmentImage}
                   alt={`${product.name} ${activeSide}`}
-                  className="max-h-full max-w-full object-contain filter drop-shadow-xl pointer-events-none"
+                  className="w-full h-full object-contain filter drop-shadow-xl pointer-events-none select-none"
                 />
 
                 {/* Printable Boundary Area (dashed editing guide) */}
@@ -2297,19 +2393,19 @@ export function DesignStudioModal({
               </div>
 
               {/* Bottom Angle Thumbnails */}
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/90 border border-rose-100 rounded-2xl p-1.5 shadow-md">
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white/95 border border-rose-200/90 rounded-2xl p-1.5 shadow-lg backdrop-blur-sm z-20">
                 <button
                   type="button"
-                  onClick={() => setActiveSide("front")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeSide === "front" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700 hover:bg-rose-50"
+                  onClick={() => handleSwitchSide("front")}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeSide === "front" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700 hover:bg-rose-50"
                     }`}
                 >
                   <span>Front</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveSide("back")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeSide === "back" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700 hover:bg-rose-50"
+                  onClick={() => handleSwitchSide("back")}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeSide === "back" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700 hover:bg-rose-50"
                     }`}
                 >
                   <span>Back</span>
@@ -2925,7 +3021,7 @@ export function DesignStudioModal({
                         {activeColor.name} ({activeColor.hex})
                       </span>
                     </div>
-                    <div className="flex gap-2 overflow-x-auto py-1">
+                    <div className="flex gap-2.5 overflow-x-auto py-2 px-1.5">
                       {availableColors.map((c, i) => (
                         <button
                           key={c.name}
@@ -2947,19 +3043,61 @@ export function DesignStudioModal({
                       ))}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[11px] font-bold text-gray-700">Preset:</span>
-                    {(["Left Chest", "Right Chest", "Center Chest"] as const).map((pos) => (
+                  {/* Mobile Front/Back Switcher */}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[11px] font-bold text-gray-700">Side View:</span>
+                    <div className="flex items-center rounded-xl bg-gray-100 p-0.5 border border-gray-200">
                       <button
-                        key={pos}
                         type="button"
-                        onClick={() => applyFrontPreset(pos)}
-                        className={`rounded-lg px-2.5 py-1 text-[11px] font-bold border ${frontPreset === pos ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
-                          }`}
+                        onClick={() => handleSwitchSide("front")}
+                        className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                          activeSide === "front" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700"
+                        }`}
                       >
-                        {pos}
+                        Front
                       </button>
-                    ))}
+                      <button
+                        type="button"
+                        onClick={() => handleSwitchSide("back")}
+                        className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                          activeSide === "back" ? "bg-[#80011F] text-white shadow-xs" : "text-gray-700"
+                        }`}
+                      >
+                        Back
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Position Presets for active side */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11px] font-bold text-gray-700">{activeSide === "front" ? "Front" : "Back"} Preset:</span>
+                    {activeSide === "front" ? (
+                      (["Left Chest", "Right Chest", "Center Chest"] as const).map((pos) => (
+                        <button
+                          key={pos}
+                          type="button"
+                          onClick={() => applyFrontPreset(pos)}
+                          className={`rounded-lg px-2.5 py-1 text-[11px] font-bold border ${
+                            frontPreset === pos ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                          }`}
+                        >
+                          {pos}
+                        </button>
+                      ))
+                    ) : (
+                      (["Upper Back", "Center Back", "Full Back", "None"] as const).map((pos) => (
+                        <button
+                          key={pos}
+                          type="button"
+                          onClick={() => applyBackPreset(pos)}
+                          className={`rounded-lg px-2.5 py-1 text-[11px] font-bold border ${
+                            backPreset === pos ? "bg-[#80011F] text-white border-[#80011F]" : "bg-white text-gray-700"
+                          }`}
+                        >
+                          {pos}
+                        </button>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
@@ -2969,11 +3107,14 @@ export function DesignStudioModal({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => {
+                        setUploadTargetSide(activeSide);
+                        fileInputRef.current?.click();
+                      }}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#80011F] bg-rose-50 text-xs font-bold text-[#80011F]"
                     >
                       <Upload size={14} />
-                      <span>Upload Logo</span>
+                      <span>Upload Logo ({activeSide === "front" ? "Front" : "Back"})</span>
                     </button>
                     {selectedElement?.type === "logo" && (
                       <button
@@ -3049,7 +3190,10 @@ export function DesignStudioModal({
                     <div className="grid grid-cols-4 gap-1.5">
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => {
+                          setUploadTargetSide(activeSide);
+                          fileInputRef.current?.click();
+                        }}
                         className="flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white p-2 text-center"
                       >
                         <Upload size={14} className="text-[#80011F]" />
@@ -3087,7 +3231,7 @@ export function DesignStudioModal({
                     <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider block mb-1">
                       Shapes
                     </label>
-                    <div className="flex gap-2 overflow-x-auto py-1">
+                    <div className="flex gap-2.5 overflow-x-auto py-2 px-1.5">
                       <button
                         type="button"
                         onClick={() => handleAddShape("square")}

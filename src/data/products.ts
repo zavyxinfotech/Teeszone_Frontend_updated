@@ -42,9 +42,9 @@ export const products: Product[] = [
     fit: "Modern regular polo fit with tailored comfort.",
     fabric: "100% Microfiber Poly-Rich Performance Knit",
     gsm: 200,
-    mrp: 1999,
-    price: 830,
-    offerPct: 17,
+    mrp: 1499,
+    price: 549,
+    offerPct: 63.38,
     colors: [
       {
         ...c.black,
@@ -610,5 +610,7 @@ export function getProductsByCollection(slug: string): Product[] {
 }
 
 export function offPct(p: Product): number {
-  return Math.round((1 - p.price / p.mrp) * 100);
+  if (p.offerPct != null) return p.offerPct;
+  const raw = ((p.mrp - p.price) / p.mrp) * 100;
+  return Number.isInteger(raw) ? raw : Number(raw.toFixed(2));
 }

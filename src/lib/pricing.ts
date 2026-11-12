@@ -2,5 +2,6 @@ import type { Product } from "@/lib/types";
 
 export function offPct(p: Product): number {
   if (p.offerPct != null) return p.offerPct;
-  return Math.round((1 - p.price / p.mrp) * 100);
+  const raw = ((p.mrp - p.price) / p.mrp) * 100;
+  return Number.isInteger(raw) ? raw : Number(raw.toFixed(2));
 }

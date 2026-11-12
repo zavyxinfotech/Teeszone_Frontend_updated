@@ -257,12 +257,15 @@ export function ProductCard({ product }: { product: Product }) {
 
           {/* Price - Original Price & Selling Price (shown for active polo products only) */}
           {isPolo && (
-            <div className="mt-1.5 sm:mt-2.5 flex items-baseline gap-1.5">
+            <div className="mt-1.5 sm:mt-2.5 flex items-baseline gap-1.5 flex-wrap">
               <span className="text-[11px] sm:text-xs text-body line-through">
                 ₹ {originalPrice}
               </span>
               <span className="font-heading text-sm sm:text-lg font-bold sm:font-extrabold text-accent whitespace-nowrap">
                 ₹ {sellingPrice}
+              </span>
+              <span className="sm:hidden text-[10px] font-bold text-emerald-700 whitespace-nowrap">
+                ({discount}% OFF)
               </span>
               <span className="hidden sm:inline text-xs font-medium text-body">/ pc</span>
             </div>

@@ -27,6 +27,7 @@ import {
   X,
 } from "lucide-react";
 import type { Product } from "@/lib/types";
+import { offPct } from "@/lib/pricing";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
@@ -198,6 +199,45 @@ export function ProductConfigurator({
   const [brandDesignerOpen, setBrandDesignerOpen] = useState(false);
   const [studioOpen, setStudioOpen] = useState(false);
 
+  // Sync studioOpen state with URL query ?customize=1 across desktop/mobile viewport switches & page reloads
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkUrlForStudio = () => {
+      const params = new URLSearchParams(window.location.search);
+      const isCustomize = params.get("customize") === "1" || params.get("studio") === "1";
+      setStudioOpen((prev) => (prev !== isCustomize ? isCustomize : prev));
+    };
+
+    checkUrlForStudio();
+
+    const handlePopState = () => {
+      checkUrlForStudio();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleOpenStudio = useCallback(() => {
+    setStudioOpen(true);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("customize", "1");
+      window.history.pushState(null, "", url.toString());
+    }
+  }, []);
+
+  const handleCloseStudio = useCallback(() => {
+    setStudioOpen(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("customize");
+      url.searchParams.delete("studio");
+      window.history.replaceState(null, "", url.pathname + (url.search ? url.search : ""));
+    }
+  }, []);
+
   // User-isolated custom design storage key
   const customDesignStorageKey = user?.id
     ? `teeszone_custom_design_u_${user.id}_${product.slug}`
@@ -212,13 +252,54 @@ export function ProductConfigurator({
       const raw = localStorage.getItem(customDesignStorageKey);
       if (raw) {
         setSavedCustomDesign(JSON.parse(raw));
-      } else {
-        setSavedCustomDesign(null);
+        return;
       }
-    } catch {
+    } catch { }
+
+    // If not in local storage and user is logged in, try fetching from backend
+    if (token) {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4010/api";
+      fetch(`${backendUrl}/custom-designs/${product.slug}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((json) => {
+          const design = json?.data?.design;
+          if (design && design.frontPreviewUrl) {
+            const restored: CustomDesignResult = design.customizationData || {
+              productId: design.productId || product.id,
+              productSlug: design.productSlug || product.slug,
+              productName: design.productName || product.name,
+              colorName: design.colorName || "Black",
+              colorHex: design.colorHex || "#1E1E1E",
+              garmentImageFront: design.garmentImageFront || "",
+              garmentImageBack: design.garmentImageBack || "",
+              frontPreviewUrl: design.frontPreviewUrl,
+              backPreviewUrl: design.backPreviewUrl || design.frontPreviewUrl,
+              frontLogoUrl: design.frontLogoUrl || design.logoUrl,
+              backLogoUrl: design.backLogoUrl,
+              companyName: design.companyName || "",
+              frontPositionPreset: design.frontPositionPreset || "Left Chest",
+              backPositionPreset: design.backPositionPreset || "Upper Back",
+              printType: design.printType || "Full Colour",
+              frontElements: design.frontElements || [],
+              backElements: design.backElements || [],
+            };
+            setSavedCustomDesign(restored);
+            try {
+              localStorage.setItem(customDesignStorageKey, JSON.stringify(restored));
+            } catch { }
+          } else {
+            setSavedCustomDesign(null);
+          }
+        })
+        .catch(() => {
+          setSavedCustomDesign(null);
+        });
+    } else {
       setSavedCustomDesign(null);
     }
-  }, [customDesignStorageKey]);
+  }, [customDesignStorageKey, product.slug, token, product.id, product.name]);
 
   const [flyingParticles, setFlyingParticles] = useState<
     Array<{ id: number; startX: number; startY: number; dx: number; dy: number }>
@@ -560,6 +641,11 @@ export function ProductConfigurator({
             colorHex: swatch.hex,
             size: s,
             qty: n,
+            frontPreviewUrl: savedCustomDesign?.frontPreviewUrl,
+            backPreviewUrl: savedCustomDesign?.backPreviewUrl,
+            frontLogoUrl: savedCustomDesign?.frontLogoUrl,
+            backLogoUrl: savedCustomDesign?.backLogoUrl,
+            customDesign: savedCustomDesign || undefined,
           });
       }
     }
@@ -823,6 +909,11 @@ export function ProductConfigurator({
             ₹{product.price.toLocaleString("en-IN")}
           </span>
           <span className="text-xs sm:text-sm text-body font-medium">per piece</span>
+          {product.mrp > product.price && (
+            <span className="inline-flex items-center rounded-md bg-emerald-100 text-emerald-800 px-2 py-0.5 text-xs font-bold">
+              {product.offerPct ? `${product.offerPct}% OFF` : `${offPct(product)}% OFF`}
+            </span>
+          )}
           <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-0.5 text-xs font-bold text-slate-700 border border-slate-200">
             MOQ: 5 pcs
           </span>
@@ -1031,7 +1122,7 @@ export function ProductConfigurator({
             <div className="mt-4 flex flex-col gap-2">
               <button
                 type="button"
-                onClick={() => setStudioOpen(true)}
+                onClick={handleOpenStudio}
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#80011F] hover:bg-[#680119] py-3 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
               >
                 <Pencil size={15} />
@@ -1062,7 +1153,7 @@ export function ProductConfigurator({
           <>
             <button
               type="button"
-              onClick={() => setStudioOpen(true)}
+              onClick={handleOpenStudio}
               className="mt-4 w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#80011F] hover:bg-[#680119] px-6 py-4 text-base sm:text-lg font-bold text-white shadow-md hover:shadow-xl transition-all cursor-pointer group"
             >
               <Sparkles size={20} className="stroke-[2.2] text-rose-200 transition-transform group-hover:rotate-12" />
@@ -1668,7 +1759,7 @@ export function ProductConfigurator({
       {/* Advanced T-Shirt Customisation Design Studio (7-Step Complete Studio) */}
       <DesignStudioModal
         isOpen={studioOpen}
-        onClose={() => setStudioOpen(false)}
+        onClose={handleCloseStudio}
         product={product}
         initialColorIdx={colorIdx}
         initialCustomization={savedCustomDesign}
@@ -1697,15 +1788,25 @@ export function ProductConfigurator({
                 Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
+                productId: product.id,
                 productSlug: product.slug,
                 productName: product.name,
                 colorName: result.colorName || color.name,
+                colorHex: result.colorHex || color.hex,
                 companyName: result.companyName,
                 logoUrl: result.frontLogoUrl || result.backLogoUrl,
                 logoName: result.companyName || "Custom Design",
+                frontLogoUrl: result.frontLogoUrl,
+                backLogoUrl: result.backLogoUrl,
                 frontPreviewUrl: result.frontPreviewUrl,
                 backPreviewUrl: result.backPreviewUrl,
+                frontPositionPreset: result.frontPositionPreset,
+                backPositionPreset: result.backPositionPreset,
                 printLocation: `${result.frontPositionPreset} + ${result.backPositionPreset}`,
+                printType: result.printType,
+                frontElements: result.frontElements,
+                backElements: result.backElements,
+                customizationData: result,
                 embroideryNotes: result.companyName || null,
               }),
             }).catch(() => { });
