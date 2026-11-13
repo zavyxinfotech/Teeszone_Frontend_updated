@@ -211,13 +211,21 @@ export function CartView({ products }: { products: Product[] }) {
           </a>
         </div>
 
-        <Link
-          href="/products"
-          className="mt-8 inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-accent"
-        >
-          Continue Shopping
-          <ArrowRight size={16} />
-        </Link>
+        <div className="mt-8 flex flex-col sm:flex-row items-center gap-3">
+          <Link
+            href="/account/orders"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#80011F] px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-white shadow-md transition-all hover:bg-[#680119] cursor-pointer"
+          >
+            <span>Track in My Orders</span>
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/products"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-ink transition-colors hover:bg-slate-50 cursor-pointer"
+          >
+            <span>Continue Shopping</span>
+          </Link>
+        </div>
       </div>
     );
   }
