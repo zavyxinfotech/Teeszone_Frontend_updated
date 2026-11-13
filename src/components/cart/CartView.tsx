@@ -91,10 +91,10 @@ export function CartView({ products }: { products: Product[] }) {
       amountInRupees: subtotal,
       user: user
         ? {
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-          }
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+        }
         : null,
       notes: {
         totalItems: totalItems.toString(),
@@ -133,7 +133,7 @@ export function CartView({ products }: { products: Product[] }) {
             shippingAddress: user ? { name: user.name, email: user.email, phone: user.phone } : null,
             userPhone: user?.phone,
           }),
-        }).catch(() => {});
+        }).catch(() => { });
 
         logCustomerActivity({
           activityType: "PAYMENT_SUCCESS",
