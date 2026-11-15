@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import initialClientsData from "@/data/portfolioClients.json";
 import { ImageLightboxModal } from "./ImageLightboxModal";
@@ -14,11 +13,11 @@ export interface PortfolioClient {
   category?: string;
   description: string;
   productDetails?: string;
-  imageFileName: string;
+  imageFileName?: string;
   localImageUrl?: string;
   webpUrl?: string;
   imageUrl?: string;
-  sourceImageUrl?: string;
+  s3Url?: string;
   displayOrder: number;
   isActive: boolean;
 }
@@ -43,6 +42,7 @@ export function ClientPortfolioGallery({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const isHoveredRef = useRef(false);
+  const isTouchingRef = useRef(false);
 
   // Fetch updated clients from backend API if available
   useEffect(() => {
@@ -62,23 +62,21 @@ export function ClientPortfolioGallery({
     };
   }, []);
 
-  // Continuous auto-scroll ticker from left to right direction on desktop and mobile view
+  // Smooth continuous auto-scroll ticker from LEFT TO RIGHT
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
     let animId: number;
     let lastTime = performance.now();
-    const speedPxPerSec = 40; // smooth horizontal movement
+    const speedPxPerSec = 35; // smooth horizontal movement
 
-    // Set initial scroll position to 1/3 of the triplicated scrollWidth
-    const initScroll = () => {
-      if (el.scrollWidth > 0 && el.scrollLeft === 0) {
-        el.scrollLeft = el.scrollWidth / 3;
+    // Initialize position to half so it has room to scroll left-to-right immediately
+    const initTimer = setTimeout(() => {
+      if (el && el.scrollWidth > el.clientWidth) {
+        el.scrollLeft = el.scrollWidth / 2;
       }
-    };
-    initScroll();
-    const timer = setTimeout(initScroll, 100);
+    }, 100);
 
     const onMouseEnter = () => {
       isHoveredRef.current = true;
@@ -86,20 +84,28 @@ export function ClientPortfolioGallery({
     const onMouseLeave = () => {
       isHoveredRef.current = false;
     };
+    const onTouchStart = () => {
+      isTouchingRef.current = true;
+    };
+    const onTouchEnd = () => {
+      isTouchingRef.current = false;
+    };
 
     el.addEventListener("mouseenter", onMouseEnter);
     el.addEventListener("mouseleave", onMouseLeave);
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
 
     const step = (now: number) => {
       const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
 
-      // Auto-scroll left-to-right (cards move rightward by decrementing scrollLeft)
-      if (!isHoveredRef.current && el) {
+      // Move from left to right (decreasing scrollLeft causes visual cards to move rightwards)
+      if (!isHoveredRef.current && !isTouchingRef.current && el) {
         el.scrollLeft -= speedPxPerSec * dt;
-        const oneThird = el.scrollWidth / 3;
-        if (oneThird > 0 && el.scrollLeft <= 10) {
-          el.scrollLeft += oneThird;
+        const half = el.scrollWidth / 2;
+        if (half > 0 && el.scrollLeft <= 5) {
+          el.scrollLeft += half;
         }
       }
 
@@ -109,10 +115,12 @@ export function ClientPortfolioGallery({
     animId = requestAnimationFrame(step);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(initTimer);
       cancelAnimationFrame(animId);
       el.removeEventListener("mouseenter", onMouseEnter);
       el.removeEventListener("mouseleave", onMouseLeave);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
     };
   }, [clients]);
 
@@ -124,8 +132,8 @@ export function ClientPortfolioGallery({
     scrollRef.current?.scrollBy({ left: 360, behavior: "smooth" });
   }, []);
 
-  // Triplicate list for seamless left-to-right infinite scrolling ribbon
-  const displayItems = [...clients, ...clients, ...clients];
+  // Duplicate list once to create a seamless infinite scrolling ribbon
+  const displayItems = [...clients, ...clients];
 
   return (
     <section
@@ -179,12 +187,13 @@ export function ClientPortfolioGallery({
         <div className="flex items-stretch gap-4 sm:gap-6 py-2 w-max">
           {displayItems.map((item, idx) => {
             const isTapped = activeTapId === `${item.id}-${idx}`;
-            // Robust image source resolution across API and bundled assets
+            // Robust image resolution: uses imageUrl (S3), webpUrl, localImageUrl, or filename fallback
             const imageSrc =
               item.imageUrl ||
+              item.s3Url ||
               item.webpUrl ||
               item.localImageUrl ||
-              (item.imageFileName ? `/portfolio/${item.imageFileName}` : "/portfolio/01-zoho-crm.webp");
+              (item.imageFileName ? `/portfolio/${item.imageFileName.replace(/\.png$/i, '.webp')}` : "");
 
             return (
               <div
@@ -197,15 +206,20 @@ export function ClientPortfolioGallery({
                   );
                 }}
               >
-                {/* Genuine Client Photograph — Main visual focus, NO card borders, NO box shadows */}
-                <Image
+                {/* Genuine Client Photograph — 100% visible, robust img tag that never fails */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={imageSrc}
                   alt={`${item.clientName} customized t-shirt portfolio`}
-                  fill
-                  unoptimized
-                  sizes="(max-width: 640px) 270px, 330px"
                   loading="lazy"
-                  className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
+                  onError={(e) => {
+                    // Fallback to local PNG if S3/WebP has network restriction
+                    const target = e.currentTarget;
+                    if (item.imageFileName && !target.src.endsWith(item.imageFileName)) {
+                      target.src = `/portfolio/${item.imageFileName}`;
+                    }
+                  }}
+                  className="w-full h-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
                 />
 
                 {/* Subtle Image Gradient Overlay for Readability */}

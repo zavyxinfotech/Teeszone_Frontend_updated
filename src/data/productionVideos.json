@@ -1,1 +1,46 @@
-[]
+[
+  {
+    "id": "video-1",
+    "videoTitle": "Fun Zone Uniform Packing",
+    "videoDescription": "",
+    "category": "Packing & Dispatch",
+    "videoUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/videos/Fun_zone_uniform_packing.mp4",
+    "localVideoUrl": "/videos/Fun_zone_uniform_packing.mp4",
+    "thumbnailUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/01-zoho-crm.webp",
+    "displayOrder": 1,
+    "isActive": true
+  },
+  {
+    "id": "video-2",
+    "videoTitle": "Accenture Uniform Packaging",
+    "videoDescription": "",
+    "category": "Packing & Dispatch",
+    "videoUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/videos/Accenture_packing.mp4",
+    "localVideoUrl": "/videos/Accenture_packing.mp4",
+    "thumbnailUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/02-pv-renewable-india-pvtltd.webp",
+    "displayOrder": 2,
+    "isActive": true
+  },
+  {
+    "id": "video-3",
+    "videoTitle": "Sosme Apparel Packaging",
+    "videoDescription": "",
+    "category": "Packing & Dispatch",
+    "videoUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/videos/Sosme_packaging.mp4",
+    "localVideoUrl": "/videos/Sosme_packaging.mp4",
+    "thumbnailUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/06-serwell.webp",
+    "displayOrder": 3,
+    "isActive": true
+  },
+  {
+    "id": "video-4",
+    "videoTitle": "Custom Apparel Final Inspection & Packaging",
+    "videoDescription": "",
+    "category": "Quality Checking & Packing",
+    "videoUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/videos/packaging_video.mp4",
+    "localVideoUrl": "/videos/packaging_video.mp4",
+    "thumbnailUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/14-tata-electronics.webp",
+    "displayOrder": 4,
+    "isActive": true
+  }
+]
