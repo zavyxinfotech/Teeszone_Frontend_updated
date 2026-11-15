@@ -209,12 +209,14 @@ export function ProductCard({ product }: { product: Product }) {
               />
               {/* Shaded Overlay & Badge */}
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[1.5px] p-3 text-center">
-                <span className="rounded-full bg-[#80011F] text-white px-3.5 py-1 text-xs font-black uppercase tracking-wider shadow-lg">
-                  Coming Soon
+                <span className="rounded-full bg-[#80011F] text-white px-3.5 py-1 text-xs font-bold tracking-wide shadow-lg inline-flex items-center">
+                  Updating
+                  <span className="inline-flex tracking-normal ml-0.5 font-black text-rose-200">
+                    <span className="animate-pulse [animation-delay:0ms]">.</span>
+                    <span className="animate-pulse [animation-delay:200ms]">.</span>
+                    <span className="animate-pulse [animation-delay:400ms]">.</span>
+                  </span>
                 </span>
-                <p className="mt-1 text-[10px] font-semibold text-rose-100">
-                  Customization arriving soon
-                </p>
               </div>
             </div>
           )}
@@ -284,7 +286,14 @@ export function ProductCard({ product }: { product: Product }) {
         </Link>
       ) : (
         <div className="mt-2.5 sm:mt-3.5 flex w-full items-center justify-center gap-1.5 rounded-lg sm:rounded-xl bg-gray-200 py-1.5 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 cursor-not-allowed select-none border border-gray-300">
-          <span>Coming Soon</span>
+          <span className="inline-flex items-center">
+            Updating
+            <span className="inline-flex tracking-normal ml-0.5">
+              <span className="animate-pulse [animation-delay:0ms]">.</span>
+              <span className="animate-pulse [animation-delay:200ms]">.</span>
+              <span className="animate-pulse [animation-delay:400ms]">.</span>
+            </span>
+          </span>
         </div>
       )}
     </div>

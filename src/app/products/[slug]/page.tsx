@@ -6,7 +6,8 @@ import { offPct } from "@/lib/pricing";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 import { FaqAccordion } from "@/components/product/FaqAccordion";
 import { ProductCard } from "@/components/product/ProductCard";
-import { CustomerReviewsSection } from "@/components/home/CustomerReviewsSection";
+import { ClientPortfolioGallery } from "@/components/portfolio/ClientPortfolioGallery";
+import { ProductionVideosSection } from "@/components/videos/ProductionVideosSection";
 import { Check } from "lucide-react";
 import { site } from "@/lib/site";
 import { Reveal } from "@/components/ui/Reveal";
@@ -105,9 +106,14 @@ export default async function ProductPage({
         </section>
       </Reveal>
 
-      {/* Customer Reviews Section (Continuous Loop Auto-Scroll) */}
+      {/* Real Client Portfolio Gallery */}
+      <div className="-mx-3 sm:-mx-6 mt-12 sm:mt-16">
+        <ClientPortfolioGallery />
+      </div>
+
+      {/* TeesZone Production Footage Showcase */}
       <div className="-mx-3 sm:-mx-6">
-        <CustomerReviewsSection />
+        <ProductionVideosSection />
       </div>
 
       {/* FAQs */}
