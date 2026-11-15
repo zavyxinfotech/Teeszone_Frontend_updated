@@ -161,13 +161,13 @@ export function ClientPortfolioGallery({
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-6 sm:pb-8">
           <div className="max-w-2xl">
-            <span className="text-[11px] sm:text-xs font-bold tracking-[0.2em] uppercase text-[#80011F]">
+            <span className="text-[11px] sm:text-xs font-normal tracking-[0.2em] uppercase text-[#80011F]">
               Real Client Real Work
             </span>
-            <h2 className="mt-1.5 text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-ink">
+            <h2 className="mt-1.5 text-xl sm:text-2xl lg:text-3xl font-normal tracking-tight text-ink">
               {title}
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-body leading-relaxed">
+            <p className="mt-2 text-xs sm:text-sm text-body leading-relaxed font-normal">
               {subtitle}
             </p>
           </div>
@@ -233,39 +233,29 @@ export function ClientPortfolioGallery({
                   className="w-full h-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
                 />
 
-                {/* Subtle Image Gradient Overlay for Readability */}
-                <div
-                  className={`absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent transition-opacity duration-300 pointer-events-none ${
-                    isTapped ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                  }`}
-                />
+                {/* Solid Bottom Gradient Overlay for Readability — Always Visible */}
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
 
                 {/* Zoom Hint Icon in Corner */}
-                <div className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white shadow-sm">
                   <Eye size={14} />
                 </div>
 
-                {/* Client Information: Sliding upward from bottom edge on hover (Description removed per request) */}
-                <div
-                  className={`absolute inset-x-0 bottom-0 z-10 p-4 sm:p-5 text-white transition-all duration-300 ease-out ${
-                    isTapped
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-6 group-hover:opacity-100 group-hover:translate-y-0"
-                  }`}
-                >
+                {/* Client Information: ALWAYS Clearly Visible with High-Contrast Amber Text */}
+                <div className="absolute inset-x-0 bottom-0 z-10 p-3.5 sm:p-4 text-white">
                   {/* Business Sector Tag */}
-                  <span className="inline-block text-[10px] sm:text-[11px] font-bold tracking-widest uppercase text-rose-300 mb-1">
+                  <span className="inline-block text-[10px] sm:text-[11px] font-semibold tracking-widest uppercase text-rose-300 mb-1">
                     {item.businessSector}
                   </span>
 
-                  {/* Client / Company Name */}
-                  <h3 className="text-base sm:text-lg font-extrabold leading-snug tracking-tight text-white line-clamp-2">
+                  {/* Client / Company Name — High Contrast Amber Heading */}
+                  <h3 className="text-sm sm:text-base font-bold leading-snug tracking-tight text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-2">
                     {item.clientName}
                   </h3>
 
                   {/* Tap to Enlarge Hint */}
-                  <span className="mt-2.5 inline-flex items-center gap-1 text-[10px] font-semibold text-rose-200 uppercase tracking-wider">
-                    Click to enlarge view &rarr;
+                  <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-slate-300 uppercase tracking-wider">
+                    Click to enlarge &rarr;
                   </span>
                 </div>
               </div>

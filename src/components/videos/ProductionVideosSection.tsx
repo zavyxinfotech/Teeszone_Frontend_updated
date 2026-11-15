@@ -143,13 +143,13 @@ export function ProductionVideosSection() {
       className="w-full py-10 sm:py-14 border-t border-line/60 bg-slate-50/50"
     >
       <div className="mx-auto max-w-[1320px] px-3 sm:px-6">
-        {/* Header — General heading only, NO description text, NO printing type mention */}
+        {/* Header — General heading only, NO description text, non-bold font */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-6 sm:pb-8">
           <div>
-            <span className="text-[11px] sm:text-xs font-bold tracking-[0.2em] uppercase text-[#80011F]">
+            <span className="text-[11px] sm:text-xs font-normal tracking-[0.2em] uppercase text-[#80011F]">
               Factory Floor
             </span>
-            <h2 className="mt-1.5 text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-ink">
+            <h2 className="mt-1.5 text-xl sm:text-2xl lg:text-3xl font-normal tracking-tight text-ink">
               TeesZone In-House Production Footage
             </h2>
           </div>
@@ -185,25 +185,27 @@ export function ProductionVideosSection() {
           {displayItems.map((vid, idx) => {
             const videoSrc = resolveVideoSrc(vid);
             const posterSrc = resolveThumbnail(vid);
+            // Default to seeking 5th second of video for thumbnail preview
+            const videoWithTime = videoSrc ? `${videoSrc}#t=5` : "";
 
             return (
               <div
                 key={`${vid.id}-${idx}`}
                 onClick={() => setActiveVideo(vid)}
-                className="group relative w-[280px] sm:w-[360px] shrink-0 aspect-[16/10] overflow-hidden select-none cursor-pointer bg-black"
+                className="group relative w-[280px] sm:w-[360px] shrink-0 aspect-[16/10] overflow-hidden select-none cursor-pointer bg-slate-950"
               >
-                {/* Real video preview / HTML5 video element with fallback poster */}
+                {/* Real video preview / HTML5 video element seeking 5th second */}
                 <video
-                  src={videoSrc}
+                  src={videoWithTime}
                   poster={posterSrc}
-                  preload="metadata"
+                  preload="auto"
                   muted
                   playsInline
-                  className="w-full h-full object-cover opacity-85 transition-transform duration-500 ease-out group-hover:scale-105 group-hover:opacity-100"
+                  className="w-full h-full object-cover opacity-90 transition-transform duration-500 ease-out group-hover:scale-105 group-hover:opacity-100"
                 />
 
-                {/* Dark Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent pointer-events-none" />
+                {/* Solid Dark Gradient Overlay for Readability */}
+                <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none" />
 
                 {/* Circular Play Button Icon */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -212,9 +214,15 @@ export function ProductionVideosSection() {
                   </div>
                 </div>
 
-                {/* Video Title Overlay ONLY — NO description text, NO types of printing mention */}
-                <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 text-white z-10 pointer-events-none">
-                  <h3 className="text-sm sm:text-base font-extrabold text-white leading-snug line-clamp-1 tracking-tight">
+                {/* Video Title and Process Text Overlay — Clearly Visible with High Contrast Amber and Badges */}
+                <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 text-white z-10 pointer-events-none">
+                  {/* Manufacturing Process Category Tag */}
+                  <span className="inline-block px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-semibold bg-[#80011F] text-white uppercase tracking-wider mb-1.5 shadow-xs">
+                    {vid.category || "In-House Manufacturing"}
+                  </span>
+
+                  {/* Video Title in High-Contrast Amber */}
+                  <h3 className="text-sm sm:text-base font-bold text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] leading-snug line-clamp-1 tracking-tight">
                     {vid.videoTitle}
                   </h3>
                 </div>
