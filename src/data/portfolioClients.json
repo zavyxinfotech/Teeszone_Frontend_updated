@@ -19,7 +19,7 @@
     "aspectRatio": 0.445,
     "width": 570,
     "height": 1280,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/01-zoho-crm.webp",
+    "imageUrl": "/portfolio/01-zoho-crm.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/01-zoho-crm.webp"
   },
   {
@@ -42,7 +42,7 @@
     "aspectRatio": 0.445,
     "width": 570,
     "height": 1280,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/02-pv-renewable-india-pvtltd.webp",
+    "imageUrl": "/portfolio/02-pv-renewable-india-pvtltd.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/02-pv-renewable-india-pvtltd.webp"
   },
   {
@@ -65,7 +65,7 @@
     "aspectRatio": 1,
     "width": 1200,
     "height": 1200,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/03-briar-tea-bungalows.webp",
+    "imageUrl": "/portfolio/03-briar-tea-bungalows.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/03-briar-tea-bungalows.webp"
   },
   {
@@ -88,7 +88,7 @@
     "aspectRatio": 1.996,
     "width": 1040,
     "height": 521,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/04-rk-academy.webp",
+    "imageUrl": "/portfolio/04-rk-academy.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/04-rk-academy.webp"
   },
   {
@@ -111,7 +111,7 @@
     "aspectRatio": 1.778,
     "width": 1200,
     "height": 675,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/05-vivekanandha-college-of-arts-and-sciencefor-women.webp",
+    "imageUrl": "/portfolio/05-vivekanandha-college-of-arts-and-sciencefor-women.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/05-vivekanandha-college-of-arts-and-sciencefor-women.webp"
   },
   {
@@ -134,7 +134,7 @@
     "aspectRatio": 1.333,
     "width": 1200,
     "height": 900,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/06-serwell.webp",
+    "imageUrl": "/portfolio/06-serwell.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/06-serwell.webp"
   },
   {
@@ -157,7 +157,7 @@
     "aspectRatio": 0.462,
     "width": 739,
     "height": 1600,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/07-magnus.webp",
+    "imageUrl": "/portfolio/07-magnus.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/07-magnus.webp"
   },
   {
@@ -180,7 +180,7 @@
     "aspectRatio": 1.5,
     "width": 1200,
     "height": 800,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/08-skyline-lite-hotels.webp",
+    "imageUrl": "/portfolio/08-skyline-lite-hotels.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/08-skyline-lite-hotels.webp"
   },
   {
@@ -203,7 +203,7 @@
     "aspectRatio": 0.563,
     "width": 720,
     "height": 1280,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/09-holy-cross-high-school.webp",
+    "imageUrl": "/portfolio/09-holy-cross-high-school.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/09-holy-cross-high-school.webp"
   },
   {
@@ -226,7 +226,7 @@
     "aspectRatio": 0.984,
     "width": 1200,
     "height": 1219,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/10-mrf-vapocure-paints.webp",
+    "imageUrl": "/portfolio/10-mrf-vapocure-paints.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/10-mrf-vapocure-paints.webp"
   },
   {
@@ -249,7 +249,7 @@
     "aspectRatio": 0.562,
     "width": 899,
     "height": 1599,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/11-beyomo-salon-comes-home.webp",
+    "imageUrl": "/portfolio/11-beyomo-salon-comes-home.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/11-beyomo-salon-comes-home.webp"
   },
   {
@@ -272,7 +272,7 @@
     "aspectRatio": 0.562,
     "width": 899,
     "height": 1599,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/12-besten-pumps.webp",
+    "imageUrl": "/portfolio/12-besten-pumps.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/12-besten-pumps.webp"
   },
   {
@@ -295,7 +295,7 @@
     "aspectRatio": 0.562,
     "width": 899,
     "height": 1599,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/13-leo.webp",
+    "imageUrl": "/portfolio/13-leo.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/13-leo.webp"
   },
   {
@@ -318,7 +318,7 @@
     "aspectRatio": 0.562,
     "width": 899,
     "height": 1599,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/14-tata-electronics.webp",
+    "imageUrl": "/portfolio/14-tata-electronics.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/14-tata-electronics.webp"
   },
   {
@@ -341,7 +341,7 @@
     "aspectRatio": 0.75,
     "width": 1200,
     "height": 1600,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/15-unify-academy.webp",
+    "imageUrl": "/portfolio/15-unify-academy.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/15-unify-academy.webp"
   },
   {
@@ -364,7 +364,7 @@
     "aspectRatio": 1.5,
     "width": 1200,
     "height": 800,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/16-splash-events.webp",
+    "imageUrl": "/portfolio/16-splash-events.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/16-splash-events.webp"
   },
   {
@@ -387,7 +387,7 @@
     "aspectRatio": 0.783,
     "width": 594,
     "height": 759,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/17-address-developers.webp",
+    "imageUrl": "/portfolio/17-address-developers.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/17-address-developers.webp"
   },
   {
@@ -410,7 +410,7 @@
     "aspectRatio": 1.778,
     "width": 1040,
     "height": 585,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/18-leo.webp",
+    "imageUrl": "/portfolio/18-leo.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/18-leo.webp"
   },
   {
@@ -433,7 +433,7 @@
     "aspectRatio": 0.896,
     "width": 679,
     "height": 758,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/19-hindu-global-school.webp",
+    "imageUrl": "/portfolio/19-hindu-global-school.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/19-hindu-global-school.webp"
   },
   {
@@ -456,7 +456,7 @@
     "aspectRatio": 1.778,
     "width": 1200,
     "height": 675,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/20-hindu-global-school.webp",
+    "imageUrl": "/portfolio/20-hindu-global-school.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/20-hindu-global-school.webp"
   },
   {
@@ -479,7 +479,7 @@
     "aspectRatio": 1.5,
     "width": 1200,
     "height": 800,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/21-asian-paints-painting-service.webp",
+    "imageUrl": "/portfolio/21-asian-paints-painting-service.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/21-asian-paints-painting-service.webp"
   },
   {
@@ -502,7 +502,7 @@
     "aspectRatio": 1.5,
     "width": 1200,
     "height": 800,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/22-aci-workwear-club-twenty.webp",
+    "imageUrl": "/portfolio/22-aci-workwear-club-twenty.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/22-aci-workwear-club-twenty.webp"
   },
   {
@@ -525,7 +525,7 @@
     "aspectRatio": 1.5,
     "width": 1200,
     "height": 800,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/23-vmk-constructions.webp",
+    "imageUrl": "/portfolio/23-vmk-constructions.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/23-vmk-constructions.webp"
   },
   {
@@ -548,7 +548,7 @@
     "aspectRatio": 1.5,
     "width": 1200,
     "height": 800,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/24-modern-motors-multi-car-service.webp",
+    "imageUrl": "/portfolio/24-modern-motors-multi-car-service.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/24-modern-motors-multi-car-service.webp"
   },
   {
@@ -571,7 +571,7 @@
     "aspectRatio": 1.778,
     "width": 1200,
     "height": 675,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/25-pillars-of-hospitality-engineering.webp",
+    "imageUrl": "/portfolio/25-pillars-of-hospitality-engineering.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/25-pillars-of-hospitality-engineering.webp"
   },
   {
@@ -594,7 +594,7 @@
     "aspectRatio": 0.894,
     "width": 1142,
     "height": 1277,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/26-suvai-meat.webp",
+    "imageUrl": "/portfolio/26-suvai-meat.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/26-suvai-meat.webp"
   },
   {
@@ -617,7 +617,7 @@
     "aspectRatio": 1,
     "width": 1200,
     "height": 1200,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/27-aci-workwear-club-twenty.webp",
+    "imageUrl": "/portfolio/27-aci-workwear-club-twenty.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/27-aci-workwear-club-twenty.webp"
   },
   {
@@ -640,7 +640,7 @@
     "aspectRatio": 1.5,
     "width": 1200,
     "height": 800,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/28-singles-network.webp",
+    "imageUrl": "/portfolio/28-singles-network.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/28-singles-network.webp"
   },
   {
@@ -663,7 +663,7 @@
     "aspectRatio": 1.5,
     "width": 1200,
     "height": 800,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/29-helping-hands.webp",
+    "imageUrl": "/portfolio/29-helping-hands.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/29-helping-hands.webp"
   },
   {
@@ -686,7 +686,7 @@
     "aspectRatio": 0.75,
     "width": 1086,
     "height": 1448,
-    "imageUrl": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/30-lazana-hotels.webp",
+    "imageUrl": "/portfolio/30-lazana-hotels.webp",
     "s3Url": "https://teeszone-catalogue-images-2026.s3.ap-southeast-2.amazonaws.com/teeszone/portfolio/30-lazana-hotels.webp"
   }
 ]

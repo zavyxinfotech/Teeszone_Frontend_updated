@@ -69,6 +69,12 @@ export function ImageLightboxModal({
         <img
           src={imageUrl}
           alt={imageAlt}
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (target.src.includes(".webp")) {
+              target.src = target.src.replace(/\.webp$/i, ".png");
+            }
+          }}
           className="max-h-[90vh] max-w-[95vw] sm:max-w-[90vw] w-auto h-auto object-contain pointer-events-auto"
         />
       </div>

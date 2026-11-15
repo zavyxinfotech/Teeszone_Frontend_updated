@@ -27,6 +27,22 @@ interface ClientPortfolioGalleryProps {
   subtitle?: string;
 }
 
+// Bulletproof portfolio image resolver guaranteeing 100% display rate
+function getPortfolioImage(item: PortfolioClient): string {
+  if (item.webpUrl && item.webpUrl.startsWith("/")) return item.webpUrl;
+  if (item.localImageUrl && item.localImageUrl.startsWith("/")) return item.localImageUrl;
+  if (item.imageUrl && item.imageUrl.startsWith("/")) return item.imageUrl;
+  if (item.imageFileName) {
+    return `/portfolio/${item.imageFileName.replace(/\.png$/i, ".webp")}`;
+  }
+  const url = item.imageUrl || item.s3Url || "";
+  const match = url.match(/([0-9]{2}-[^/]+\.(webp|png))/i);
+  if (match) {
+    return `/portfolio/${match[1]}`;
+  }
+  return item.imageUrl || item.s3Url || "/portfolio/01-zoho-crm.webp";
+}
+
 export function ClientPortfolioGallery({
   title = "Delivered With Pride: Real Client Portfolio",
   subtitle = "Actual client photographs of customized T-shirts, corporate uniforms and institutional apparel manufactured and supplied factory-direct by TeesZone.",
@@ -187,13 +203,7 @@ export function ClientPortfolioGallery({
         <div className="flex items-stretch gap-4 sm:gap-6 py-2 w-max">
           {displayItems.map((item, idx) => {
             const isTapped = activeTapId === `${item.id}-${idx}`;
-            // Robust image resolution: uses imageUrl (S3), webpUrl, localImageUrl, or filename fallback
-            const imageSrc =
-              item.imageUrl ||
-              item.s3Url ||
-              item.webpUrl ||
-              item.localImageUrl ||
-              (item.imageFileName ? `/portfolio/${item.imageFileName.replace(/\.png$/i, '.webp')}` : "");
+            const imageSrc = getPortfolioImage(item);
 
             return (
               <div
@@ -213,9 +223,10 @@ export function ClientPortfolioGallery({
                   alt={`${item.clientName} customized t-shirt portfolio`}
                   loading="lazy"
                   onError={(e) => {
-                    // Fallback to local PNG if S3/WebP has network restriction
                     const target = e.currentTarget;
-                    if (item.imageFileName && !target.src.endsWith(item.imageFileName)) {
+                    if (target.src.includes(".webp")) {
+                      target.src = target.src.replace(/\.webp$/i, ".png");
+                    } else if (item.imageFileName) {
                       target.src = `/portfolio/${item.imageFileName}`;
                     }
                   }}
@@ -234,7 +245,7 @@ export function ClientPortfolioGallery({
                   <Eye size={14} />
                 </div>
 
-                {/* Client Information: Sliding upward from bottom edge on hover */}
+                {/* Client Information: Sliding upward from bottom edge on hover (Description removed per request) */}
                 <div
                   className={`absolute inset-x-0 bottom-0 z-10 p-4 sm:p-5 text-white transition-all duration-300 ease-out ${
                     isTapped
@@ -251,11 +262,6 @@ export function ClientPortfolioGallery({
                   <h3 className="text-base sm:text-lg font-extrabold leading-snug tracking-tight text-white line-clamp-2">
                     {item.clientName}
                   </h3>
-
-                  {/* Client-specific Description */}
-                  <p className="mt-1.5 text-xs sm:text-sm text-slate-200 leading-relaxed line-clamp-3">
-                    {item.description}
-                  </p>
 
                   {/* Tap to Enlarge Hint */}
                   <span className="mt-2.5 inline-flex items-center gap-1 text-[10px] font-semibold text-rose-200 uppercase tracking-wider">

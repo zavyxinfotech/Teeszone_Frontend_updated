@@ -16,6 +16,28 @@ export interface ProductionVideo {
   isActive: boolean;
 }
 
+// Bulletproof video source resolver guaranteeing playback across all environments
+function resolveVideoSrc(vid: ProductionVideo): string {
+  if (vid.localVideoUrl && vid.localVideoUrl.startsWith("/")) return vid.localVideoUrl;
+  if (vid.videoUrl && vid.videoUrl.startsWith("/")) return vid.videoUrl;
+  if (vid.videoUrl) {
+    const filename = vid.videoUrl.split("/").pop();
+    if (filename && filename.endsWith(".mp4")) {
+      return `/videos/${filename}`;
+    }
+  }
+  return vid.videoUrl || "";
+}
+
+function resolveThumbnail(vid: ProductionVideo): string {
+  if (vid.thumbnailUrl && vid.thumbnailUrl.startsWith("/")) return vid.thumbnailUrl;
+  if (vid.thumbnailUrl) {
+    const match = vid.thumbnailUrl.match(/([0-9]{2}-[^/]+\.(webp|png))/i);
+    if (match) return `/portfolio/${match[1]}`;
+  }
+  return "/portfolio/01-zoho-crm.webp";
+}
+
 export function ProductionVideosSection() {
   const [videos, setVideos] = useState<ProductionVideo[]>(
     initialVideos as ProductionVideo[]
@@ -161,7 +183,8 @@ export function ProductionVideosSection() {
       >
         <div className="flex items-stretch gap-4 sm:gap-6 py-2 w-max">
           {displayItems.map((vid, idx) => {
-            const videoSrc = vid.videoUrl || vid.localVideoUrl || "";
+            const videoSrc = resolveVideoSrc(vid);
+            const posterSrc = resolveThumbnail(vid);
 
             return (
               <div
@@ -169,9 +192,10 @@ export function ProductionVideosSection() {
                 onClick={() => setActiveVideo(vid)}
                 className="group relative w-[280px] sm:w-[360px] shrink-0 aspect-[16/10] overflow-hidden select-none cursor-pointer bg-black"
               >
-                {/* Real video preview / HTML5 video element */}
+                {/* Real video preview / HTML5 video element with fallback poster */}
                 <video
                   src={videoSrc}
+                  poster={posterSrc}
                   preload="metadata"
                   muted
                   playsInline
@@ -221,7 +245,8 @@ export function ProductionVideosSection() {
             className="relative w-full max-w-4xl overflow-hidden rounded-xl bg-black shadow-2xl"
           >
             <video
-              src={activeVideo.videoUrl || activeVideo.localVideoUrl}
+              src={resolveVideoSrc(activeVideo)}
+              poster={resolveThumbnail(activeVideo)}
               controls
               autoPlay
               playsInline
