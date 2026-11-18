@@ -12,19 +12,12 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "/shop";
 app.prepare().then(() => {
   createServer((req, res) => {
     const parsedUrl = parse(req.url, true);
-    const { pathname } = parsedUrl;
 
-    // If request comes to root without basePath, redirect to /shop
-    if (basePath && (pathname === "/" || pathname === "")) {
-      res.writeHead(301, { Location: `${basePath}/` });
-      res.end();
-      return;
-    }
-
-    // Ensure basePath is present for Next.js router if Passenger stripped it
+    // If Passenger stripped basePath from req.url, restore it so Next.js matches its basePath
     if (basePath && !parsedUrl.pathname.startsWith(basePath)) {
-      req.url = `${basePath}${req.url.startsWith("/") ? "" : "/"}${req.url}`;
-      parsedUrl.pathname = `${basePath}${parsedUrl.pathname.startsWith("/") ? "" : "/"}${parsedUrl.pathname}`;
+      const slash = req.url.startsWith("/") ? "" : "/";
+      req.url = `${basePath}${slash}${req.url}`;
+      parsedUrl.pathname = `${basePath}${slash}${parsedUrl.pathname}`;
     }
 
     handle(req, res, parsedUrl);
