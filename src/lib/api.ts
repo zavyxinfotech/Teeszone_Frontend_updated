@@ -99,13 +99,21 @@ export async function getNavigation(): Promise<Navigation> {
 
 function fixImageUrl(url: string | undefined): string {
   if (!url) return "";
+  const prefix = basePath ? (basePath.startsWith("/") ? basePath : `/${basePath}`) : "";
   if (url.includes("teeszone-catalogue-images-2026") || url.includes("s3.ap-southeast-2.amazonaws.com")) {
     const key = url.replace(/^https?:\/\/[^\/]+\//, "");
-    return `/api/upload/media/${key}`;
+    return `${prefix}/api/upload/media/${key}`;
   }
   if (url.includes("/api/upload/media/")) {
     const idx = url.indexOf("/api/upload/media/");
-    return url.slice(idx);
+    const rel = url.slice(idx);
+    if (prefix && !rel.startsWith(prefix)) {
+      return `${prefix}${rel}`;
+    }
+    return rel;
+  }
+  if (url.startsWith("/") && prefix && !url.startsWith(prefix)) {
+    return `${prefix}${url}`;
   }
   return url;
 }
