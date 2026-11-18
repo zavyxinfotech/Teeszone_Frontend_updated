@@ -20,6 +20,12 @@ app.prepare().then(() => {
       parsedUrl.pathname = `${basePath}${slash}${parsedUrl.pathname}`;
     }
 
+    // Normalize trailing slashes on sub-paths to prevent LiteSpeed/Next.js redirect ping-pong
+    if (parsedUrl.pathname.length > basePath.length + 1 && parsedUrl.pathname.endsWith("/")) {
+      parsedUrl.pathname = parsedUrl.pathname.slice(0, -1);
+      req.url = parsedUrl.pathname + (parsedUrl.search || "");
+    }
+
     handle(req, res, parsedUrl);
   }).listen(port, (err) => {
     if (err) throw err;
