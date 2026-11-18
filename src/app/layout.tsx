@@ -41,6 +41,14 @@ export const metadata: Metadata = {
     siteName: site.name,
     type: "website",
   },
+  icons: {
+    icon: [
+      { url: "/shop/favicon.ico", sizes: "any" },
+      { url: "/shop/icon.png", type: "image/png" },
+    ],
+    shortcut: "/shop/favicon.ico",
+    apple: "/shop/icon.png",
+  },
 };
 
 export default async function RootLayout({

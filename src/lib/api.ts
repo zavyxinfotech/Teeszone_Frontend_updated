@@ -12,6 +12,7 @@ import type {
   Segment,
 } from "@/lib/types";
 import defaultCustomizationColors from "@/data/customizationColors.json";
+import { assetUrl, basePath } from "@/lib/site";
 
 export const DEFAULT_CUSTOMIZATION_COLORS: CustomizationColorModel[] = defaultCustomizationColors.map((c, i) => ({
   id: `ccm-${c.slug}`,
@@ -32,8 +33,8 @@ export const DEFAULT_AEROSOFT_3D_MODELS: ProductColorModel[] = [
     productId: "p-aerosoft-polo-200",
     colorName: "Black",
     colorHex: "#26282D",
-    frontModelUrl: "/products/polo-black-front-3d.png",
-    backModelUrl: "/products/polo-black-back-3d.png",
+    frontModelUrl: assetUrl("/products/polo-black-front-3d.png"),
+    backModelUrl: assetUrl("/products/polo-black-back-3d.png"),
     s3ObjectKey: "products/aerosoft-polo-200/3d-models/black/front.png",
     isActive: true,
   },
@@ -42,8 +43,8 @@ export const DEFAULT_AEROSOFT_3D_MODELS: ProductColorModel[] = [
     productId: "p-aerosoft-polo-200",
     colorName: "White",
     colorHex: "#FFFFFF",
-    frontModelUrl: "/products/polo-white-front-3d.png",
-    backModelUrl: "/products/polo-white-back-3d.png",
+    frontModelUrl: assetUrl("/products/polo-white-front-3d.png"),
+    backModelUrl: assetUrl("/products/polo-white-back-3d.png"),
     s3ObjectKey: "products/aerosoft-polo-200/3d-models/white/front.png",
     isActive: true,
   },
@@ -52,8 +53,8 @@ export const DEFAULT_AEROSOFT_3D_MODELS: ProductColorModel[] = [
     productId: "p-aerosoft-polo-200",
     colorName: "True Navy",
     colorHex: "#3F5277",
-    frontModelUrl: "/products/polo-true-navy-front-3d.png",
-    backModelUrl: "/products/polo-true-navy-back-3d.png",
+    frontModelUrl: assetUrl("/products/polo-true-navy-front-3d.png"),
+    backModelUrl: assetUrl("/products/polo-true-navy-back-3d.png"),
     s3ObjectKey: "products/aerosoft-polo-200/3d-models/true-navy/front.png",
     isActive: true,
   },
@@ -62,8 +63,8 @@ export const DEFAULT_AEROSOFT_3D_MODELS: ProductColorModel[] = [
     productId: "p-aerosoft-polo-200",
     colorName: "Light Grey Melange",
     colorHex: "#CCCAC9",
-    frontModelUrl: "/products/polo-light-grey-front-3d.png",
-    backModelUrl: "/products/polo-light-grey-back-3d.png",
+    frontModelUrl: assetUrl("/products/polo-light-grey-front-3d.png"),
+    backModelUrl: assetUrl("/products/polo-light-grey-back-3d.png"),
     s3ObjectKey: "products/aerosoft-polo-200/3d-models/light-grey-melange/front.png",
     isActive: true,
   },

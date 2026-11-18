@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
+import { assetUrl } from "@/lib/site";
 import type { ShopByRangeContent } from "@/lib/types";
 
 const defaultFeature = {
@@ -9,14 +10,14 @@ const defaultFeature = {
   text: "Premium zip and non-zip hoodies — warm, durable and retail-grade.",
   href: "/collections/unisex-hoodie-zip-325",
   buttonText: "Shop Hoodies",
-  image: "/shop-by-range/shop_by_range_hoodies.webp",
+  image: assetUrl("/shop-by-range/shop_by_range_hoodies.webp"),
 };
 
 const defaultTiles = [
-  { title: "Men", href: "/collections/mens-rn-half-180", image: "/shop-by-range/shop_by_range_men.webp", buttonText: "Shop now", sale: false },
-  { title: "Women", href: "/collections/womens-rn-half-180", image: "/shop-by-range/shop_by_range_women.webp", buttonText: "Shop now", sale: false },
-  { title: "Kids", href: "/collections/kids-rn-half-180", image: "/shop-by-range/shop_by_range_kids.webp", buttonText: "Shop now", sale: false },
-  { title: "Mega Sale", href: "/collections/mega-sale", image: "/shop-by-range/shop_by_range_mega_sale.webp", buttonText: "Shop now", sale: true },
+  { title: "Men", href: "/collections/mens-rn-half-180", image: assetUrl("/shop-by-range/shop_by_range_men.webp"), buttonText: "Shop now", sale: false },
+  { title: "Women", href: "/collections/womens-rn-half-180", image: assetUrl("/shop-by-range/shop_by_range_women.webp"), buttonText: "Shop now", sale: false },
+  { title: "Kids", href: "/collections/kids-rn-half-180", image: assetUrl("/shop-by-range/shop_by_range_kids.webp"), buttonText: "Shop now", sale: false },
+  { title: "Mega Sale", href: "/collections/mega-sale", image: assetUrl("/shop-by-range/shop_by_range_mega_sale.webp"), buttonText: "Shop now", sale: true },
 ];
 
 export function ShopByRange({ content }: { content?: ShopByRangeContent }) {
@@ -39,7 +40,7 @@ export function ShopByRange({ content }: { content?: ShopByRangeContent }) {
               className="group relative flex h-full min-h-72 items-end overflow-hidden bg-white"
             >
               <Image
-                src={feature.image}
+                src={assetUrl(feature.image)}
                 alt={feature.title}
                 width={640}
                 height={640}
@@ -68,7 +69,7 @@ export function ShopByRange({ content }: { content?: ShopByRangeContent }) {
                   className="group relative flex h-full min-h-40 items-end overflow-hidden bg-white"
                 >
                   <Image
-                    src={t.image}
+                    src={assetUrl(t.image)}
                     alt={t.title}
                     width={400}
                     height={400}

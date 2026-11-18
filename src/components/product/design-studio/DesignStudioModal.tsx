@@ -44,6 +44,7 @@ import {
 } from "./canvasUtils";
 import { generateAndDownloadBrandedMockup } from "@/lib/mockupDownload";
 import { logCustomerActivity } from "@/lib/activity";
+import { assetUrl } from "@/lib/site";
 
 export interface StudioElement {
   id: string;
@@ -154,8 +155,8 @@ export const SPREADSHEET_3D_COLORS: ProductColor[] = (customizationColorsData as
 }>).map((c) => ({
   name: c.name,
   hex: c.hex,
-  image: c.frontModelUrl || c.s3FrontUrl,
-  backImage: c.backModelUrl || c.s3BackUrl,
+  image: assetUrl(c.frontModelUrl || c.s3FrontUrl),
+  backImage: assetUrl(c.backModelUrl || c.s3BackUrl),
 }));
 
 export const POLO_3D_COLORS = SPREADSHEET_3D_COLORS;
@@ -174,8 +175,8 @@ export function getPolo3DModel(colorName?: string, colorHex?: string): { front: 
   );
   if (byName) {
     return {
-      front: byName.image,
-      back: byName.backImage || byName.image,
+      front: assetUrl(byName.image),
+      back: assetUrl(byName.backImage || byName.image),
     };
   }
 
@@ -183,34 +184,34 @@ export function getPolo3DModel(colorName?: string, colorHex?: string): { front: 
   const byHex = SPREADSHEET_3D_COLORS.find((c) => c.hex.toLowerCase() === hex);
   if (byHex) {
     return {
-      front: byHex.image,
-      back: byHex.backImage || byHex.image,
+      front: assetUrl(byHex.image),
+      back: assetUrl(byHex.backImage || byHex.image),
     };
   }
 
   // 3. Fallbacks
   if (name.includes("white") || hex === "#ffffff" || hex === "#f1f2f4") {
     return {
-      front: "/customization/tshirts/white/front.png",
-      back: "/customization/tshirts/white/back.png",
+      front: assetUrl("/customization/tshirts/white/front.png"),
+      back: assetUrl("/customization/tshirts/white/back.png"),
     };
   }
   if (name.includes("navy") || hex === "#3f5277" || hex === "#1e3a5f" || hex === "#28334a") {
     return {
-      front: "/customization/tshirts/navy-melange/front.png",
-      back: "/customization/tshirts/navy-melange/back.png",
+      front: assetUrl("/customization/tshirts/navy-melange/front.png"),
+      back: assetUrl("/customization/tshirts/navy-melange/back.png"),
     };
   }
   if (name.includes("grey") || name.includes("gray") || hex === "#cccac9" || hex === "#767873") {
     return {
-      front: "/customization/tshirts/light-grey-melange/front.png",
-      back: "/customization/tshirts/light-grey-melange/back.png",
+      front: assetUrl("/customization/tshirts/light-grey-melange/front.png"),
+      back: assetUrl("/customization/tshirts/light-grey-melange/back.png"),
     };
   }
 
   return {
-    front: "/customization/tshirts/black/front.png",
-    back: "/customization/tshirts/black/back.png",
+    front: assetUrl("/customization/tshirts/black/front.png"),
+    back: assetUrl("/customization/tshirts/black/back.png"),
   };
 }
 
