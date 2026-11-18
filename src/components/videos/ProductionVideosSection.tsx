@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Play, X, ChevronLeft, ChevronRight } from "lucide-react";
 import initialVideos from "@/data/productionVideos.json";
+import { assetUrl } from "@/lib/site";
 
 export interface ProductionVideo {
   id: string;
@@ -18,24 +19,24 @@ export interface ProductionVideo {
 
 // Bulletproof video source resolver guaranteeing playback across all environments
 function resolveVideoSrc(vid: ProductionVideo): string {
-  if (vid.localVideoUrl && vid.localVideoUrl.startsWith("/")) return vid.localVideoUrl;
-  if (vid.videoUrl && vid.videoUrl.startsWith("/")) return vid.videoUrl;
+  if (vid.localVideoUrl && vid.localVideoUrl.startsWith("/")) return assetUrl(vid.localVideoUrl);
+  if (vid.videoUrl && vid.videoUrl.startsWith("/")) return assetUrl(vid.videoUrl);
   if (vid.videoUrl) {
     const filename = vid.videoUrl.split("/").pop();
     if (filename && filename.endsWith(".mp4")) {
-      return `/videos/${filename}`;
+      return assetUrl(`/videos/${filename}`);
     }
   }
   return vid.videoUrl || "";
 }
 
 function resolveThumbnail(vid: ProductionVideo): string {
-  if (vid.thumbnailUrl && vid.thumbnailUrl.startsWith("/")) return vid.thumbnailUrl;
+  if (vid.thumbnailUrl && vid.thumbnailUrl.startsWith("/")) return assetUrl(vid.thumbnailUrl);
   if (vid.thumbnailUrl) {
     const match = vid.thumbnailUrl.match(/([0-9]{2}-[^/]+\.(webp|png))/i);
-    if (match) return `/portfolio/${match[1]}`;
+    if (match) return assetUrl(`/portfolio/${match[1]}`);
   }
-  return "/portfolio/01-zoho-crm.webp";
+  return assetUrl("/portfolio/01-zoho-crm.webp");
 }
 
 export function ProductionVideosSection() {

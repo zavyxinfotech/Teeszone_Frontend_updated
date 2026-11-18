@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "/shop";
+
 const nextConfig: NextConfig = {
+  ...(basePath ? { basePath } : {}),
   compress: true,
   // A stray lockfile in the home directory confuses workspace-root inference.
   turbopack: { root: __dirname },

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import initialClientsData from "@/data/portfolioClients.json";
 import { ImageLightboxModal } from "./ImageLightboxModal";
+import { assetUrl } from "@/lib/site";
 
 export interface PortfolioClient {
   id: string;
@@ -29,18 +30,18 @@ interface ClientPortfolioGalleryProps {
 
 // Bulletproof portfolio image resolver guaranteeing 100% display rate
 function getPortfolioImage(item: PortfolioClient): string {
-  if (item.webpUrl && item.webpUrl.startsWith("/")) return item.webpUrl;
-  if (item.localImageUrl && item.localImageUrl.startsWith("/")) return item.localImageUrl;
-  if (item.imageUrl && item.imageUrl.startsWith("/")) return item.imageUrl;
+  if (item.webpUrl && item.webpUrl.startsWith("/")) return assetUrl(item.webpUrl);
+  if (item.localImageUrl && item.localImageUrl.startsWith("/")) return assetUrl(item.localImageUrl);
+  if (item.imageUrl && item.imageUrl.startsWith("/")) return assetUrl(item.imageUrl);
   if (item.imageFileName) {
-    return `/portfolio/${item.imageFileName.replace(/\.png$/i, ".webp")}`;
+    return assetUrl(`/portfolio/${item.imageFileName.replace(/\.png$/i, ".webp")}`);
   }
   const url = item.imageUrl || item.s3Url || "";
   const match = url.match(/([0-9]{2}-[^/]+\.(webp|png))/i);
   if (match) {
-    return `/portfolio/${match[1]}`;
+    return assetUrl(`/portfolio/${match[1]}`);
   }
-  return item.imageUrl || item.s3Url || "/portfolio/01-zoho-crm.webp";
+  return item.imageUrl || item.s3Url || assetUrl("/portfolio/01-zoho-crm.webp");
 }
 
 export function ClientPortfolioGallery({

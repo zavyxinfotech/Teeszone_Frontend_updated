@@ -18,6 +18,16 @@ export const site = {
   url: "https://teeszone.in",
 };
 
+export const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "/shop";
+
+export function assetUrl(path: string): string {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) return path;
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  if (basePath && (clean === basePath || clean.startsWith(`${basePath}/`))) return clean;
+  return `${basePath}${clean}`;
+}
+
 export function waLink(message: string): string {
   return `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
