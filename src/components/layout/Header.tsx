@@ -9,6 +9,7 @@ import type { Collection, Segment } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
+import { assetUrl } from "@/lib/site";
 
 // nav underline
 const topLink =
@@ -88,7 +89,7 @@ export function Header({
 
         <Link href="/" aria-label="TeesZone home" className="shrink-0">
           <Image
-            src="/logo.webp"
+            src={assetUrl("/logo.webp")}
             alt="TeesZone — elevate your style with custom tees"
             width={168}
             height={33}

@@ -12,6 +12,7 @@ import {
   Sparkles,
   Scan,
 } from "lucide-react";
+import { assetUrl } from "@/lib/site";
 
 interface BrandDesignerModalProps {
   isOpen: boolean;
@@ -418,7 +419,7 @@ export function BrandDesignerModal({
           <div className="flex items-center justify-between px-5 sm:px-7 py-3 sm:py-3.5 border-b border-rose-100 bg-white shrink-0 pr-14">
             <div className="flex items-center gap-2">
               <Image
-                src="/logo.webp"
+                src={assetUrl("/logo.webp")}
                 alt="TeesZone — elevate your style with custom tees"
                 width={150}
                 height={30}

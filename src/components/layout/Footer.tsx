@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Phone, Mail, MessageCircle, Clock } from "lucide-react";
-import { site, waLink, defaultWaMessage } from "@/lib/site";
+import { site, waLink, defaultWaMessage, assetUrl } from "@/lib/site";
 import type { Segment } from "@/lib/types";
 import { NewsletterForm } from "@/components/layout/NewsletterForm";
 
@@ -18,7 +18,7 @@ export function Footer({ segments }: { segments: Segment[] }) {
       <div className="mx-auto grid max-w-[1320px] gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-5 text-center md:text-left">
         <div className="flex flex-col items-center md:items-start lg:col-span-2">
           <Image
-            src="/logo.webp"
+            src={assetUrl("/logo.webp")}
             alt="TeesZone"
             width={168}
             height={33}
